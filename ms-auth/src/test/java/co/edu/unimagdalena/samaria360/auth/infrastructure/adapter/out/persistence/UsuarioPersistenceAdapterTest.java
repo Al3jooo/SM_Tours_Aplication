@@ -36,7 +36,8 @@ class UsuarioPersistenceAdapterTest {
 
     @BeforeEach
     void restablecerEstadoDeLogin() {
-        jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, estado_cuenta = 'Activo'");
+        jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, estado_cuenta = 'Activo'"
+                + " WHERE correo <> 'prestador2@samaria360.test'"); // prestador2 es Inactivo por semilla (V3)
     }
 
     @Test
@@ -44,7 +45,7 @@ class UsuarioPersistenceAdapterTest {
         // Si ddl-auto=validate fallara, el contexto no habría arrancado.
         assertThat(jdbc.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank", String.class))
-                .containsExactly("1", "2");
+                .containsExactly("1", "2", "3");
     }
 
     @Test

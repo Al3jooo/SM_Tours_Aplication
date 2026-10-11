@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Mismo parent que ms-auth (ver comentario y ADR pendiente sobre la línea 3.5 en ms-auth/pom.xml). -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.16</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>co.edu.unimagdalena.samaria360</groupId>
+    <artifactId>ms-catalog</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <name>ms-catalog</name>
+    <description>Samaria360 - Microservicio de catálogo turístico (arquitectura hexagonal, MongoDB)</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <!-- No gestionadas por el BOM de Spring Boot: versión explícita -->
+        <springdoc.version>2.8.16</springdoc.version>
+        <archunit.version>1.4.2</archunit.version>
+    </properties>
+
+    <dependencies>
+        <!-- ============ Adaptador de entrada: API REST de búsqueda ============ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <!-- Validación de los parámetros de búsqueda (@Min, @Max, @PositiveOrZero) -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- ============ Adaptador de salida: MongoDB (catalog_db) ============ -->
+        <dependency>
+            <!-- Spring Data MongoDB + driver: consultas geoespaciales ($geoNear, 2dsphere) -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+
+        <!-- ============ Seguridad: valida el JWT RS256 emitido por ms-auth (vía JWKS) ============ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- ============ Operación y contrato ============ -->
+        <dependency>
+            <!-- /actuator/health para los healthchecks de docker-compose -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <!-- Contrato OpenAPI del servicio (evidencia para la Vista de Implementación) -->
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+
+        <!-- ============ Pruebas ============ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- MongoDB real en pruebas de integración (@ServiceConnection) -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- mongo:7.0, la misma imagen de docker-compose: ejecuta los scripts de infra/mongo/init -->
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mongodb</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- Reglas que fallan si domain/ o application/ dependen de Spring o de MongoDB -->
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>${archunit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
