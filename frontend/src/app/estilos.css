@@ -1,0 +1,693 @@
+/* =========================================================================
+   Samaria360 — identidad visual «Santa Marta» (ver Guía visual en frontend/README.md)
+   Mar Caribe, Sierra Nevada, café y atardecer. CSS propio, sin librerías.
+   Los contrastes AA de los pares de texto los verifica src/app/tokens.test.ts.
+   ========================================================================= */
+
+:root {
+  /* --- Color: neutros --- */
+  --color-tinta: #14272d; /* texto principal */
+  --color-tinta-suave: #4a5e63; /* texto secundario */
+  --color-arena: #fbf6ee; /* fondo de página */
+  --color-arena-200: #f3eadb; /* superficies tenues */
+  --color-superficie: #ffffff; /* tarjetas, menú, campos */
+  --color-borde: #e2d9ca; /* separadores (decorativo) */
+  --color-borde-campo: #7c8d91; /* borde de campos: contraste no textual ≥ 3:1 */
+  --color-deshabilitado: #5c6d71; /* elementos «Próximamente» */
+
+  /* --- Color: mar Caribe --- */
+  --color-mar-900: #073b44;
+  --color-mar-700: #0b6574; /* enlaces, estados activos, foco */
+  --color-mar-500: #1497a6; /* solo decorativo */
+  --color-mar-100: #dcf1f2;
+
+  /* --- Color: atardecer, sol, café y Sierra --- */
+  --color-atardecer-700: #a83a17;
+  --color-atardecer-600: #c2461f; /* botón principal */
+  --color-atardecer-500: #e2603a; /* solo decorativo */
+  --color-sol-400: #f4b740; /* foco sobre fondos oscuros, anillo del avatar */
+  --color-sol-100: #fdf1d6;
+  --color-cafe-700: #6a3e1e;
+  --color-sierra-700: #2e6a4e; /* decorativo; éxito en pantallas futuras */
+
+  /* --- Color: estados y pie --- */
+  --color-error: #b42318;
+  --color-error-fondo: #fdecea;
+  --color-pie-texto: #e8f3f3;
+  --color-pie-suave: #a9ced2;
+
+  /* --- Tipografía --- */
+  --fuente-titulos: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --fuente-texto: 'Figtree Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --texto-xs: 0.75rem;
+  --texto-sm: 0.875rem;
+  --texto-base: 1rem;
+  --texto-lg: 1.125rem;
+  --texto-xl: 1.375rem;
+  --texto-2xl: 1.75rem;
+  --texto-3xl: clamp(2rem, 4vw, 2.75rem);
+  --interlineado: 1.55;
+  --interlineado-titulos: 1.15;
+
+  /* --- Espaciado (base 4 px) --- */
+  --espacio-1: 0.25rem;
+  --espacio-2: 0.5rem;
+  --espacio-3: 0.75rem;
+  --espacio-4: 1rem;
+  --espacio-5: 1.5rem;
+  --espacio-6: 2rem;
+  --espacio-7: 3rem;
+  --espacio-8: 4rem;
+  --espacio-9: 6rem;
+
+  /* --- Radios --- */
+  --radio-sm: 8px;
+  --radio-md: 14px;
+  --radio-lg: 24px;
+  --radio-pill: 999px;
+
+  /* --- Sombras (tinte del mar) --- */
+  --sombra-1: 0 1px 2px rgb(7 59 68 / 8%), 0 1px 3px rgb(7 59 68 / 6%);
+  --sombra-2: 0 10px 30px -12px rgb(7 59 68 / 22%), 0 2px 6px rgb(7 59 68 / 6%);
+  --sombra-3: 0 18px 48px -16px rgb(7 59 68 / 32%), 0 4px 12px rgb(7 59 68 / 8%);
+
+  /* --- Movimiento y foco --- */
+  --transicion: 160ms ease-out;
+  --foco: 3px solid var(--color-mar-700);
+
+  /* --- Maquetación --- */
+  --ancho-maximo: 76rem;
+  --alto-encabezado: 4.25rem;
+
+  color-scheme: light;
+  font-family: var(--fuente-texto);
+  font-size: 100%;
+  line-height: var(--interlineado);
+  color: var(--color-tinta);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* =========================== Base =========================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-arena);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--fuente-titulos);
+  font-optical-sizing: auto;
+  line-height: var(--interlineado-titulos);
+  color: var(--color-tinta);
+}
+
+::selection {
+  background: var(--color-sol-100);
+  color: var(--color-tinta);
+}
+
+:focus-visible {
+  outline: var(--foco);
+  outline-offset: 2px;
+}
+
+button {
+  font: inherit;
+}
+
+svg {
+  flex: none;
+}
+
+.solo-lector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.saltar-contenido {
+  position: absolute;
+  top: -100%;
+  left: var(--espacio-4);
+  z-index: 20;
+  padding: var(--espacio-2) var(--espacio-4);
+  border-radius: var(--radio-pill);
+  background: var(--color-mar-700);
+  color: var(--color-superficie);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.saltar-contenido:focus {
+  top: var(--espacio-2);
+}
+
+.pagina {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.contenido {
+  flex: 1;
+  width: 100%;
+  max-width: var(--ancho-maximo);
+  margin: 0 auto;
+  padding: var(--espacio-6) var(--espacio-4) var(--espacio-9);
+}
+
+.contenido:focus {
+  outline: none;
+}
+
+.estado-carga {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  color: var(--color-tinta-suave);
+}
+
+.estado-carga::before {
+  content: '';
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 3px solid var(--color-mar-100);
+  border-top-color: var(--color-mar-700);
+  border-radius: 50%;
+  animation: girar 800ms linear infinite;
+}
+
+/* ===== Elementos fuera de alcance: visibles, enfocables, «Próximamente» ===== */
+
+.deshabilitado {
+  color: var(--color-deshabilitado);
+  cursor: not-allowed;
+}
+
+.insignia-proximamente {
+  display: inline-block;
+  margin-left: var(--espacio-2);
+  padding: 0.1rem var(--espacio-2);
+  border-radius: var(--radio-pill);
+  background: var(--color-sol-100);
+  color: var(--color-cafe-700);
+  font-size: var(--texto-xs);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  text-decoration: none;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.enlace-deshabilitado {
+  color: var(--color-deshabilitado);
+  cursor: default;
+}
+
+/* =========================== Logo =========================== */
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  color: var(--color-tinta);
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-xl);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.marca-samaria {
+  border-radius: 9px;
+  box-shadow: var(--sombra-1);
+}
+
+/* ======================== Encabezado ======================== */
+
+.encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--color-borde);
+  background: rgb(251 246 238 / 88%);
+  backdrop-filter: saturate(140%) blur(10px);
+}
+
+.encabezado__contenido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3) var(--espacio-6);
+  max-width: var(--ancho-maximo);
+  min-height: var(--alto-encabezado);
+  margin: 0 auto;
+  padding: var(--espacio-2) var(--espacio-4);
+}
+
+.navegacion {
+  flex: 1;
+  min-width: 0;
+}
+
+.navegacion ul {
+  display: flex;
+  gap: var(--espacio-1) var(--espacio-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navegacion a,
+.navegacion button {
+  display: inline-block;
+  padding: var(--espacio-2) 0;
+  border: 0;
+  background: none;
+  font-size: var(--texto-sm);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navegacion a {
+  position: relative;
+  color: var(--color-tinta);
+  transition: color var(--transicion);
+}
+
+.navegacion a::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0.2rem;
+  left: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-mar-700);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transicion);
+}
+
+.navegacion a:hover {
+  color: var(--color-mar-700);
+}
+
+.navegacion a:hover::after,
+.navegacion a.active::after {
+  transform: scaleX(1);
+}
+
+.navegacion a.active {
+  color: var(--color-mar-700);
+  font-weight: 650;
+}
+
+.encabezado__acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+/* Selector de idioma: control segmentado tipo píldora */
+.selector-idioma {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1.5px solid var(--color-mar-700);
+  border-radius: var(--radio-pill);
+  background: var(--color-superficie);
+}
+
+.selector-idioma button {
+  min-width: 2.75rem;
+  padding: var(--espacio-1) var(--espacio-3);
+  border: 0;
+  border-radius: var(--radio-pill);
+  background: none;
+  color: var(--color-mar-700);
+  font-size: var(--texto-sm);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    background-color var(--transicion),
+    color var(--transicion);
+}
+
+.selector-idioma button:hover {
+  background: var(--color-mar-100);
+}
+
+.selector-idioma button[aria-pressed='true'] {
+  background: var(--color-mar-700);
+  color: var(--color-superficie);
+}
+
+.boton-icono {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+}
+
+/* ===================== Avatar y menú ===================== */
+
+.menu-usuario {
+  position: relative;
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-mar-900);
+  box-shadow:
+    0 0 0 2px var(--color-arena),
+    0 0 0 4px var(--color-sol-400);
+  color: var(--color-superficie);
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-base);
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform var(--transicion);
+}
+
+.avatar:hover {
+  transform: scale(1.05);
+}
+
+.avatar[aria-expanded='true'] {
+  box-shadow:
+    0 0 0 2px var(--color-arena),
+    0 0 0 4px var(--color-atardecer-500);
+}
+
+.menu-usuario__panel {
+  position: absolute;
+  top: calc(100% + var(--espacio-3));
+  right: 0;
+  z-index: 15;
+  min-width: 15rem;
+  padding: var(--espacio-4);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-3);
+  transform-origin: top right;
+  animation: aparecer var(--transicion);
+}
+
+.menu-usuario__nombre {
+  margin: 0;
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-lg);
+  font-weight: 600;
+}
+
+.menu-usuario__correo {
+  margin: var(--espacio-1) 0 var(--espacio-3);
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-sm);
+  overflow-wrap: anywhere;
+}
+
+.menu-usuario__panel ul {
+  margin: 0;
+  padding: var(--espacio-2) 0 0;
+  border-top: 1px solid var(--color-borde);
+  list-style: none;
+}
+
+.menu-usuario__panel [role='menuitem'] {
+  width: 100%;
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 0;
+  border-radius: var(--radio-sm);
+  background: none;
+  color: var(--color-tinta);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transicion);
+}
+
+.menu-usuario__panel [role='menuitem']:hover,
+.menu-usuario__panel [role='menuitem']:focus-visible {
+  background: var(--color-mar-100);
+  color: var(--color-mar-900);
+}
+
+/* ===================== Inicio provisional ===================== */
+
+.inicio-provisional {
+  position: relative;
+  overflow: hidden;
+  padding: var(--espacio-7) var(--espacio-6) var(--espacio-8);
+  border-radius: var(--radio-lg);
+  background:
+    radial-gradient(circle at 92% 8%, var(--color-sol-100) 0 18%, transparent 45%),
+    linear-gradient(135deg, var(--color-mar-100), var(--color-arena) 70%);
+  box-shadow: var(--sombra-2);
+  animation: subir 320ms ease-out;
+}
+
+.inicio-provisional__decoracion {
+  margin-bottom: var(--espacio-4);
+}
+
+.inicio-provisional__decoracion .marca-samaria {
+  border-radius: 20px;
+  box-shadow: var(--sombra-2);
+}
+
+.inicio-provisional h1 {
+  margin: 0 0 var(--espacio-3);
+  color: var(--color-mar-900);
+  font-size: var(--texto-3xl);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.inicio-provisional h1:focus {
+  outline: none;
+}
+
+.inicio-provisional p {
+  max-width: 38rem;
+  margin: 0;
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-lg);
+}
+
+.inicio-provisional__ola {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2.5rem;
+  color: var(--color-mar-500);
+  opacity: 0.18;
+}
+
+/* ======================= Pie de página ======================= */
+
+.pie {
+  position: relative;
+  margin-top: var(--espacio-6);
+  background: var(--color-mar-900);
+  color: var(--color-pie-texto);
+  font-size: var(--texto-sm);
+  /* Sobre el mar oscuro el foco es sol (6,81:1). Se redefine --foco porque se resuelve en :root. */
+  --foco: 3px solid var(--color-sol-400);
+}
+
+.pie__ola {
+  position: absolute;
+  bottom: calc(100% - 1px);
+  left: 0;
+  width: 100%;
+  height: 2.5rem;
+  color: var(--color-mar-900);
+}
+
+.pie__contenido {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: var(--espacio-6) var(--espacio-5);
+  max-width: var(--ancho-maximo);
+  margin: 0 auto;
+  padding: var(--espacio-7) var(--espacio-4) var(--espacio-6);
+}
+
+.logo--pie {
+  align-self: start;
+  margin: 0;
+  color: var(--color-pie-texto);
+}
+
+.pie__columna h2 {
+  margin: 0 0 var(--espacio-3);
+  color: var(--color-pie-texto);
+  font-size: var(--texto-base);
+  font-weight: 600;
+}
+
+.pie__columna ul {
+  display: grid;
+  gap: var(--espacio-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pie .enlace-deshabilitado {
+  color: var(--color-pie-suave);
+}
+
+.pie__derechos {
+  max-width: var(--ancho-maximo);
+  margin: 0 auto;
+  padding: var(--espacio-4) var(--espacio-4) var(--espacio-7);
+  border-top: 1px solid rgb(232 243 243 / 14%);
+  color: var(--color-pie-suave);
+  font-size: var(--texto-xs);
+}
+
+/* ============ Botón flotante del asistente (RF04) ============ */
+
+.boton-asistente {
+  position: fixed;
+  right: var(--espacio-4);
+  bottom: var(--espacio-4);
+  z-index: 8;
+}
+
+.boton-asistente button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  padding: var(--espacio-2) var(--espacio-4) var(--espacio-2) var(--espacio-3);
+  border: 1.5px solid var(--color-mar-700);
+  border-radius: var(--radio-pill);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-3);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+}
+
+.boton-asistente svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0.3rem;
+  border-radius: 50%;
+  background: var(--color-mar-100);
+  color: var(--color-mar-700);
+}
+
+/* ======================== Animaciones ======================== */
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ======================== Responsivo ======================== */
+
+@media (max-width: 40rem) {
+  .encabezado__contenido {
+    gap: var(--espacio-2) var(--espacio-3);
+  }
+
+  .logo {
+    font-size: var(--texto-lg);
+  }
+
+  .encabezado__acciones {
+    margin-left: auto;
+  }
+
+  /* La navegación baja a una segunda fila y se desplaza horizontalmente, sin scroll de página. */
+  .navegacion {
+    order: 3;
+    flex-basis: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .navegacion ul {
+    gap: var(--espacio-4);
+  }
+
+  .contenido {
+    padding-top: var(--espacio-5);
+  }
+
+  .inicio-provisional {
+    padding: var(--espacio-6) var(--espacio-5) var(--espacio-8);
+  }
+
+  /* En móvil el botón flotante muestra solo el icono; el nombre sigue disponible para lectores. */
+  .boton-asistente button {
+    padding: var(--espacio-2);
+  }
+
+  .boton-asistente button > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
