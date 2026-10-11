@@ -1,0 +1,79 @@
+{
+  "comun": {
+    "proximamente": "Coming soon",
+    "cargando": "Loading…",
+    "saltarAlContenido": "Skip to content"
+  },
+  "encabezado": {
+    "inicio": "Samaria360, go to home",
+    "navegacion": "Main navigation",
+    "inicioSesion": "Sign in",
+    "busqueda": "Search",
+    "servicios": "Services",
+    "asistente": "AI Assistant",
+    "buscar": "Search",
+    "idioma": "Language",
+    "espanol": "Spanish",
+    "ingles": "English",
+    "menuUsuario": "User menu for {{nombre}}",
+    "cerrarSesion": "Sign out"
+  },
+  "login": {
+    "titulo": "Samaria360",
+    "subtitulo": "Santa Marta tourism platform",
+    "pestanas": "Account access",
+    "pestanaIniciar": "Sign in",
+    "pestanaRegistrarse": "Sign up",
+    "introduccion": "Sign in with the email you registered with or create a new account.",
+    "tarjeta": "Sign in to your account",
+    "correo": "Email",
+    "correoPlaceholder": "name@email.com",
+    "contrasena": "Password",
+    "contrasenaPlaceholder": "At least 8 characters",
+    "olvido": "Forgot your password?",
+    "avisoIntentos": "3 failed attempts will lock the account for 15 minutes.",
+    "boton": "Sign in",
+    "enviando": "Signing in…",
+    "legal": "By signing in you accept the Terms, Conditions and Privacy Policies and the data processing of Samaria360.",
+    "plataforma": "Platform",
+    "explorarDestinos": "Explore destinations",
+    "rutasExperiencias": "Routes and experiences",
+    "prestadores": "Service providers",
+    "campoObligatorio": "This field is required."
+  },
+  "errores": {
+    "CREDENCIALES_INVALIDAS": "Incorrect email or password.",
+    "CUENTA_BLOQUEADA": "Your account is locked after 3 failed attempts. You can try again at {{hora}}.",
+    "CUENTA_BLOQUEADA_SIN_HORA": "Your account is temporarily locked after failed attempts. Try again in a few minutes.",
+    "CUENTA_INACTIVA": "Your account is not active. Please contact the platform administrator.",
+    "DATOS_INVALIDOS": "Check your details: enter a valid email address and your password.",
+    "ERROR_RED": "Could not reach the server. Check your connection and try again.",
+    "GENERICO": "An unexpected error occurred. Please try again later."
+  },
+  "inicio": {
+    "saludo": "Hello, {{nombre}}",
+    "provisional": "You are signed in. The home and search screen will arrive with the catalog."
+  },
+  "pie": {
+    "explorar": "Explore",
+    "alojamiento": "Accommodation",
+    "gastronomia": "Food and drink",
+    "tours": "Tours",
+    "alquilerEquipos": "Equipment rental",
+    "municipio": "Municipality",
+    "noticias": "News",
+    "emergencias": "Emergencies",
+    "aforos": "Live occupancy",
+    "contacto": "Contact",
+    "prestadores": "Service providers",
+    "registrarServicio": "Register a service",
+    "panelGestor": "Manager dashboard",
+    "preguntasFrecuentes": "FAQ",
+    "legal": "Legal",
+    "terminos": "Terms, Conditions and Privacy Policies",
+    "derechos": "© 2026 Santa Marta City Hall · Samaria360"
+  },
+  "asistente": {
+    "boton": "AI virtual assistant"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "comun": {
+    "proximamente": "Próximamente",
+    "cargando": "Cargando…",
+    "saltarAlContenido": "Saltar al contenido"
+  },
+  "encabezado": {
+    "inicio": "Samaria360, ir al inicio",
+    "navegacion": "Navegación principal",
+    "inicioSesion": "Inicio de sesión",
+    "busqueda": "Búsqueda",
+    "servicios": "Servicios",
+    "asistente": "Asistente IA",
+    "buscar": "Buscar",
+    "idioma": "Idioma",
+    "espanol": "Español",
+    "ingles": "Inglés",
+    "menuUsuario": "Menú de usuario de {{nombre}}",
+    "cerrarSesion": "Cerrar sesión"
+  },
+  "login": {
+    "titulo": "Samaria360",
+    "subtitulo": "Plataforma de turismo de Santa Marta",
+    "pestanas": "Acceso a la cuenta",
+    "pestanaIniciar": "Iniciar sesión",
+    "pestanaRegistrarse": "Registrarse",
+    "introduccion": "Accede con el correo con el que te registraste o crea una cuenta nueva.",
+    "tarjeta": "Ingresa con tu cuenta",
+    "correo": "Correo electrónico",
+    "correoPlaceholder": "nombre@correo.com",
+    "contrasena": "Contraseña",
+    "contrasenaPlaceholder": "Mínimo 8 caracteres",
+    "olvido": "¿Olvidaste tu contraseña?",
+    "avisoIntentos": "3 intentos fallidos bloquearán la cuenta por 15 minutos.",
+    "boton": "Iniciar sesión",
+    "enviando": "Iniciando sesión…",
+    "legal": "Al iniciar sesión aceptas los Términos, Condiciones y Políticas de Privacidad y el tratamiento de datos de Samaria360.",
+    "plataforma": "Plataforma",
+    "explorarDestinos": "Explorar destinos",
+    "rutasExperiencias": "Rutas y experiencias",
+    "prestadores": "Prestadores",
+    "campoObligatorio": "Este campo es obligatorio."
+  },
+  "errores": {
+    "CREDENCIALES_INVALIDAS": "Correo o contraseña incorrectos.",
+    "CUENTA_BLOQUEADA": "Tu cuenta está bloqueada por 3 intentos fallidos. Podrás intentarlo de nuevo a las {{hora}}.",
+    "CUENTA_BLOQUEADA_SIN_HORA": "Tu cuenta está bloqueada temporalmente por intentos fallidos. Inténtalo de nuevo en unos minutos.",
+    "CUENTA_INACTIVA": "Tu cuenta no está activa. Comunícate con el administrador de la plataforma.",
+    "DATOS_INVALIDOS": "Revisa los datos: escribe un correo electrónico válido y tu contraseña.",
+    "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
+    "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo más tarde."
+  },
+  "inicio": {
+    "saludo": "Hola, {{nombre}}",
+    "provisional": "Iniciaste sesión correctamente. La pantalla de inicio y búsqueda llegará con el catálogo."
+  },
+  "pie": {
+    "explorar": "Explorar",
+    "alojamiento": "Alojamiento",
+    "gastronomia": "Gastronomía",
+    "tours": "Tours",
+    "alquilerEquipos": "Alquiler de equipos",
+    "municipio": "Municipio",
+    "noticias": "Noticias",
+    "emergencias": "Emergencias",
+    "aforos": "Aforos en vivo",
+    "contacto": "Contacto",
+    "prestadores": "Prestadores",
+    "registrarServicio": "Registrar servicio",
+    "panelGestor": "Panel del gestor",
+    "preguntasFrecuentes": "Preguntas frecuentes",
+    "legal": "Legal",
+    "terminos": "Términos, Condiciones y Políticas de Privacidad",
+    "derechos": "© 2026 Alcaldía de Santa Marta · Samaria360"
+  },
+  "asistente": {
+    "boton": "Asistente virtual IA"
+  }
+}

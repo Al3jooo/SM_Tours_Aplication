@@ -1,0 +1,312 @@
+/* WF-01 con la identidad «Santa Marta». Solo usa los tokens de src/app/estilos.css. */
+
+.login {
+  display: grid;
+  gap: var(--espacio-6);
+}
+
+/* Panel ilustrado (decorativo). En móvil es una franja; desde 960 px, una columna. */
+.login__escena {
+  overflow: hidden;
+  height: 9.5rem;
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-2);
+}
+
+.escena-santa-marta {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.login__contenido {
+  width: 100%;
+  max-width: 32rem;
+  justify-self: center;
+  animation: subir 320ms ease-out;
+}
+
+@media (min-width: 60rem) {
+  .login {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: start;
+    gap: var(--espacio-8);
+  }
+
+  .login__escena {
+    position: sticky;
+    top: calc(var(--alto-encabezado) + var(--espacio-5));
+    height: min(40rem, calc(100vh - var(--alto-encabezado) - var(--espacio-7)));
+    min-height: 28rem;
+  }
+}
+
+.login__titulo {
+  margin: 0;
+  color: var(--color-mar-900);
+  font-size: var(--texto-3xl);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.login__subtitulo {
+  margin: var(--espacio-2) 0 var(--espacio-5);
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-lg);
+}
+
+/* Pestañas */
+.pestanas {
+  display: flex;
+  gap: var(--espacio-5);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.pestanas > button {
+  position: relative;
+  padding: var(--espacio-3) 0;
+  border: 0;
+  background: none;
+  color: var(--color-tinta-suave);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pestanas > button[aria-selected='true'] {
+  color: var(--color-mar-700);
+}
+
+.pestanas > button[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--color-mar-700);
+}
+
+.pestanas > .pestana-deshabilitada {
+  color: var(--color-deshabilitado);
+  cursor: not-allowed;
+}
+
+.login__cuerpo {
+  margin-top: var(--espacio-5);
+}
+
+.login__introduccion {
+  margin: 0 0 var(--espacio-4);
+  color: var(--color-tinta-suave);
+}
+
+/* Tarjeta «Ingresa con tu cuenta» */
+.tarjeta {
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-2);
+}
+
+.tarjeta__titulo {
+  margin: 0;
+  padding: var(--espacio-4) var(--espacio-5);
+  border-bottom: 1px solid var(--color-borde);
+  font-size: var(--texto-xl);
+  font-weight: 600;
+}
+
+.tarjeta__cuerpo {
+  display: grid;
+  gap: var(--espacio-4);
+  padding: var(--espacio-5);
+}
+
+/* Campos */
+.campo {
+  display: grid;
+  gap: var(--espacio-2);
+}
+
+.campo label {
+  font-size: var(--texto-sm);
+  font-weight: 600;
+}
+
+.campo__control {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  min-height: 3rem;
+  padding: 0 var(--espacio-4);
+  border: 1.5px solid var(--color-borde-campo);
+  border-radius: var(--radio-sm);
+  background: var(--color-superficie);
+  color: var(--color-tinta-suave);
+  transition:
+    border-color var(--transicion),
+    box-shadow var(--transicion);
+}
+
+.campo__control:hover {
+  border-color: var(--color-mar-700);
+}
+
+.campo__control:focus-within {
+  border-color: var(--color-mar-700);
+  box-shadow: 0 0 0 4px var(--color-mar-100);
+  outline: 2px solid var(--color-mar-700);
+  outline-offset: 1px;
+  color: var(--color-mar-700);
+}
+
+.campo__control input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--espacio-3) 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-tinta);
+  font: inherit;
+}
+
+.campo__control input::placeholder {
+  color: var(--color-deshabilitado);
+}
+
+.campo__control input:focus {
+  outline: none;
+}
+
+.campo__control:has(input[aria-invalid='true']) {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.campo__error {
+  margin: 0;
+  color: var(--color-error);
+  font-size: var(--texto-sm);
+  font-weight: 500;
+}
+
+/* ¿Olvidaste tu contraseña? (Próximamente) */
+.enlace-olvido {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: var(--texto-sm);
+  text-decoration: underline dotted;
+  text-underline-offset: 0.2em;
+}
+
+/* Aviso RF15: 3 intentos → 15 minutos */
+.aviso-intentos {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: var(--espacio-3) var(--espacio-4);
+  border-left: 4px solid var(--color-atardecer-600);
+  border-radius: var(--radio-sm);
+  background: var(--color-arena-200);
+  font-size: var(--texto-sm);
+}
+
+.aviso-intentos svg {
+  margin-top: 0.1rem;
+  color: var(--color-atardecer-600);
+}
+
+/* Error (región aria-live siempre presente) */
+.login__error:empty {
+  display: none;
+}
+
+.login__error p {
+  margin: 0;
+  padding: var(--espacio-3) var(--espacio-4);
+  border-left: 4px solid var(--color-error);
+  border-radius: var(--radio-sm);
+  background: var(--color-error-fondo);
+  color: var(--color-error);
+  font-size: var(--texto-sm);
+  font-weight: 500;
+  animation: aparecer var(--transicion);
+}
+
+/* Botón principal (CTA): atardecer */
+.boton-principal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  width: 100%;
+  min-height: 3rem;
+  padding: var(--espacio-3) var(--espacio-5);
+  border: 0;
+  border-radius: var(--radio-pill);
+  background: var(--color-atardecer-600);
+  box-shadow: var(--sombra-1);
+  color: var(--color-superficie);
+  font-size: var(--texto-base);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    background-color var(--transicion),
+    box-shadow var(--transicion),
+    transform var(--transicion);
+}
+
+.boton-principal:hover:not(:disabled) {
+  background: var(--color-atardecer-700);
+  box-shadow: var(--sombra-2);
+  transform: translateY(-1px);
+}
+
+.boton-principal:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.boton-principal:disabled {
+  cursor: progress;
+}
+
+.login__legal {
+  margin: 0;
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-xs);
+  line-height: 1.6;
+}
+
+/* Bloque «Plataforma» */
+.login__plataforma {
+  margin-top: var(--espacio-6);
+}
+
+.login__plataforma h2 {
+  margin: 0 0 var(--espacio-3);
+  font-size: var(--texto-lg);
+  font-weight: 600;
+}
+
+.login__plataforma ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2) var(--espacio-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.login__plataforma .enlace {
+  padding: var(--espacio-1) 0;
+  border: 0;
+  background: none;
+  font-size: var(--texto-sm);
+  text-decoration: underline dotted;
+  text-underline-offset: 0.2em;
+}

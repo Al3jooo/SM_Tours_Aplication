@@ -1,0 +1,44 @@
+import type { TFunction } from 'i18next'
+import { ApiError, ERROR_RED } from '../../shared/api/httpClient'
+
+/** Se guarda el código, no el texto: así el mensaje se traduce al cambiar de idioma (RNF08). */
+export interface ErrorInicioSesion {
+  codigo: string
+  bloqueadoHasta?: string
+}
+
+const CODIGOS_CON_MENSAJE = new Set([
+  'CREDENCIALES_INVALIDAS',
+  'CUENTA_BLOQUEADA',
+  'CUENTA_INACTIVA',
+  'DATOS_INVALIDOS',
+  ERROR_RED,
+])
+
+export function aErrorInicioSesion(error: unknown): ErrorInicioSesion {
+  if (!(error instanceof ApiError)) {
+    return { codigo: 'GENERICO' }
+  }
+  const bloqueadoHasta = error.problema?.bloqueadoHasta
+  return {
+    codigo: CODIGOS_CON_MENSAJE.has(error.codigo) ? error.codigo : 'GENERICO',
+    bloqueadoHasta: typeof bloqueadoHasta === 'string' ? bloqueadoHasta : undefined,
+  }
+}
+
+/** Hora de desbloqueo en la zona horaria local del navegador y en el idioma activo. */
+export function formatearHora(iso: string, idioma: string): string | null {
+  const fecha = new Date(iso)
+  if (Number.isNaN(fecha.getTime())) {
+    return null
+  }
+  return new Intl.DateTimeFormat(idioma, { timeStyle: 'short' }).format(fecha)
+}
+
+export function textoError(error: ErrorInicioSesion, t: TFunction, idioma: string): string {
+  if (error.codigo === 'CUENTA_BLOQUEADA') {
+    const hora = error.bloqueadoHasta ? formatearHora(error.bloqueadoHasta, idioma) : null
+    return hora ? t('errores.CUENTA_BLOQUEADA', { hora }) : t('errores.CUENTA_BLOQUEADA_SIN_HORA')
+  }
+  return t(`errores.${error.codigo}`)
+}
