@@ -55,6 +55,12 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 | Común | Datos del usuario autenticado (`nombreVisible` para el avatar); 403 si la cuenta dejó de estar activa | Iniciar sesión | RF15, RF22, RF62, RNF06 | `GET /api/v1/auth/me` | `features/auth/authApi.ts` | Implementado |
 | — | Clave pública para validar el JWT RS256 en el API Gateway | Iniciar sesión | RNF06 | `GET /api/v1/auth/.well-known/jwks.json` | — (lo consume el API Gateway) | Implementado |
 
+### Endpoints de ms-catalog
+
+| Wireframe | Elemento | Caso de uso | RF/RNF | Endpoint | Componente frontend | Estado |
+|---|---|---|---|---|---|---|
+| WF-04, WF-05 | Búsqueda pública combinada de servicios y atractivos: texto, categoría, precio máximo, ubicación y distancia, accesibilidad, orden (distancia, precio, nombre) y paginación de 10 | Buscar oferta turística | RF16, RF23, RF38, RF50, RF61, RNF02 | `GET /api/v1/catalogo/oferta` | Pendiente (parte de frontend del caso de uso) | Implementado (backend) |
+
 ## Pendientes
 
 | Elemento | Wireframe | RF | Iteración prevista |
@@ -70,6 +76,31 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 | Pie: columna Municipio (Noticias, Emergencias, Aforos en vivo, Contacto) | Común | RF40, RF39 | Por definir |
 | Pie: columna Prestadores (Registrar servicio, Panel del gestor, Preguntas frecuentes) | Común | RF09, RF64, RF26 | Por definir |
 | Pie y texto legal: página de Términos, Condiciones y Políticas de Privacidad | Común, WF-01 | RF46 | Por definir |
+
+## Buscar oferta turística — decisiones de búsqueda (RF16, RF23, RF33, RF38, RF50, RF61)
+
+Decididas por el equipo; se aplican en el caso de uso de ms-catalog (`domain/service/PoliticaBusqueda` y el adaptador MongoDB; arquitectura en [`ADR-004`](sad/adr/ADR-004-busqueda-combinada.md)).
+
+| # | Decisión | RF |
+|---|---|---|
+| 1 | Los atractivos aparecen en los resultados junto con los servicios, como en WF-05. | RF16, RF23 |
+| 2 | El filtro de categoría aplica solo a servicios: si se elige una categoría, los atractivos quedan fuera. | RF16 |
+| 3 | El filtro de precio máximo excluye los atractivos, porque no tienen precio. | RF16, RF37 |
+| 4 | Al ordenar por precio, los resultados sin precio van al final. | RF61 |
+| 5 | Los atractivos cerrados temporalmente o en mantenimiento sí aparecen, con su estado visible, para que el turista lo sepa y busque una alternativa. | RF33, RF08 |
+| 6 | El filtro de accesibilidad aplica a servicios y atractivos. | RF50 |
+
+## Pendientes para el SAD (modelo NoSQL)
+
+Observaciones sobre `docs/sad/modelo-nosql/`; el esquema no se modificó.
+
+| # | Observación | RF |
+|---|---|---|
+| 1 | `precioBase` es opcional en `servicios`, aunque RF37 exige precio en todo servicio. La semilla lo incluye siempre. | RF37, RF16 |
+| 2 | `atractivos` no tiene precio, `estadoPublicacion` ni `prestadorActivo`, y su `categoria` es texto libre (en `servicios` es un enum). Resuelto para la búsqueda con las decisiones 1–3 y 5; falta reflejarlo en el SAD. | RF16, RF06 |
+| 3 | `condicionesAccesibilidad` acepta cualquier texto; no restringe a MovilidadReducida, Visual y Auditiva. El dominio sí lo restringe. | RF27, RF50 |
+| 4 | No existe el dato de calificación promedio, así que el orden por calificación queda pendiente (ver «Discrepancias detectadas», punto 4, de `docs/wireframes/README.md`). | RF61 |
+| 5 | La búsqueda por texto no distingue mayúsculas pero sí tildes: «cafe» no encuentra «Tour de Café», aunque es lo que un turista escribe a menudo. Solución prevista: campos normalizados sin tildes para buscar (p. ej. `nombreBusqueda` y `descripcionBusqueda`), mantenidos al registrar o editar; requiere cambiar el esquema en el SAD. | RF16 |
 
 ## Discrepancias
 

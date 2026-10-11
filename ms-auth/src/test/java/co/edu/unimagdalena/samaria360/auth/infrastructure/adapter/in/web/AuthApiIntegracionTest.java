@@ -54,7 +54,8 @@ class AuthApiIntegracionTest {
 
     @BeforeEach
     void restablecerCuentas() {
-        jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, estado_cuenta = 'Activo'");
+        jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, estado_cuenta = 'Activo'"
+                + " WHERE correo <> 'prestador2@samaria360.test'"); // prestador2 es Inactivo por semilla (V3)
     }
 
     @Test
@@ -114,6 +115,14 @@ class AuthApiIntegracionTest {
         jdbc.update("UPDATE usuario SET estado_cuenta = 'Inactivo' WHERE correo = 'turista@samaria360.test'");
 
         MvcResult resultado = login(CORREO_TURISTA, CONTRASENA_SEMILLA);
+
+        assertThat(resultado.getResponse().getStatus()).isEqualTo(403);
+        assertThat(JsonPath.<String>read(cuerpo(resultado), "$.codigo")).isEqualTo("CUENTA_INACTIVA");
+    }
+
+    @Test
+    void elPrestadorInactivoDeLaSemillaResponde403SinPrepararDatos() throws Exception {
+        MvcResult resultado = login("prestador2@samaria360.test", CONTRASENA_SEMILLA);
 
         assertThat(resultado.getResponse().getStatus()).isEqualTo(403);
         assertThat(JsonPath.<String>read(cuerpo(resultado), "$.codigo")).isEqualTo("CUENTA_INACTIVA");
