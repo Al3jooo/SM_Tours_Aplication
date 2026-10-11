@@ -4,6 +4,7 @@ import {
   SESION_TURISTA,
   USUARIO_TURISTA,
   paginaOferta,
+  respuestaHtml,
   respuestaJson,
   respuestaProblema,
   simularFetch,
@@ -20,6 +21,7 @@ async function llenarYEnviar(usuario: ReturnType<typeof renderApp>['usuario'], c
 }
 
 describe('Inicio de sesión (RF15)', () => {
+  // Límite de 15 s: medida en más de 2 s (primer render del archivo, 34 pulsaciones de usuario.type y navegación al inicio).
   it('un login exitoso redirige al inicio y muestra el avatar con las iniciales', async () => {
     const { solicitudes } = simularFetch({
       [LOGIN]: () => respuestaJson(200, SESION_TURISTA),
@@ -42,8 +44,9 @@ describe('Inicio de sesión (RF15)', () => {
     expect(login?.cuerpo).toEqual({ correo: 'turista@samaria360.test', contrasena: 'Samaria360*' })
     const me = solicitudes.find((s) => s.url === '/api/v1/auth/me')
     expect(me?.cabeceras.Authorization).toBe(`Bearer ${SESION_TURISTA.token}`)
-  })
+  }, 15_000)
 
+  // Límite de 15 s: medida en más de 2 s (33 pulsaciones de usuario.type).
   it('un 401 muestra el mensaje de credenciales inválidas', async () => {
     simularFetch({ [LOGIN]: () => respuestaProblema(401, 'CREDENCIALES_INVALIDAS') })
     const { usuario } = renderApp('/login')
@@ -54,8 +57,9 @@ describe('Inicio de sesión (RF15)', () => {
     expect(await within(alerta).findByText('Correo o contraseña incorrectos.')).toBeInTheDocument()
     expect(alerta).toHaveAttribute('aria-live', 'assertive')
     expect(sessionStorage.getItem('samaria360.token')).toBeNull()
-  })
+  }, 15_000)
 
+  // Límite de 15 s: medida en más de 2 s (33 pulsaciones de usuario.type).
   it('un 423 muestra la hora de desbloqueo en la hora local del navegador', async () => {
     const bloqueadoHasta = '2026-10-11T15:45:00Z'
     simularFetch({ [LOGIN]: () => respuestaProblema(423, 'CUENTA_BLOQUEADA', { bloqueadoHasta }) })
@@ -66,8 +70,9 @@ describe('Inicio de sesión (RF15)', () => {
     // Misma conversión que la app (Intl con la zona horaria del entorno): la prueba no depende de dónde corre.
     const hora = new Intl.DateTimeFormat('es', { timeStyle: 'short' }).format(new Date(bloqueadoHasta))
     expect(await screen.findByText(/Tu cuenta está bloqueada/)).toHaveTextContent(hora)
-  })
+  }, 15_000)
 
+  // Límite de 15 s: medida en más de 2 s (34 pulsaciones de usuario.type).
   it('un 403 muestra el mensaje de cuenta inactiva', async () => {
     simularFetch({ [LOGIN]: () => respuestaProblema(403, 'CUENTA_INACTIVA') })
     const { usuario } = renderApp('/login')
@@ -75,8 +80,9 @@ describe('Inicio de sesión (RF15)', () => {
     await llenarYEnviar(usuario, 'turista@samaria360.test', 'Samaria360*')
 
     expect(await screen.findByText(/Tu cuenta no está activa/)).toBeInTheDocument()
-  })
+  }, 15_000)
 
+  // Límite de 15 s: medida en más de 2 s (23 pulsaciones de usuario.type).
   it('un 400 muestra el mensaje de datos inválidos', async () => {
     simularFetch({ [LOGIN]: () => respuestaProblema(400, 'DATOS_INVALIDOS') })
     const { usuario } = renderApp('/login')
@@ -84,6 +90,30 @@ describe('Inicio de sesión (RF15)', () => {
     await llenarYEnviar(usuario, 'no-es-correo', 'Samaria360*')
 
     expect(await screen.findByText(/Revisa los datos/)).toBeInTheDocument()
+  }, 15_000)
+
+  it.each([
+    ['502 de nginx', () => respuestaHtml(502)],
+    ['503 SERVICIO_NO_DISPONIBLE', () => respuestaProblema(503, 'SERVICIO_NO_DISPONIBLE', { servicio: 'ms-auth' })],
+    ['504 de nginx', () => respuestaHtml(504)],
+  ])('un %s muestra que el servicio no está disponible', async (_caso, respuesta) => {
+    simularFetch({ [LOGIN]: respuesta })
+    const { usuario } = renderApp('/login')
+
+    await llenarYEnviar(usuario, 'turista@samaria360.test', 'Samaria360*')
+
+    expect(
+      await screen.findByText('El servicio no está disponible por el momento. Inténtalo de nuevo en unos minutos.'),
+    ).toBeInTheDocument()
+  })
+
+  it('un 500 muestra el mensaje genérico (defecto del servidor, no una caída)', async () => {
+    simularFetch({ [LOGIN]: () => respuestaProblema(500, 'ERROR_INTERNO') })
+    const { usuario } = renderApp('/login')
+
+    await llenarYEnviar(usuario, 'turista@samaria360.test', 'Samaria360*')
+
+    expect(await screen.findByText('Ocurrió un error inesperado. Inténtalo de nuevo más tarde.')).toBeInTheDocument()
   })
 
   it('un error de red muestra su propio mensaje', async () => {

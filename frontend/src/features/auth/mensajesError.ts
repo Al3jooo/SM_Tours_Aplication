@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next'
-import { ApiError, ERROR_RED } from '../../shared/api/httpClient'
+import { ApiError, ERROR_RED, servicioNoDisponible } from '../../shared/api/httpClient'
 
 /** Se guarda el código, no el texto: así el mensaje se traduce al cambiar de idioma (RNF08). */
 export interface ErrorInicioSesion {
@@ -18,6 +18,10 @@ const CODIGOS_CON_MENSAJE = new Set([
 export function aErrorInicioSesion(error: unknown): ErrorInicioSesion {
   if (!(error instanceof ApiError)) {
     return { codigo: 'GENERICO' }
+  }
+  // 502/503/504 o SERVICIO_NO_DISPONIBLE: el servicio está caído o arrancando, no es un error del usuario.
+  if (servicioNoDisponible(error)) {
+    return { codigo: 'SERVICIO_NO_DISPONIBLE' }
   }
   const bloqueadoHasta = error.problema?.bloqueadoHasta
   return {

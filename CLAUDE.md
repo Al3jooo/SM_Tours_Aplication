@@ -65,11 +65,12 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 
 | Componente | Puerto | Nota |
 |---|---|---|
-| api-gateway | 8080 | Único punto de entrada; el frontend lo usa vía el proxy de Vite |
-| ms-auth | 8081 | |
-| ms-catalog | 8082 | |
-| frontend (Vite) | 5173 | Proxy `/api` → 8080 |
-| PostgreSQL / MongoDB | `POSTGRES_PORT` / `MONGO_PORT` | Definidos en `.env` (docker-compose) |
+| frontend (nginx, Docker Compose) | `FRONTEND_PORT` (8000) | Sirve la SPA y pasa `/api/` a api-gateway (un solo origen) |
+| api-gateway | 8080 | Único punto de entrada a los servicios; publicado en el host |
+| ms-auth | 8081 | En Compose no se publica: solo red interna (`http://ms-auth:8081`) |
+| ms-catalog | 8082 | En Compose no se publica: solo red interna (`http://ms-catalog:8082`) |
+| frontend (Vite, desarrollo) | 5173 | Proxy `/api` → 8080 |
+| PostgreSQL / MongoDB | `POSTGRES_PORT` / `MONGO_PORT` | Definidos en `.env`; publicados solo en 127.0.0.1 |
 
 ## Pruebas (obligatorias en cada cambio)
 
@@ -82,7 +83,8 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 ## Comandos
 
 ```bash
-docker compose up -d            # PostgreSQL y MongoDB
+docker compose up -d --build    # sistema completo → http://localhost:8000 (ver README, «Arranque en un comando»)
+docker compose up -d postgres mongo   # solo las bases, para desarrollar con ./mvnw y Vite
 cd ms-auth && ./mvnw test       # pruebas
 cd ms-auth && ./mvnw spring-boot:run
 cd ms-catalog && ./mvnw spring-boot:run

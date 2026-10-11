@@ -75,3 +75,14 @@ Se descarta para el prototipo:
 - Si las pruebas de carga (RNF02, RNF03) muestran un volumen relevante de peticiones con tokens inválidos llegando a los servicios.
 - Si se requiere limitación de tasa o auditoría por usuario en el borde.
 - Si se incorporan servicios que no puedan validar el JWT por sí mismos. En ese caso se adoptaría la variante (b), sin quitar la validación en los servicios.
+
+## Nota: despliegue con Docker Compose
+
+En el despliegue con Docker Compose (`docker-compose.yml`), el navegador entra por el contenedor **frontend**
+(nginx). nginx sirve la SPA y pasa `/api/` al api-gateway sin reescribir la ruta, como hace el proxy de Vite en
+desarrollo, así que el navegador trabaja con un solo origen. La decisión no cambia: nginx no enruta a los
+servicios ni valida el JWT, y el gateway sigue siendo el único punto de entrada a ellos.
+
+- En el host se publican solo el frontend (8000) y el gateway (8080).
+- ms-auth y ms-catalog solo se alcanzan por la red interna de Docker.
+- PostgreSQL y MongoDB se publican solo en 127.0.0.1.

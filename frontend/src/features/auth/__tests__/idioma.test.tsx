@@ -4,6 +4,7 @@ import { respuestaProblema, simularFetch } from '../../../test/fetchSimulado'
 import { renderApp } from '../../../test/renderApp'
 
 describe('Cambio de idioma (RF03, RNF08)', () => {
+  // Límite de 15 s: medida en más de 2 s (primer render del archivo, 23 pulsaciones de usuario.type y cambio de idioma).
   it('traduce los textos y conserva el correo escrito', async () => {
     simularFetch({})
     const { usuario } = renderApp('/login')
@@ -16,8 +17,9 @@ describe('Cambio de idioma (RF03, RNF08)', () => {
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute('aria-pressed', 'true')
     expect(document.documentElement.lang).toBe('en')
-  })
+  }, 15_000)
 
+  // Límite de 15 s: medida en más de 2 s (33 pulsaciones de usuario.type y cambio de idioma).
   it('el mensaje de error mostrado también se traduce', async () => {
     simularFetch({ 'POST /api/v1/auth/login': () => respuestaProblema(401, 'CREDENCIALES_INVALIDAS') })
     const { usuario } = renderApp('/login')
@@ -31,5 +33,5 @@ describe('Cambio de idioma (RF03, RNF08)', () => {
 
     expect(screen.getByText('Incorrect email or password.')).toBeInTheDocument()
     expect(screen.getByLabelText('Password')).toHaveValue('incorrecta')
-  })
+  }, 15_000)
 })

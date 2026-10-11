@@ -50,6 +50,7 @@
     "CUENTA_INACTIVA": "Your account is not active. Please contact the platform administrator.",
     "DATOS_INVALIDOS": "Check your details: enter a valid email address and your password.",
     "ERROR_RED": "Could not reach the server. Check your connection and try again.",
+    "SERVICIO_NO_DISPONIBLE": "The service is temporarily unavailable. Please try again in a few minutes.",
     "GENERICO": "An unexpected error occurred. Please try again later."
   },
   "inicio": {

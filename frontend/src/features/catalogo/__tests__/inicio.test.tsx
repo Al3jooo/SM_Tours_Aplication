@@ -5,6 +5,7 @@ import {
   HOTEL,
   TOUR_CAFE,
   paginaOferta,
+  respuestaHtml,
   respuestaJson,
   respuestaProblema,
   simularFetch,
@@ -14,6 +15,7 @@ import { renderApp, ubicacionActual } from '../../../test/renderApp'
 const DESTACADOS = 'GET /api/v1/catalogo/oferta?orden=PrecioAscendente&pagina=0&tamano=3'
 
 describe('Inicio WF-04', () => {
+  // Límite de 15 s: medida en más de 2 s (primera del archivo: primer render de la app y 15 pulsaciones de usuario.type).
   it('la búsqueda lleva a /explorar con el texto', async () => {
     simularFetch({ [DESTACADOS]: () => respuestaJson(200, paginaOferta([])) })
     const { usuario } = renderApp('/')
@@ -22,7 +24,7 @@ describe('Inicio WF-04', () => {
     await usuario.click(screen.getByRole('button', { name: 'Buscar' }))
 
     expect(ubicacionActual()).toBe('/explorar?texto=tour+de+caf%C3%A9')
-  })
+  }, 15_000)
 
   it('la búsqueda vacía lleva a /explorar sin filtros', async () => {
     simularFetch({ [DESTACADOS]: () => respuestaJson(200, paginaOferta([])) })
@@ -83,5 +85,28 @@ describe('Inicio WF-04', () => {
 
     expect(ubicacionActual()).toBe('/explorar')
     expect(await screen.findByRole('heading', { level: 1, name: /Exploración de Atractivos/ })).toBeInTheDocument()
+  })
+
+  // 502 y 504: los genera nginx (HTML) cuando el gateway no responde; 503: el ProblemDetail del gateway o de nginx.
+  it.each([
+    ['502 de nginx', () => respuestaHtml(502)],
+    ['503 SERVICIO_NO_DISPONIBLE', () => respuestaProblema(503, 'SERVICIO_NO_DISPONIBLE', { servicio: 'api-gateway' })],
+    ['504 de nginx', () => respuestaHtml(504)],
+  ])('un %s muestra «no disponible» con «Reintentar»', async (_caso, respuesta) => {
+    simularFetch({ [DESTACADOS]: respuesta })
+    renderApp('/')
+
+    const destacados = screen.getByRole('region', { name: 'Destacados esta semana' })
+    expect(await within(destacados).findByText('El catálogo no está disponible en este momento.')).toBeInTheDocument()
+    expect(within(destacados).getByRole('button', { name: 'Reintentar' })).toBeInTheDocument()
+  })
+
+  it('un 500 sigue siendo un error inesperado (defecto del servidor, no una caída)', async () => {
+    simularFetch({ [DESTACADOS]: () => respuestaProblema(500, 'ERROR_INTERNO') })
+    renderApp('/')
+
+    const destacados = screen.getByRole('region', { name: 'Destacados esta semana' })
+    expect(await within(destacados).findByText('Ocurrió un error inesperado al buscar.')).toBeInTheDocument()
+    expect(within(destacados).queryByText('El catálogo no está disponible en este momento.')).not.toBeInTheDocument()
   })
 })

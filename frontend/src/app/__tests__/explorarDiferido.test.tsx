@@ -18,6 +18,7 @@ vi.mock('../../features/catalogo/ExplorarPage', async (importOriginal) => {
 })
 
 describe('Carga diferida de /explorar', () => {
+  // Límite de 15 s: medida en más de 2 s (única del archivo: primer render y carga diferida de /explorar).
   it('mientras llega la página se ve el estado de carga del catálogo, con el encabezado visible', async () => {
     simularFetch({ 'GET /api/v1/catalogo/oferta': () => respuestaJson(200, paginaOferta([HOTEL])) })
     renderApp('/explorar')
@@ -31,5 +32,5 @@ describe('Carga diferida de /explorar', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: /Exploración de Atractivos/ })).toBeInTheDocument()
     expect(await screen.findByRole('heading', { name: 'Hotel Casa Tayrona' })).toBeInTheDocument()
-  })
+  }, 15_000)
 })

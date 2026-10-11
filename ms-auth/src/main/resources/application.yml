@@ -10,7 +10,8 @@ spring:
   profiles:
     default: dev
   datasource:
-    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/auth_db
+    # POSTGRES_HOST: localhost con ./mvnw; "postgres" dentro de Docker Compose.
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/auth_db
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
   jpa:
