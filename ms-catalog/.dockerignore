@@ -1,0 +1,7 @@
+# Solo entran pom.xml, el wrapper y src/. Nada de compilados locales, IDE ni secretos.
+target/
+.idea/
+*.iml
+.vscode/
+.env*
+*.pem

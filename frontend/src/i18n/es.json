@@ -50,6 +50,7 @@
     "CUENTA_INACTIVA": "Tu cuenta no está activa. Comunícate con el administrador de la plataforma.",
     "DATOS_INVALIDOS": "Revisa los datos: escribe un correo electrónico válido y tu contraseña.",
     "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
+    "SERVICIO_NO_DISPONIBLE": "El servicio no está disponible por el momento. Inténtalo de nuevo en unos minutos.",
     "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo más tarde."
   },
   "inicio": {

@@ -19,6 +19,7 @@ function conResultados(elementos: unknown[] = [HOTEL, TOUR_CAFE, CASCADA_CERRADA
 }
 
 describe('Exploración WF-05', () => {
+  // Límite de 15 s: medida en más de 2 s (primera del archivo: paga la carga diferida de /explorar).
   it('los filtros arman la consulta a la API y se reflejan en la URL', async () => {
     const { solicitudes } = conResultados()
     const { usuario } = renderApp('/explorar')
@@ -38,7 +39,7 @@ describe('Exploración WF-05', () => {
     expect(ubicacionActual()).toBe(
       '/explorar?texto=caf%C3%A9&precioMax=150000&accesibilidad=MovilidadReducida&accesibilidad=Visual',
     )
-  })
+  }, 15_000)
 
   it('al cargar desde la URL, la página empieza en 1 en la URL y en 0 en la API', async () => {
     const { solicitudes } = conResultados([TOUR_CAFE], { pagina: 1, totalElementos: 11 })

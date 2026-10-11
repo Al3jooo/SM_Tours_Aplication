@@ -78,6 +78,17 @@ export async function solicitar<T>(ruta: string, opciones: OpcionesSolicitud = {
   return (await respuesta.json()) as T
 }
 
+/** Respuestas de un intermediario (nginx o el gateway) cuando el servicio de atrás no responde. */
+const ESTADOS_NO_DISPONIBLE = new Set([502, 503, 504])
+
+/**
+ * Caída o arranque de un servicio: 502, 503 o 504, o el ProblemDetail SERVICIO_NO_DISPONIBLE (gateway o nginx).
+ * Un 500 no cuenta: es un defecto del servidor, no una caída.
+ */
+export function servicioNoDisponible(error: ApiError): boolean {
+  return ESTADOS_NO_DISPONIBLE.has(error.status) || error.codigo === 'SERVICIO_NO_DISPONIBLE'
+}
+
 /** 401, o 403 por cuenta no activa (RF22, RF62). Un 403 por rol (ACCESO_DENEGADO) no cierra la sesión. */
 export function sesionInvalida(error: ApiError): boolean {
   return error.status === 401 || (error.status === 403 && error.codigo === 'CUENTA_INACTIVA')

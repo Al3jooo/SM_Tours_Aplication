@@ -43,6 +43,7 @@ describe('RutaProtegida', () => {
     expect(fetchSimulado).not.toHaveBeenCalled()
   })
 
+  // Límite de 15 s: medida en más de 2 s (34 pulsaciones de usuario.type y regreso a la ruta privada).
   it('después de iniciar sesión vuelve a la ruta privada pedida', async () => {
     simularFetch({
       'POST /api/v1/auth/login': () => respuestaJson(200, SESION_TURISTA),
@@ -55,7 +56,7 @@ describe('RutaProtegida', () => {
     await usuario.click(screen.getByRole('button', { name: 'Iniciar sesión' }))
 
     expect(await screen.findByRole('heading', { name: 'Zona privada' })).toBeInTheDocument()
-  })
+  }, 15_000)
 
   it('con una sesión válida muestra el contenido', async () => {
     sessionStorage.setItem('samaria360.token', 'token-guardado')

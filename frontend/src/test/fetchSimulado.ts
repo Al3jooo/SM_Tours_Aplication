@@ -40,6 +40,14 @@ export function respuestaProblema(status: number, codigo: string, extra: Record<
   })
 }
 
+/** Página de error HTML, como la que genera nginx en un 502 o 504 (sin ProblemDetail). */
+export function respuestaHtml(status: number): Response {
+  return new Response(`<html><body><h1>${status}</h1><hr><center>nginx</center></body></html>`, {
+    status,
+    headers: { 'Content-Type': 'text/html' },
+  })
+}
+
 /**
  * Reemplaza fetch por rutas "MÉTODO /ruta" (con o sin la consulta). Devuelve el registro de solicitudes para verificar, por
  * ejemplo, la cabecera Authorization.

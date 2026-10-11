@@ -1,0 +1,9 @@
+# Las dependencias se instalan dentro de la imagen (npm ci); nada de compilados locales ni secretos.
+node_modules/
+dist/
+coverage/
+.vite/
+.env*
+*.pem
+Dockerfile
+.dockerignore

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ApiError } from '../../shared/api/httpClient'
+import { ApiError, servicioNoDisponible } from '../../shared/api/httpClient'
 import { buscarOferta, consultaApi, type CriteriosBusqueda, type PaginaOferta } from './catalogoApi'
 
 export type ErrorBusqueda = 'noDisponible' | 'criteriosInvalidos' | 'red' | 'otro'
@@ -11,7 +11,7 @@ export type EstadoBusqueda =
 
 function clasificar(error: unknown): ErrorBusqueda {
   if (!(error instanceof ApiError)) return 'otro'
-  if (error.status === 503 || error.codigo === 'SERVICIO_NO_DISPONIBLE') return 'noDisponible'
+  if (servicioNoDisponible(error)) return 'noDisponible'
   if (error.codigo === 'CRITERIOS_INVALIDOS') return 'criteriosInvalidos'
   if (error.codigo === 'ERROR_RED') return 'red'
   return 'otro'

@@ -29,6 +29,8 @@ function conResultados(elementos: unknown[] = [HOTEL, TOUR_CAFE, CASCADA_CERRADA
 async function cargarExplorar(ruta = '/explorar') {
   const resultado = renderApp(ruta)
   await screen.findByRole('heading', { name: 'Hotel Casa Tayrona' })
+  // Los marcadores se agregan en un efecto del mapa, que puede correr después de que aparece la lista.
+  await waitFor(() => expect(mapaVivo().marcadores().length).toBeGreaterThan(0))
   return resultado
 }
 
@@ -43,6 +45,7 @@ const marcador = (titulo: string) => {
 const puntosResultados = [HOTEL, TOUR_CAFE, CASCADA_CERRADA].map(({ coordenada }) => [coordenada.latitud, coordenada.longitud])
 
 describe('Exploración WF-05: ubicación', () => {
+  // Límite de 15 s: medida en más de 2 s (la primera del archivo paga la carga diferida de /explorar).
   it('no pide la ubicación al cargar la página', async () => {
     const getCurrentPosition = simularGeolocalizacion(EL_RODADERO)
     const { solicitudes } = conResultados()
@@ -50,7 +53,7 @@ describe('Exploración WF-05: ubicación', () => {
 
     expect(getCurrentPosition).not.toHaveBeenCalled()
     expect(ultimaConsultaCatalogo(solicitudes)).toBe('pagina=0&tamano=10')
-  })
+  }, 15_000)
 
   it('al centrar, la API recibe lat y lng sin orden, rige «Menor distancia» y la ubicación no se guarda', async () => {
     const getCurrentPosition = simularGeolocalizacion(EL_RODADERO)
@@ -89,6 +92,8 @@ describe('Exploración WF-05: ubicación', () => {
 
     await usuario.click(screen.getByRole('button', { name: CENTRAR }))
     await screen.findByText('Usando tu ubicación aproximada.')
+    // El primer centrado (al obtener la ubicación) se aplica en un efecto del mapa.
+    await waitFor(() => expect(mapaVivo().vistas.length).toBeGreaterThan(0))
     const vistasAntes = mapaVivo().vistas.length
     await usuario.click(screen.getByRole('button', { name: CENTRAR }))
 
@@ -232,6 +237,7 @@ describe('Exploración WF-05: mapa', () => {
     conResultados([{ ...HOTEL, nombre }])
     renderApp('/explorar')
     await screen.findByRole('heading', { name: nombre })
+    await waitFor(() => marcador(nombre))
 
     const popup = marcador(nombre).popup as HTMLElement
     expect(popup).toBeInstanceOf(HTMLElement)
@@ -331,9 +337,9 @@ describe('Exploración WF-05: mapa', () => {
     await usuario.click(within(paginacion).getByRole('button', { name: 'Página 2' }))
     await screen.findByRole('heading', { name: 'Cascada El Salto' })
 
+    await waitFor(() => expect(mapa.marcadores().map((m) => m.opciones.title)).toEqual(['Cascada El Salto']))
     expect(leafletSimulado.mapas).toHaveLength(1)
     expect(mapaVivo()).toBe(mapa)
-    expect(mapa.marcadores().map((m) => m.opciones.title)).toEqual(['Cascada El Salto'])
     expect(mapa.encuadres.length).toBeGreaterThan(encuadresAntes)
     expect(mapa.encuadres.at(-1)?.puntos).toEqual([[11.15, -74.11]])
   })
@@ -351,7 +357,8 @@ describe('Exploración WF-05: mapa', () => {
 
     expect(leafletSimulado.mapas).toHaveLength(2)
     expect(leafletSimulado.mapas.filter((mapa) => mapa.eliminado)).toHaveLength(1)
-    expect(mapaVivo().marcadores()).toHaveLength(3)
+    // Los marcadores se agregan en un efecto del mapa, que puede correr después de que aparece la lista.
+    await waitFor(() => expect(mapaVivo().marcadores()).toHaveLength(3))
     expect(mapaVivo().controles).toHaveLength(1)
   })
 

@@ -53,6 +53,43 @@ Versiones instaladas (`package-lock.json`) y licencias leídas de `node_modules`
 
 Es adecuado para el prototipo; para un despliegue con tráfico real hace falta un proveedor de teselas propio o contratado. En las pruebas, Leaflet se reemplaza por `src/test/leafletSimulado.ts` (jsdom no dibuja mapas), así que no se pide ninguna tesela.
 
+## Pendientes de pruebas
+
+Las pruebas no hacen peticiones de red reales. Una guardia en `src/test/setup.ts` hace fallar cualquier prueba que
+llame a `fetch` sin `simularFetch`.
+
+El límite por defecto de Vitest es de 5 s por prueba. Las que tardaron **más de 2 s** en alguna ejecución tienen
+15 s, con un comentario junto al `it` (el tercer argumento). Mediciones: máximo de 12 ejecuciones de `npm test`
+con el stack de Docker detenido, en una PC Windows del equipo (octubre de 2026).
+
+| Prueba | Máximo medido | Causa probable |
+|---|---|---|
+| `explorar.test.tsx` › los filtros arman la consulta a la API… | 4,8 s | Primera del archivo: paga la carga diferida de `/explorar` (Vitest transforma `ExplorarPage` dentro de la prueba). Además: tecleo, dos clics y «Aplicar», que vuelve a montar `FiltrosOferta` y repite la consulta. |
+| `inicioSesion.test.tsx` › un login exitoso redirige al inicio… | 4,2 s | Primer render de la app en el archivo, 34 pulsaciones de `usuario.type` y navegación a `/` (monta `InicioPage` con su consulta de destacados). |
+| `explorarDiferido.test.tsx` › mientras llega la página… | 3,8 s | Única del archivo: primer render de la app y transformación del módulo diferido. |
+| `inicioSesion.test.tsx` › un 423 muestra la hora de desbloqueo… | 3,5 s | 33 pulsaciones de `usuario.type`. |
+| `idioma.test.tsx` › traduce los textos y conserva el correo… | 3,2 s | Primer render de la app en el archivo, 23 pulsaciones y cambio de idioma (re-renderiza todo el árbol). |
+| `idioma.test.tsx` › el mensaje de error mostrado también se traduce | 3,2 s | 33 pulsaciones, envío con `findBy` y cambio de idioma. |
+| `rutaProtegida.test.tsx` › después de iniciar sesión vuelve a la ruta privada | 2,9 s | 34 pulsaciones de `usuario.type` y regreso a la ruta privada. |
+| `explorarMapa.test.tsx` › no pide la ubicación al cargar la página | 2,7 s | Primera del archivo: paga la carga diferida de `/explorar`. |
+| `inicio.test.tsx` › la búsqueda lleva a /explorar con el texto | 2,6 s | Primera del archivo: primer render de la app y 15 pulsaciones. |
+| `inicioSesion.test.tsx` › un 401 muestra el mensaje de credenciales inválidas | 2,5 s | 33 pulsaciones de `usuario.type`. |
+| `inicioSesion.test.tsx` › un 400 muestra el mensaje de datos inválidos | 2,5 s | 23 pulsaciones de `usuario.type`. |
+| `inicioSesion.test.tsx` › un 403 muestra el mensaje de cuenta inactiva | 2,2 s | 34 pulsaciones de `usuario.type`. |
+
+En la app no hay temporizadores ni debounce. El costo es del tecleo: cada pulsación de `usuario.type` espera un
+`setTimeout(0)` de user-event (`delay: 0` por defecto) y re-renderiza el formulario. A eso se suma el primer render
+y la carga diferida de la primera prueba de cada archivo. Las pruebas de `inicioSesion` que no son la primera, con el
+mismo tecleo, tardan de 2,0 a 2,5 s: el tecleo pesa unos 2 s, y el primer render del archivo, entre 1 y 2 s.
+
+**Ideas para la rama de optimización (no aplicadas):**
+1. `userEvent.setup({ delay: null })` en `src/test/renderApp.tsx`: quita la espera entre pulsaciones.
+2. `usuario.paste(...)` (con el campo enfocado) en los campos que la prueba no está evaluando, por ejemplo el correo
+   y la contraseña cuando lo que se prueba es la respuesta del servidor. `usuario.type` se deja solo donde importa
+   el tecleo: validación mientras se escribe, o conservar el valor al cambiar de idioma.
+
+Después de optimizar, volver a medir y quitar los 15 s de las pruebas que bajen de 2 s.
+
 ---
 
 ## Guía visual

@@ -1,24 +1,45 @@
 # Samaria360 - Prototipo arquitectónico ejecutable (fase de Elaboración, RUP)
-# Etapa 1: solo infraestructura de datos, para programar ms-auth y ms-catalog contra bases reales.
-# Los servicios (api-gateway, ms-auth, ms-catalog, ms-chatbot, frontend) se agregan
-# a este mismo archivo a medida que cada uno tenga su Dockerfile.
+# Sistema completo en un comando:  docker compose up -d --build   →  http://localhost:${FRONTEND_PORT:-8000}
+#
+# Entrada: el navegador habla solo con frontend (nginx), que pasa /api/ a api-gateway (ADR-005). En el host se
+# publican el frontend y el gateway; ms-auth y ms-catalog solo se alcanzan dentro de la red de Docker; PostgreSQL y
+# MongoDB solo en 127.0.0.1 (DBeaver, Compass). ms-chatbot está fuera del alcance de esta iteración.
+#
+# Requisitos: .env (copia de .env.example) y las llaves del JWT en infra/keys/ (ver README.md, «Arranque en un comando»).
+
+x-reinicio: &reinicio
+  restart: unless-stopped
+
+# Salud de los servicios Java: /actuator/health (público en los tres).
+# Límite de memoria de cada JVM. Las imágenes usan -XX:MaxRAMPercentage=75: sin este límite, cada JVM calcula su
+# memoria sobre toda la máquina virtual de Docker. Con 768m, el heap máximo queda en ~576 MB y el resto (metaspace,
+# hilos, búferes) cabe en el contenedor.
+x-memoria-java: &memoria-java
+  mem_limit: 768m
+
+x-salud-java: &salud-java
+  interval: 10s
+  timeout: 5s
+  retries: 5
+  start_period: 60s
 
 services:
   postgres:
     image: postgres:16-alpine
     container_name: samaria360-postgres
+    <<: *reinicio
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER:?Falta POSTGRES_USER en .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
       POSTGRES_DB: postgres
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       # Crea auth_db y reservas_db en el primer arranque (volumen vacío)
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -26,12 +47,13 @@ services:
   mongo:
     image: mongo:7.0
     container_name: samaria360-mongo
+    <<: *reinicio
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:?Falta MONGO_USER en .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Falta MONGO_PASSWORD en .env}
       MONGO_INITDB_DATABASE: catalog_db
     ports:
-      - "${MONGO_PORT:-27017}:27017"
+      - "127.0.0.1:${MONGO_PORT:-27017}:27017"
     volumes:
       - mongo-data:/data/db
       # Validadores $jsonSchema, índices (2dsphere) y semilla del catálogo
@@ -41,6 +63,107 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  ms-auth:
+    build: ./ms-auth
+    image: samaria360/ms-auth:0.1.0
+    container_name: samaria360-ms-auth
+    <<: [*reinicio, *memoria-java]
+    environment:
+      # Configuración de DEMOSTRACIÓN: el perfil dev carga los usuarios de prueba (db/semilla) y Swagger.
+      # Para un despliegue real, quitar esta línea.
+      SPRING_PROFILES_ACTIVE: dev
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:?Falta POSTGRES_USER en .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
+      JWT_EXPIRACION_MINUTOS: ${JWT_EXPIRACION_MINUTOS:-60}
+      JWT_LLAVE_PRIVADA: /run/secrets/jwt_llave_privada
+      JWT_LLAVE_PUBLICA: /run/secrets/jwt_llave_publica
+    # Llaves montadas como archivos de solo lectura en /run/secrets/; nunca se copian a la imagen.
+    secrets:
+      - jwt_llave_privada
+      - jwt_llave_publica
+    expose:
+      - "8081" # sin ports: solo se alcanza por la red interna, a través del gateway (ADR-005)
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8081/actuator/health"]
+      <<: *salud-java
+
+  ms-catalog:
+    build: ./ms-catalog
+    image: samaria360/ms-catalog:0.1.0
+    container_name: samaria360-ms-catalog
+    <<: [*reinicio, *memoria-java]
+    environment:
+      # Configuración de DEMOSTRACIÓN (perfil dev: Swagger; la semilla del catálogo la cargan los scripts de mongo).
+      SPRING_PROFILES_ACTIVE: dev
+      MONGO_HOST: mongo
+      MONGO_PORT: "27017"
+      MONGO_USER: ${MONGO_USER:?Falta MONGO_USER en .env}
+      MONGO_PASSWORD: ${MONGO_PASSWORD:?Falta MONGO_PASSWORD en .env}
+      AUTH_JWKS_URI: http://ms-auth:8081/api/v1/auth/.well-known/jwks.json
+    expose:
+      - "8082"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8082/actuator/health"]
+      <<: *salud-java
+
+  api-gateway:
+    build: ./api-gateway
+    image: samaria360/api-gateway:0.1.0
+    container_name: samaria360-api-gateway
+    <<: [*reinicio, *memoria-java]
+    environment:
+      SPRING_PROFILES_ACTIVE: dev # configuración de demostración, igual que los servicios
+      AUTH_URI: http://ms-auth:8081
+      CATALOG_URI: http://ms-catalog:8082
+      # Con nginx el navegador usa un solo origen; CORS queda para el frontend en desarrollo (Vite).
+      CORS_ORIGENES: http://localhost:${FRONTEND_PORT:-8000},http://localhost:5173
+    ports:
+      - "8080:8080"
+    # Solo espera a que arranquen, no a que estén sanos: el gateway debe funcionar aunque un servicio esté caído
+    # (circuit breaker y fallback 503, ADR-005).
+    depends_on:
+      ms-auth:
+        condition: service_started
+      ms-catalog:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/actuator/health"]
+      <<: *salud-java
+
+  frontend:
+    build: ./frontend
+    image: samaria360/frontend:0.1.0
+    container_name: samaria360-frontend
+    <<: *reinicio
+    ports:
+      - "${FRONTEND_PORT:-8000}:80"
+    # Espera al gateway sano: así el primer /api/ no encuentra el puerto cerrado. Si aun así nginx no logra hablar
+    # con él (p. ej. tras reiniciar Docker, donde restart no respeta depends_on), responde un 503 con el ProblemDetail
+    # SERVICIO_NO_DISPONIBLE (frontend/nginx/default.conf).
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+secrets:
+  jwt_llave_privada:
+    file: ./infra/keys/jwt-privada.pem
+  jwt_llave_publica:
+    file: ./infra/keys/jwt-publica.pem
 
 volumes:
   postgres-data:
