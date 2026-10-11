@@ -1,0 +1,117 @@
+// Samaria360 - Modelo lógico relacional (PostgreSQL)
+// Pegar en https://dbdiagram.io para editar y exportar la imagen.
+
+Project samaria360 {
+  database_type: 'PostgreSQL'
+}
+
+Enum estado_cuenta {
+  Activo
+  Inactivo
+  Desactivado
+}
+
+Table Reserva_Cupo_Dia [headercolor: #F6C9A0] {
+  id_reserva integer
+  id_inventario integer
+  cantidad_descontada integer [not null]
+
+  indexes {
+    (id_reserva, id_inventario) [pk]
+  }
+}
+
+Table Inventario_Cupo [headercolor: #F7E39C] {
+  id_inventario integer [pk]
+  id_servicio_mongo varchar(24) [not null]
+  fecha date [not null]
+  hora_inicio time [not null]
+  cupos_totales integer [not null]
+  cupos_disponibles integer [not null]
+}
+
+Table Reserva [headercolor: #A8DDB5] {
+  id_reserva integer [pk]
+  id_turista uuid [not null]
+  id_servicio_mongo varchar(24) [not null]
+  estado varchar(50) [not null]
+  monto_total numeric(10,2) [not null]
+  cantidad_solicitada integer [not null]
+  fecha_creacion timestamptz [not null]
+  fecha_inicio timestamptz [not null]
+  fecha_fin timestamptz [not null]
+  precio_unitario numeric(10,2) [not null]
+  unidad_cobro varchar(50) [not null]
+}
+
+Table Turista_Categoria_Interes [headercolor: #C5E3A5] {
+  id_usuario uuid
+  categoria varchar(50)
+
+  indexes {
+    (id_usuario, categoria) [pk]
+  }
+}
+
+Table Turista [headercolor: #A6DFEE] {
+  id_usuario uuid [pk]
+  primer_nombre varchar(50) [not null]
+  segundo_nombre varchar(50) [null]
+  primer_apellido varchar(50) [not null]
+  segundo_apellido varchar(50) [null]
+  pais_origen varchar(50) [not null]
+  acepto_politicas boolean [not null]
+}
+
+Table Token_Recuperacion [headercolor: #F2A9A9] {
+  id_token_recuperacion bigint [pk, increment]
+  id_usuario uuid [not null]
+  token_hash varchar(64) [unique, not null]
+  expira_en timestamptz [not null]
+  usado boolean [not null]
+}
+
+Table Usuario [headercolor: #CDBDF0] {
+  id_usuario uuid [pk]
+  id_rol integer [not null]
+  correo varchar(100) [unique, not null]
+  contrasena_hash varchar(255) [not null]
+  fecha_registro date [not null]
+  intentos_fallidos integer [not null]
+  estado_cuenta estado_cuenta [not null]
+  bloqueado_hasta timestamptz [null]
+}
+
+Table Prestador [headercolor: #A3DDD2] {
+  id_usuario uuid [pk]
+  razon_social varchar(150) [not null]
+  rnt varchar(50) [unique, not null]
+  telefono varchar(20) [not null]
+  nombre_representante_legal varchar(150) [not null]
+  correo_corporativo varchar(100) [not null]
+  estado_validacion varchar(50) [not null]
+}
+
+Table Gestor [headercolor: #AFCDEF] {
+  id_usuario uuid [pk]
+}
+
+Table Rol [headercolor: #F4B6C8] {
+  id_rol integer [pk]
+  nombre varchar(50) [unique, not null]
+}
+
+Table Administrador [headercolor: #B9BEEB] {
+  id_usuario uuid [pk]
+}
+
+Ref: Usuario.id_rol > Rol.id_rol
+Ref: Turista.id_usuario - Usuario.id_usuario
+Ref: Prestador.id_usuario - Usuario.id_usuario
+Ref: Gestor.id_usuario - Usuario.id_usuario
+Ref: Administrador.id_usuario - Usuario.id_usuario
+Ref: Token_Recuperacion.id_usuario > Usuario.id_usuario
+Ref: Turista_Categoria_Interes.id_usuario > Turista.id_usuario
+Ref: Reserva.id_turista > Turista.id_usuario
+Ref: Reserva_Cupo_Dia.id_reserva > Reserva.id_reserva
+Ref: Reserva_Cupo_Dia.id_inventario > Inventario_Cupo.id_inventario
