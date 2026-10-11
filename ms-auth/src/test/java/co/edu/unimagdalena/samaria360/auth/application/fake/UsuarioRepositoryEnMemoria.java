@@ -15,11 +15,18 @@ import java.util.UUID;
 public class UsuarioRepositoryEnMemoria implements UsuarioRepositoryPort {
 
     private final Map<UUID, Usuario> usuarios = new HashMap<>();
+    private final Map<UUID, String> nombresVisibles = new HashMap<>();
     private int llamadasGuardar;
 
     /** Precarga un usuario sin contar como llamada a {@link #guardar}. */
     public void agregar(Usuario usuario) {
         usuarios.put(usuario.getId(), copiar(usuario));
+    }
+
+    /** Precarga un usuario con el nombre de su subtipo (Turista o Prestador). */
+    public void agregar(Usuario usuario, String nombreVisible) {
+        agregar(usuario);
+        nombresVisibles.put(usuario.getId(), nombreVisible);
     }
 
     @Override
@@ -33,6 +40,11 @@ public class UsuarioRepositoryEnMemoria implements UsuarioRepositoryPort {
     @Override
     public Optional<Usuario> buscarPorId(UUID id) {
         return Optional.ofNullable(usuarios.get(id)).map(UsuarioRepositoryEnMemoria::copiar);
+    }
+
+    @Override
+    public Optional<String> buscarNombreVisible(UUID id) {
+        return Optional.ofNullable(nombresVisibles.get(id));
     }
 
     @Override

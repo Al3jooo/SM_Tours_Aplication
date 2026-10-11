@@ -37,6 +37,11 @@ public class UsuarioPersistenceAdapter implements UsuarioRepositoryPort {
         return repositorio.findById(id).map(mapper::aDominio);
     }
 
+    @Override
+    public Optional<String> buscarNombreVisible(UUID id) {
+        return repositorio.buscarNombreVisible(id);
+    }
+
     /** Dentro de la transacción, findById devuelve la entidad ya cargada sin otro SELECT. */
     @Override
     public void guardar(Usuario usuario) {

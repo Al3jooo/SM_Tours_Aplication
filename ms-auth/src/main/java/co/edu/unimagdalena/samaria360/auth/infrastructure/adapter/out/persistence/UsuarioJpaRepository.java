@@ -20,4 +20,17 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, UUID>
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from UsuarioEntity u where u.correo = :correo")
     Optional<UsuarioEntity> buscarPorCorreoParaActualizar(@Param("correo") String correo);
+
+    /**
+     * Lectura de turista y prestador sin mapearlos como entidades. NULL para Gestor y Administrador,
+     * que no tienen nombre en el modelo lógico.
+     */
+    @Query(value = """
+            SELECT COALESCE(t.primer_nombre || ' ' || t.primer_apellido, p.nombre_representante_legal)
+            FROM usuario u
+            LEFT JOIN turista t ON t.id_usuario = u.id_usuario
+            LEFT JOIN prestador p ON p.id_usuario = u.id_usuario
+            WHERE u.id_usuario = :id
+            """, nativeQuery = true)
+    Optional<String> buscarNombreVisible(@Param("id") UUID id);
 }

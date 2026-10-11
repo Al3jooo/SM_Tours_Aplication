@@ -7,14 +7,12 @@ import co.edu.unimagdalena.samaria360.auth.domain.exception.CredencialesInvalida
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaBloqueadaException;
 import co.edu.unimagdalena.samaria360.auth.domain.model.Rol;
 import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaBloqueo;
-import co.edu.unimagdalena.samaria360.auth.infrastructure.InfraestructuraTestConfig;
+import co.edu.unimagdalena.samaria360.auth.infrastructure.PruebaIntegracion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -27,9 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Caso de uso completo contra PostgreSQL con BCrypt real y la semilla. El estado se lee con JdbcTemplate
  * después de cada llamada, cuando la transacción ya terminó: así se comprueba lo que quedó confirmado.
  */
-@SpringBootTest
-@ActiveProfiles("test")
-@Import(InfraestructuraTestConfig.class)
+@PruebaIntegracion
 class IniciarSesionIntegracionTest {
 
     private static final UUID ID_TURISTA = UUID.fromString("00000000-0000-4000-8000-000000000001");
@@ -42,9 +38,12 @@ class IniciarSesionIntegracionTest {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
+    private JwtDecoder jwtDecoder;
+
     @BeforeEach
     void restablecerEstadoDeLogin() {
-        jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL");
+        jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, estado_cuenta = 'Activo'");
     }
 
     @Test
@@ -87,7 +86,7 @@ class IniciarSesionIntegracionTest {
 
         SesionIniciada sesion = iniciarSesion.iniciarSesion(new ComandoInicioSesion(CORREO_TURISTA, CONTRASENA_SEMILLA));
 
-        assertThat(sesion.token()).isEqualTo("token-" + ID_TURISTA);
+        assertThat(jwtDecoder.decode(sesion.token()).getSubject()).isEqualTo(ID_TURISTA.toString());
         assertThat(sesion.idUsuario()).isEqualTo(ID_TURISTA);
         assertThat(sesion.rol()).isEqualTo(Rol.Turista);
         assertThat(intentosFallidos()).isZero();

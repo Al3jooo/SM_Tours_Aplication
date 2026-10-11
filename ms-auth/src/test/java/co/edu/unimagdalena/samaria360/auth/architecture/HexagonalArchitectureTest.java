@@ -37,4 +37,10 @@ class HexagonalArchitectureTest {
                     "jakarta.persistence..",
                     "org.hibernate..")
             .because("los casos de uso solo dependen de domain y de sus puertos; la transacción va en infraestructura");
+
+    @ArchTest
+    static final ArchRule adaptadoresDeEntradaSoloUsanPuertosDeEntrada = noClasses()
+            .that().resideInAPackage("..adapter.in..")
+            .should().dependOnClassesThat().resideInAnyPackage("..application.service..", "..application.port.out..")
+            .because("los controladores invocan los casos de uso solo a través de los puertos de entrada");
 }

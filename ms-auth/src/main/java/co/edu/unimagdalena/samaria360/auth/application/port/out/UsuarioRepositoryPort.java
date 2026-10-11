@@ -12,6 +12,12 @@ public interface UsuarioRepositoryPort {
 
     Optional<Usuario> buscarPorId(UUID id);
 
+    /**
+     * Nombre para mostrar según el subtipo: Turista → primer nombre y primer apellido;
+     * Prestador → representante legal. Vacío si el subtipo no tiene nombre (Gestor, Administrador).
+     */
+    Optional<String> buscarNombreVisible(UUID id);
+
     /** Persiste {@code intentos_fallidos} y {@code bloqueado_hasta}. */
     void guardar(Usuario usuario);
 }

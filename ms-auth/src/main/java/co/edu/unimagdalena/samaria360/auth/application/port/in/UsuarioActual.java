@@ -5,6 +5,10 @@ import co.edu.unimagdalena.samaria360.auth.domain.model.Rol;
 
 import java.util.UUID;
 
-/** Datos básicos del usuario autenticado (GET /me). Nunca incluye el hash de la contraseña. */
-public record UsuarioActual(UUID idUsuario, String correo, Rol rol, EstadoCuenta estadoCuenta) {
+/**
+ * Datos básicos del usuario autenticado (GET /me). Nunca incluye el hash de la contraseña.
+ * {@code nombreVisible} alimenta el avatar con iniciales del encabezado.
+ */
+public record UsuarioActual(UUID idUsuario, String correo, Rol rol, EstadoCuenta estadoCuenta,
+                            String nombreVisible) {
 }

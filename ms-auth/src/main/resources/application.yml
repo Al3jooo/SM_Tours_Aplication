@@ -1,3 +1,6 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: ms-auth
@@ -17,6 +20,21 @@ spring:
   flyway:
     locations: classpath:db/migration
 
+samaria360:
+  jwt:
+    emisor: samaria360-auth
+    # Rutas relativas a la carpeta del servicio (ms-auth/)
+    llave-privada: ${JWT_LLAVE_PRIVADA:../infra/keys/jwt-privada.pem}
+    llave-publica: ${JWT_LLAVE_PUBLICA:../infra/keys/jwt-publica.pem}
+    expiracion: ${JWT_EXPIRACION_MINUTOS:60}m
+
+# Swagger solo en dev (ver documento de perfil dev más abajo)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 ---
 # La semilla (usuarios de prueba) solo se carga en dev y test.
 spring:
@@ -25,3 +43,14 @@ spring:
       on-profile: dev | test
   flyway:
     locations: classpath:db/migration,classpath:db/semilla
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

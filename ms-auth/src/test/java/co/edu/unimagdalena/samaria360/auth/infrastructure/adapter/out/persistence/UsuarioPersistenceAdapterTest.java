@@ -3,14 +3,11 @@ package co.edu.unimagdalena.samaria360.auth.infrastructure.adapter.out.persisten
 import co.edu.unimagdalena.samaria360.auth.domain.model.EstadoCuenta;
 import co.edu.unimagdalena.samaria360.auth.domain.model.Rol;
 import co.edu.unimagdalena.samaria360.auth.domain.model.Usuario;
-import co.edu.unimagdalena.samaria360.auth.infrastructure.InfraestructuraTestConfig;
+import co.edu.unimagdalena.samaria360.auth.infrastructure.PruebaIntegracion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -20,12 +17,12 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Import(InfraestructuraTestConfig.class)
+@PruebaIntegracion
 class UsuarioPersistenceAdapterTest {
 
     private static final UUID ID_TURISTA = UUID.fromString("00000000-0000-4000-8000-000000000001");
+    private static final UUID ID_PRESTADOR = UUID.fromString("00000000-0000-4000-8000-000000000002");
+    private static final UUID ID_GESTOR = UUID.fromString("00000000-0000-4000-8000-000000000003");
     private static final UUID ID_ADMIN = UUID.fromString("00000000-0000-4000-8000-000000000004");
 
     @Autowired
@@ -39,7 +36,7 @@ class UsuarioPersistenceAdapterTest {
 
     @BeforeEach
     void restablecerEstadoDeLogin() {
-        jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL");
+        jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, estado_cuenta = 'Activo'");
     }
 
     @Test
@@ -78,5 +75,14 @@ class UsuarioPersistenceAdapterTest {
                     assertThat(u.getRol()).isEqualTo(Rol.Administrador);
                 });
         assertThat(adaptador.buscarPorId(UUID.randomUUID())).isEmpty();
+    }
+
+    @Test
+    void buscarNombreVisibleSegunElSubtipo() {
+        assertThat(adaptador.buscarNombreVisible(ID_TURISTA)).contains("Ana Pérez");
+        assertThat(adaptador.buscarNombreVisible(ID_PRESTADOR)).contains("Carlos Gómez");
+        assertThat(adaptador.buscarNombreVisible(ID_GESTOR)).isEmpty();
+        assertThat(adaptador.buscarNombreVisible(ID_ADMIN)).isEmpty();
+        assertThat(adaptador.buscarNombreVisible(UUID.randomUUID())).isEmpty();
     }
 }
