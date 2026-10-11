@@ -65,6 +65,7 @@ cd ms-auth && ./mvnw spring-boot:run
 
 ## No hacer
 
+- No ejecutar comandos de Git que modifiquen el repositorio (commit, push, merge, rebase, crear o cambiar de rama). El desarrollador gestiona Git; al terminar, resume qué archivos cambiaste. Solo puedes usar git status y git diff para consultar.
 - No subir `.env` ni nada de `infra/keys/` (salvo su README).
 - No modificar `docs/` (SRS, SAD, diagramas) sin pedir confirmación.
 - No agregar dependencias al `pom.xml` sin justificarlas.
