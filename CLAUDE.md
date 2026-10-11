@@ -2,6 +2,11 @@
 
 Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de Software, Universidad del Magdalena).
 
+## Idioma
+
+- Responde siempre en **español**: planes, resúmenes, preguntas y explicaciones.
+- El código, los comandos, los nombres de archivos y los términos técnicos sin traducción establecida (por ejemplo, `fitBounds`, *commit*, *bundle*) pueden quedar como están.
+
 ## Contexto de proceso
 
 - Metodología **RUP**, fase de **Elaboración**. Este código es el **prototipo arquitectónico ejecutable** que valida la línea base de la arquitectura; no es un producto completo.
@@ -93,6 +98,7 @@ Los wireframes (`docs/wireframes/`) son una guía de **estructura**, no de esté
 - **Identidad visual:** inspirada en Santa Marta (mar Caribe, Sierra Nevada, café, atardecer). Debe ser coherente en todas las pantallas: los tokens (colores, tipografía, espaciado, radios, sombras) viven en `frontend/src/app/estilos.css` y se documentan en la sección "Guía visual" de `frontend/README.md`. Toda pantalla nueva reutiliza esos tokens.
 - **Elementos nuevos** que no están en el wireframe (p. ej. una ilustración o un mensaje de bienvenida) se permiten si son decorativos o mejoran la experiencia. Si tienen función, se registran en `docs/trazabilidad.md` como "Mejora de diseño".
 - **Restricciones que no cambian:** CSS propio, sin librerías de componentes ni de estilos. Fuentes con `@fontsource` (sin cargar desde internet). Sin fotos de terceros sin licencia: usar SVG, ilustraciones propias o degradados. Contraste WCAG AA, foco visible y diseño responsivo desde 360 px.
+- **Única excepción de recurso externo: las teselas de OpenStreetMap** del mapa de WF-05 (`https://tile.openstreetmap.org/{z}/{x}/{y}.png`, en `features/catalogo/componentes/MapaOferta.tsx`). Política de uso obligatoria: atribución «© OpenStreetMap contributors» siempre visible (no ocultar el control de atribución); zoom máximo 19; sin descarga masiva, prefetching ni caché offline (Leaflet solo pide las teselas del área visible, sin plugins de caché); `Referer` por defecto del navegador. Para un despliegue con tráfico real hay que usar un proveedor de teselas propio o contratado. El mapa usa **Leaflet directo** (BSD-2-Clause); no usar react-leaflet (licencia Hippocratic-2.1).
 
 ## No hacer
 

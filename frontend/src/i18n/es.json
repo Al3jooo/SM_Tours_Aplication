@@ -2,7 +2,9 @@
   "comun": {
     "proximamente": "Próximamente",
     "cargando": "Cargando…",
-    "saltarAlContenido": "Saltar al contenido"
+    "saltarAlContenido": "Saltar al contenido",
+    "cerrarAviso": "Cerrar aviso",
+    "sinDatos": "sin datos"
   },
   "encabezado": {
     "inicio": "Samaria360, ir al inicio",
@@ -51,8 +53,14 @@
     "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo más tarde."
   },
   "inicio": {
-    "saludo": "Hola, {{nombre}}",
-    "provisional": "Iniciaste sesión correctamente. La pantalla de inicio y búsqueda llegará con el catálogo."
+    "titular": "Encuentra alojamiento, gastronomía y tours en Santa Marta",
+    "apoyo": "Prestadores verificados, atractivos con aforo en tiempo real y un asistente virtual que responde tus preguntas antes de viajar.",
+    "buscarEtiqueta": "¿Qué buscas?",
+    "buscarPlaceholder": "¿Qué buscas? Ej: cabañas, restaurantes, tour de café",
+    "buscar": "Buscar",
+    "categorias": "Explora por categoría",
+    "destacados": "Destacados esta semana",
+    "sinDestacados": "Todavía no hay servicios destacados."
   },
   "pie": {
     "explorar": "Explorar",
@@ -75,5 +83,124 @@
   },
   "asistente": {
     "boton": "Asistente virtual IA"
+  },
+  "sesion": {
+    "avisoExpirada": "Tu sesión expiró.",
+    "iniciarDeNuevo": "Inicia sesión de nuevo",
+    "avisoInactiva": "Tu cuenta no está activa.",
+    "iniciarSesion": "Iniciar sesión"
+  },
+  "catalogo": {
+    "categorias": {
+      "Alojamiento": "Alojamiento",
+      "Gastronomia": "Gastronomía",
+      "Tour": "Tours",
+      "AlquilerEquipo": "Alquiler de equipos",
+      "Naturaleza": "Naturaleza",
+      "Cultura": "Cultura"
+    },
+    "tipos": {
+      "Servicio": "Servicio",
+      "Atractivo": "Atractivo"
+    },
+    "estados": {
+      "Abierto": "Abierto",
+      "Cerrado_temporalmente": "Cerrado temporalmente",
+      "En_mantenimiento": "En mantenimiento"
+    },
+    "accesibilidad": {
+      "MovilidadReducida": "Movilidad reducida",
+      "Visual": "Discapacidad visual",
+      "Auditiva": "Discapacidad auditiva"
+    },
+    "tarjeta": {
+      "desde": "Desde {{precio}}",
+      "calificacion": "Calificación",
+      "aforo": "Aforo",
+      "disponibilidad": "Disponibilidad",
+      "distancia": "Distancia",
+      "accesibilidad": "Accesibilidad",
+      "estado": "Estado",
+      "verDetalle": "Ver detalle",
+      "reservar": "Reservar"
+    },
+    "busqueda": {
+      "cargando": "Buscando lugares…",
+      "noDisponible": "El catálogo no está disponible en este momento.",
+      "noDisponibleAyuda": "Puedes seguir navegando por la plataforma; inténtalo de nuevo en unos segundos.",
+      "reintentar": "Reintentar",
+      "criteriosInvalidos": "Revisa los filtros: alguno no es válido.",
+      "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
+      "otro": "Ocurrió un error inesperado al buscar.",
+      "vacio": "No encontramos lugares con esos filtros.",
+      "vacioAyuda": "Prueba quitando algunos filtros o buscando otro término.",
+      "quitarFiltros": "Quitar filtros",
+      "fueraDeRango": "Esta página ya no existe: los resultados cambiaron.",
+      "primeraPagina": "Ir a la primera página",
+      "seccionNoCargada": "No pudimos cargar esta sección. Revisa tu conexión."
+    }
+  },
+  "explorar": {
+    "migas": "Migas de pan",
+    "migaExploracion": "Exploración interactiva",
+    "migaActual": "Mapa y resultados",
+    "titulo": "Exploración de Atractivos y Servicios en Santa Marta",
+    "apoyo": "Monitorea la afluencia en tiempo real, filtra por cercanía y planifica tus recorridos con información oficial del municipio.",
+    "filtros": "Filtros de búsqueda y afluencia",
+    "texto": "Nombre, vereda o actividad",
+    "textoPlaceholder": "Filtrar por nombre, vereda o actividad",
+    "precioMax": "Precio máximo",
+    "sinLimite": "Sin límite",
+    "distanciaMax": "Distancia máxima",
+    "sinUbicacion": "Comparte tu ubicación para filtrar y ordenar por distancia.",
+    "accesibilidad": "Accesibilidad",
+    "categoria": "Categoría: {{categoria}}",
+    "quitarCategoria": "Quitar el filtro de categoría {{categoria}}",
+    "aplicar": "Aplicar filtros",
+    "contador_one": "Resultados en Santa Marta ({{count}} lugar encontrado)",
+    "contador_other": "Resultados en Santa Marta ({{count}} lugares encontrados)",
+    "resultados": "Resultados en Santa Marta",
+    "ordenar": "Ordenar por",
+    "ordenes": {
+      "Distancia": "Menor distancia",
+      "Afluencia": "Menor afluencia",
+      "Calificacion": "Calificación",
+      "PrecioAscendente": "Precio: menor a mayor",
+      "PrecioDescendente": "Precio: mayor a menor",
+      "Nombre": "Nombre"
+    },
+    "paginacion": "Páginas de resultados",
+    "anterior": "Anterior",
+    "siguiente": "Siguiente",
+    "pagina": "Página {{numero}}",
+    "mapa": "Mapa interactivo de aforos y atractivos",
+    "leyendaAforo": "Aforo",
+    "aforoBajo": "Bajo (< 40 %)",
+    "aforoMedio": "Medio (40–75 %)",
+    "aforoAlto": "Alto (> 75 %)",
+    "sinDatosAforo": "Sin datos de aforo",
+    "preguntaAsistente": "¿Preguntas sobre el estado de las vías o aforos?",
+    "preguntarAsistente": "Preguntar al asistente"
+  },
+  "mapa": {
+    "acercar": "Acercar",
+    "alejar": "Alejar",
+    "tuUbicacion": "Tu ubicación",
+    "indicacionRueda": "Haz clic en el mapa o enfócalo para usar la rueda."
+  },
+  "ubicacion": {
+    "centrar": "Centrar en mi ubicación",
+    "obteniendo": "Obteniendo tu ubicación…",
+    "usando": "Usando tu ubicación aproximada.",
+    "lejos": "Estás lejos de Santa Marta: las distancias se calculan desde tu ubicación actual.",
+    "denegada": "No diste permiso para usar tu ubicación. Puedes seguir explorando sin ella.",
+    "noDisponible": "No pudimos determinar tu ubicación en este momento.",
+    "tiempoAgotado": "Obtener tu ubicación tardó demasiado. Inténtalo de nuevo.",
+    "noSoportada": "Tu navegador no permite compartir la ubicación."
+  },
+  "vista": {
+    "selector": "Vista de resultados",
+    "lista": "Lista",
+    "mapa": "Mapa"
   }
 }

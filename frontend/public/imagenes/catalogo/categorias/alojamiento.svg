@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Alojamiento">
+  <defs>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#DCF1F2"/>
+      <stop offset="1" stop-color="#FBF6EE"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="200" fill="url(#cielo)"/>
+  <circle cx="250" cy="52" r="24" fill="#F4B740"/>
+  <path d="M0 140 60 92l40 26 50-44 60 50 40-24 70 40v60H0z" fill="#2E6A4E" opacity=".85"/>
+  <path d="M0 160h320v40H0z" fill="#F3EADB"/>
+  <path d="M96 160v-46h84v46z" fill="#FBF6EE" stroke="#6A3E1E" stroke-width="4"/>
+  <path d="m84 118 54-38 54 38z" fill="#C2461F"/>
+  <rect x="128" y="130" width="20" height="30" fill="#6A3E1E"/>
+  <rect x="106" y="126" width="14" height="14" fill="#DCF1F2" stroke="#6A3E1E" stroke-width="3"/>
+  <rect x="156" y="126" width="14" height="14" fill="#DCF1F2" stroke="#6A3E1E" stroke-width="3"/>
+  <path d="M236 160c0-30 4-52 10-70" stroke="#6A3E1E" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M246 90c-22-6-34 2-40 14m40-14c18-10 34-6 42 6m-42-6c-6-18 2-30 14-36m-14 36c-16-14-30-12-38-4" stroke="#2E6A4E" stroke-width="8" fill="none" stroke-linecap="round"/>
+</svg>

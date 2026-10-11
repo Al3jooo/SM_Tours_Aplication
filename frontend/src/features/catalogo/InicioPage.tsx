@@ -1,0 +1,106 @@
+import { useState, type FormEvent, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  IconoAlojamiento,
+  IconoAlquiler,
+  IconoBuscar,
+  IconoGastronomia,
+  IconoTour,
+} from '../../shared/components/Iconos'
+import type { Categoria, CriteriosBusqueda } from './catalogoApi'
+import { EstadoCatalogo } from './componentes/EstadoCatalogo'
+import { TarjetaOferta } from './componentes/TarjetaOferta'
+import { useBusquedaOferta } from './useBusquedaOferta'
+import './catalogo.css'
+
+const CATEGORIAS_INICIO: { categoria: Categoria; Icono: () => ReactNode }[] = [
+  { categoria: 'Alojamiento', Icono: IconoAlojamiento },
+  { categoria: 'Gastronomia', Icono: IconoGastronomia },
+  { categoria: 'Tour', Icono: IconoTour },
+  { categoria: 'AlquilerEquipo', Icono: IconoAlquiler },
+]
+
+/**
+ * «Destacados esta semana»: criterio PROVISIONAL (pendiente en docs/trazabilidad.md). Con orden por precio
+ * ascendente, los atractivos (sin precio) van al final por la decisión 4, así que salen servicios; el criterio real
+ * (p. ej. calificación o marca del gestor) lo debe definir el equipo.
+ */
+const CRITERIOS_DESTACADOS: CriteriosBusqueda = { accesibilidad: [], orden: 'PrecioAscendente', pagina: 1, tamano: 3 }
+
+/** WF-04: inicio y búsqueda (pública). El banner de avisos (RF40) no se muestra: no existe el modelo de avisos. */
+export function InicioPage() {
+  const { t } = useTranslation()
+  const navegar = useNavigate()
+  const [texto, setTexto] = useState('')
+  const destacados = useBusquedaOferta(CRITERIOS_DESTACADOS)
+
+  const buscar = (evento: FormEvent<HTMLFormElement>) => {
+    evento.preventDefault()
+    const buscado = texto.trim()
+    navegar(buscado ? `/explorar?${new URLSearchParams({ texto: buscado })}` : '/explorar')
+  }
+
+  // Por seguridad, solo servicios: el criterio provisional no filtra por tipo.
+  const servicios = destacados.estado === 'ok' ? destacados.pagina.elementos.filter((e) => e.tipo === 'Servicio') : []
+
+  return (
+    <div className="inicio">
+      <section className="inicio__portada" aria-labelledby="titulo-inicio">
+        <h1 id="titulo-inicio">{t('inicio.titular')}</h1>
+        <p className="inicio__apoyo">{t('inicio.apoyo')}</p>
+        <form className="buscador" role="search" onSubmit={buscar}>
+          <label htmlFor="buscador-inicio" className="solo-lector">
+            {t('inicio.buscarEtiqueta')}
+          </label>
+          <span className="buscador__icono" aria-hidden="true">
+            <IconoBuscar />
+          </span>
+          <input
+            id="buscador-inicio"
+            type="search"
+            maxLength={100}
+            placeholder={t('inicio.buscarPlaceholder')}
+            value={texto}
+            onChange={(evento) => setTexto(evento.target.value)}
+          />
+          <button type="submit" className="boton-principal">
+            {t('inicio.buscar')}
+          </button>
+        </form>
+      </section>
+
+      <section className="inicio__categorias" aria-labelledby="titulo-categorias">
+        <h2 id="titulo-categorias">{t('inicio.categorias')}</h2>
+        <ul>
+          {CATEGORIAS_INICIO.map(({ categoria, Icono }) => (
+            <li key={categoria}>
+              <Link to={`/explorar?categoria=${categoria}`} className="boton-categoria">
+                <Icono />
+                <span>{t(`catalogo.categorias.${categoria}`)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="inicio__destacados" aria-labelledby="titulo-destacados">
+        <h2 id="titulo-destacados">{t('inicio.destacados')}</h2>
+        {destacados.estado === 'cargando' && <EstadoCatalogo tipo="cargando" />}
+        {destacados.estado === 'error' && <EstadoCatalogo tipo={destacados.error} onReintentar={destacados.reintentar} />}
+        {destacados.estado === 'ok' &&
+          (servicios.length === 0 ? (
+            <p className="estado-catalogo__ayuda">{t('inicio.sinDestacados')}</p>
+          ) : (
+            <ul className="lista-destacados">
+              {servicios.map((servicio) => (
+                <li key={servicio.id}>
+                  <TarjetaOferta resultado={servicio} variante="destacado" />
+                </li>
+              ))}
+            </ul>
+          ))}
+      </section>
+    </div>
+  )
+}

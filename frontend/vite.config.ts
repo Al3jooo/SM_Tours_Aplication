@@ -11,6 +11,15 @@ export default defineConfig({
       '/api': 'http://localhost:8080',
     },
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        // Leaflet en su propio archivo (solo lo pide /explorar, que se carga de forma diferida): no engorda el archivo
+        // principal y queda en caché aunque cambie el código de la página.
+        codeSplitting: { groups: [{ name: 'leaflet', test: /node_modules[\\/]leaflet[\\/]/ }] },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',

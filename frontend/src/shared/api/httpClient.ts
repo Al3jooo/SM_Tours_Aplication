@@ -25,7 +25,7 @@ export class ApiError extends Error {
   }
 }
 
-type OyenteSesionExpirada = () => void
+type OyenteSesionExpirada = (error: ApiError) => void
 const oyentes = new Set<OyenteSesionExpirada>()
 
 /** Avisa cuando una petición autenticada revela que la sesión ya no es válida. Devuelve la función para desuscribirse. */
@@ -70,7 +70,7 @@ export async function solicitar<T>(ruta: string, opciones: OpcionesSolicitud = {
     const problema = await leerProblema(respuesta)
     const error = new ApiError(respuesta.status, problema?.codigo ?? `HTTP_${respuesta.status}`, problema)
     if (token && sesionInvalida(error)) {
-      oyentes.forEach((oyente) => oyente())
+      oyentes.forEach((oyente) => oyente(error))
     }
     throw error
   }

@@ -2,7 +2,9 @@
   "comun": {
     "proximamente": "Coming soon",
     "cargando": "Loading…",
-    "saltarAlContenido": "Skip to content"
+    "saltarAlContenido": "Skip to content",
+    "cerrarAviso": "Dismiss notice",
+    "sinDatos": "no data"
   },
   "encabezado": {
     "inicio": "Samaria360, go to home",
@@ -51,8 +53,14 @@
     "GENERICO": "An unexpected error occurred. Please try again later."
   },
   "inicio": {
-    "saludo": "Hello, {{nombre}}",
-    "provisional": "You are signed in. The home and search screen will arrive with the catalog."
+    "titular": "Find accommodation, food and tours in Santa Marta",
+    "apoyo": "Verified providers, attractions with live occupancy and a virtual assistant that answers your questions before you travel.",
+    "buscarEtiqueta": "What are you looking for?",
+    "buscarPlaceholder": "What are you looking for? E.g. cabins, restaurants, coffee tour",
+    "buscar": "Search",
+    "categorias": "Explore by category",
+    "destacados": "Featured this week",
+    "sinDestacados": "There are no featured services yet."
   },
   "pie": {
     "explorar": "Explore",
@@ -75,5 +83,124 @@
   },
   "asistente": {
     "boton": "AI virtual assistant"
+  },
+  "sesion": {
+    "avisoExpirada": "Your session expired.",
+    "iniciarDeNuevo": "Sign in again",
+    "avisoInactiva": "Your account is not active.",
+    "iniciarSesion": "Sign in"
+  },
+  "catalogo": {
+    "categorias": {
+      "Alojamiento": "Accommodation",
+      "Gastronomia": "Food and drink",
+      "Tour": "Tours",
+      "AlquilerEquipo": "Equipment rental",
+      "Naturaleza": "Nature",
+      "Cultura": "Culture"
+    },
+    "tipos": {
+      "Servicio": "Service",
+      "Atractivo": "Attraction"
+    },
+    "estados": {
+      "Abierto": "Open",
+      "Cerrado_temporalmente": "Temporarily closed",
+      "En_mantenimiento": "Under maintenance"
+    },
+    "accesibilidad": {
+      "MovilidadReducida": "Reduced mobility",
+      "Visual": "Visual impairment",
+      "Auditiva": "Hearing impairment"
+    },
+    "tarjeta": {
+      "desde": "From {{precio}}",
+      "calificacion": "Rating",
+      "aforo": "Occupancy",
+      "disponibilidad": "Availability",
+      "distancia": "Distance",
+      "accesibilidad": "Accessibility",
+      "estado": "Status",
+      "verDetalle": "View details",
+      "reservar": "Book"
+    },
+    "busqueda": {
+      "cargando": "Searching for places…",
+      "noDisponible": "The catalog is not available right now.",
+      "noDisponibleAyuda": "You can keep browsing the platform; try again in a few seconds.",
+      "reintentar": "Retry",
+      "criteriosInvalidos": "Check the filters: one of them is not valid.",
+      "red": "Could not reach the server. Check your connection.",
+      "otro": "An unexpected error occurred while searching.",
+      "vacio": "We couldn't find places with those filters.",
+      "vacioAyuda": "Try removing some filters or searching for another term.",
+      "quitarFiltros": "Clear filters",
+      "fueraDeRango": "This page no longer exists: the results changed.",
+      "primeraPagina": "Go to the first page",
+      "seccionNoCargada": "We couldn't load this section. Check your connection."
+    }
+  },
+  "explorar": {
+    "migas": "Breadcrumb",
+    "migaExploracion": "Interactive exploration",
+    "migaActual": "Map and results",
+    "titulo": "Exploring Attractions and Services in Santa Marta",
+    "apoyo": "Monitor live occupancy, filter by proximity and plan your trips with official information from the municipality.",
+    "filtros": "Search and occupancy filters",
+    "texto": "Name, area or activity",
+    "textoPlaceholder": "Filter by name, area or activity",
+    "precioMax": "Maximum price",
+    "sinLimite": "No limit",
+    "distanciaMax": "Maximum distance",
+    "sinUbicacion": "Share your location to filter and sort by distance.",
+    "accesibilidad": "Accessibility",
+    "categoria": "Category: {{categoria}}",
+    "quitarCategoria": "Remove the {{categoria}} category filter",
+    "aplicar": "Apply filters",
+    "contador_one": "Results in Santa Marta ({{count}} place found)",
+    "contador_other": "Results in Santa Marta ({{count}} places found)",
+    "resultados": "Results in Santa Marta",
+    "ordenar": "Sort by",
+    "ordenes": {
+      "Distancia": "Nearest",
+      "Afluencia": "Least crowded",
+      "Calificacion": "Rating",
+      "PrecioAscendente": "Price: low to high",
+      "PrecioDescendente": "Price: high to low",
+      "Nombre": "Name"
+    },
+    "paginacion": "Results pages",
+    "anterior": "Previous",
+    "siguiente": "Next",
+    "pagina": "Page {{numero}}",
+    "mapa": "Interactive occupancy and attractions map",
+    "leyendaAforo": "Occupancy",
+    "aforoBajo": "Low (< 40%)",
+    "aforoMedio": "Medium (40–75%)",
+    "aforoAlto": "High (> 75%)",
+    "sinDatosAforo": "No occupancy data",
+    "preguntaAsistente": "Questions about roads or occupancy?",
+    "preguntarAsistente": "Ask the assistant"
+  },
+  "mapa": {
+    "acercar": "Zoom in",
+    "alejar": "Zoom out",
+    "tuUbicacion": "Your location",
+    "indicacionRueda": "Click or focus the map to zoom with the mouse wheel."
+  },
+  "ubicacion": {
+    "centrar": "Center on my location",
+    "obteniendo": "Getting your location…",
+    "usando": "Using your approximate location.",
+    "lejos": "You are far from Santa Marta: distances are calculated from your current location.",
+    "denegada": "You didn't allow access to your location. You can keep exploring without it.",
+    "noDisponible": "We couldn't determine your location right now.",
+    "tiempoAgotado": "Getting your location took too long. Please try again.",
+    "noSoportada": "Your browser doesn't support sharing your location."
+  },
+  "vista": {
+    "selector": "Results view",
+    "lista": "List",
+    "mapa": "Map"
   }
 }

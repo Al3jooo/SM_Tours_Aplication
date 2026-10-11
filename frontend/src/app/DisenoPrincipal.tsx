@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router-dom'
+import { AvisoSesion } from '../features/auth/AvisoSesion'
 import { useSesion } from '../features/auth/useSesion'
 import { BotonAsistente } from '../shared/components/BotonAsistente'
 import { Encabezado } from '../shared/components/Encabezado'
@@ -23,6 +24,7 @@ export function DisenoPrincipal() {
           navegar('/login', { replace: true })
         }}
       />
+      <AvisoSesion />
       <main id="contenido" className="contenido" tabIndex={-1}>
         <Outlet />
       </main>

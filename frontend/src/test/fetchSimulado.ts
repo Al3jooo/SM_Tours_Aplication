@@ -41,7 +41,7 @@ export function respuestaProblema(status: number, codigo: string, extra: Record<
 }
 
 /**
- * Reemplaza fetch por rutas "MÉTODO /ruta". Devuelve el registro de solicitudes para verificar, por
+ * Reemplaza fetch por rutas "MÉTODO /ruta" (con o sin la consulta). Devuelve el registro de solicitudes para verificar, por
  * ejemplo, la cabecera Authorization.
  */
 export function simularFetch(rutas: Record<string, Manejador>) {
@@ -54,7 +54,9 @@ export function simularFetch(rutas: Record<string, Manejador>) {
       cuerpo: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined,
     }
     solicitudes.push(solicitud)
-    const manejador = rutas[`${solicitud.metodo} ${solicitud.url}`]
+    // Primero la URL exacta; si no, la ruta sin la consulta (el manejador recibe la URL completa).
+    const manejador =
+      rutas[`${solicitud.metodo} ${solicitud.url}`] ?? rutas[`${solicitud.metodo} ${solicitud.url.split('?')[0]}`]
     if (!manejador) {
       throw new Error(`fetch sin simulación: ${solicitud.metodo} ${solicitud.url}`)
     }
@@ -62,4 +64,57 @@ export function simularFetch(rutas: Record<string, Manejador>) {
   })
   vi.stubGlobal('fetch', fetchSimulado)
   return { fetchSimulado, solicitudes }
+}
+
+// ------------------------------------------------------------------ catálogo (GET /api/v1/catalogo/oferta)
+
+export const HOTEL = {
+  tipo: 'Servicio',
+  id: 's-hotel',
+  nombre: 'Hotel Casa Tayrona',
+  categoria: 'Alojamiento',
+  descripcionCorta: 'Alojamiento boutique cerca del Parque de los Novios.',
+  precio: 150000,
+  imagen: '/imagenes/catalogo/hotel-casa-tayrona.svg',
+  coordenada: { longitud: -74.2125, latitud: 11.2425 },
+  distanciaKm: null,
+  accesibilidad: ['MovilidadReducida'],
+  estadoOperativo: null,
+}
+
+export const TOUR_CAFE = {
+  ...HOTEL,
+  id: 's-tour-cafe',
+  nombre: 'Tour de Café en Minca',
+  categoria: 'Tour',
+  descripcionCorta: 'Recorrido guiado por fincas cafeteras.',
+  precio: 80000,
+  accesibilidad: ['Auditiva'],
+}
+
+export const CASCADA_CERRADA = {
+  tipo: 'Atractivo',
+  id: 'a-cascada',
+  nombre: 'Cascada El Salto',
+  categoria: 'Naturaleza',
+  descripcionCorta: 'Sendero hasta una caída de agua cerca de Minca.',
+  precio: null,
+  imagen: '/imagenes/catalogo/cascada-el-salto.svg',
+  coordenada: { longitud: -74.11, latitud: 11.15 },
+  distanciaKm: null,
+  accesibilidad: [],
+  estadoOperativo: 'Cerrado_temporalmente',
+}
+
+export function paginaOferta(
+  elementos: unknown[],
+  { pagina = 0, tamano = 10, totalElementos = elementos.length }: { pagina?: number; tamano?: number; totalElementos?: number } = {},
+) {
+  return { elementos, pagina, tamano, totalElementos, totalPaginas: Math.ceil(totalElementos / tamano) }
+}
+
+/** Consulta (sin el prefijo de la ruta) de la última petición al catálogo. */
+export function ultimaConsultaCatalogo(solicitudes: SolicitudSimulada[]): string {
+  const catalogo = solicitudes.filter((s) => s.url.startsWith('/api/v1/catalogo/oferta'))
+  return catalogo.length === 0 ? '' : (catalogo[catalogo.length - 1].url.split('?')[1] ?? '')
 }

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Tours">
+  <defs>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FDF1D6"/>
+      <stop offset="1" stop-color="#F4B740"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="200" fill="url(#cielo)"/>
+  <circle cx="230" cy="70" r="26" fill="#FDF1D6"/>
+  <path d="m0 130 70-70 46 40 54-60 74 70 76-30v120H0z" fill="#073B44" opacity=".55"/>
+  <path d="m150 42 20-22 20 22-8-4-12 10-12-10z" fill="#FFFFFF"/>
+  <path d="m0 150 60-36 50 26 60-40 70 44 80-22v78H0z" fill="#2E6A4E"/>
+  <path d="M150 200c10-30 40-40 30-60s-30-14-20-34" stroke="#F3EADB" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="2 12"/>
+  <g fill="#C2461F">
+    <circle cx="46" cy="170" r="5"/><circle cx="62" cy="178" r="5"/><circle cx="266" cy="166" r="5"/><circle cx="282" cy="176" r="5"/>
+  </g>
+  <g fill="#073B44">
+    <circle cx="186" cy="118" r="6"/>
+    <path d="M182 126h8l4 22h-16z"/>
+  </g>
+</svg>

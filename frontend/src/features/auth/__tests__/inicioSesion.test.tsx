@@ -3,11 +3,12 @@ import { describe, expect, it } from 'vitest'
 import {
   SESION_TURISTA,
   USUARIO_TURISTA,
+  paginaOferta,
   respuestaJson,
   respuestaProblema,
   simularFetch,
 } from '../../../test/fetchSimulado'
-import { renderApp } from '../../../test/renderApp'
+import { renderApp, ubicacionActual } from '../../../test/renderApp'
 
 const LOGIN = 'POST /api/v1/auth/login'
 const ME = 'GET /api/v1/auth/me'
@@ -23,12 +24,17 @@ describe('Inicio de sesión (RF15)', () => {
     const { solicitudes } = simularFetch({
       [LOGIN]: () => respuestaJson(200, SESION_TURISTA),
       [ME]: () => respuestaJson(200, USUARIO_TURISTA),
+      'GET /api/v1/catalogo/oferta': () => respuestaJson(200, paginaOferta([])),
     })
     const { usuario } = renderApp('/login')
 
     await llenarYEnviar(usuario, 'turista@samaria360.test', 'Samaria360*')
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Hola, Ana Pérez' })).toBeInTheDocument()
+    // El inicio es la pantalla WF-04 (antes, el inicio provisional con «Hola, Ana Pérez»).
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Encuentra alojamiento, gastronomía y tours en Santa Marta' }),
+    ).toBeInTheDocument()
+    expect(ubicacionActual()).toBe('/')
     expect(screen.getByRole('button', { name: 'Menú de usuario de Ana Pérez' })).toHaveTextContent('AP')
     expect(sessionStorage.getItem('samaria360.token')).toBe(SESION_TURISTA.token)
 
