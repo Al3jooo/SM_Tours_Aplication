@@ -26,9 +26,17 @@ public record CriteriosBusqueda(String texto, Categoria categoria, BigDecimal pr
     /** RF16: lista paginada de 10 elementos o menos por vista. */
     public static final int TAMANO_PAGINA_MAXIMO = 10;
 
+    /** Acota el costo de cada búsqueda por texto (el texto, además, se escapa antes de usarse como regex). */
+    public static final int LONGITUD_MAXIMA_TEXTO = 100;
+
     public CriteriosBusqueda {
         texto = texto == null || texto.isBlank() ? null : texto.trim();
         accesibilidad = accesibilidad == null ? Set.of() : Set.copyOf(accesibilidad);
+
+        if (texto != null && texto.length() > LONGITUD_MAXIMA_TEXTO) {
+            throw new CriteriosBusquedaInvalidosException(
+                    "El texto de búsqueda admite como máximo " + LONGITUD_MAXIMA_TEXTO + " caracteres");
+        }
 
         if (tamanoPagina < 1 || tamanoPagina > TAMANO_PAGINA_MAXIMO) {
             throw new CriteriosBusquedaInvalidosException(
@@ -58,5 +66,11 @@ public record CriteriosBusqueda(String texto, Categoria categoria, BigDecimal pr
     /** Primera página, de tamaño máximo, sin filtros ni orden. */
     public static CriteriosBusqueda sinFiltros() {
         return new CriteriosBusqueda(null, null, null, null, null, Set.of(), null, 0, TAMANO_PAGINA_MAXIMO);
+    }
+
+    /** Copia con otro orden (el caso de uso resuelve el orden por defecto). */
+    public CriteriosBusqueda conOrden(OrdenBusqueda nuevoOrden) {
+        return new CriteriosBusqueda(texto, categoria, precioMaximo, ubicacion, distanciaMaximaKm, accesibilidad,
+                nuevoOrden, pagina, tamanoPagina);
     }
 }

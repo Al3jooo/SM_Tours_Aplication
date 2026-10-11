@@ -30,4 +30,22 @@ class HexagonalArchitectureTest {
             .that().resideInAPackage("..domain..")
             .should().dependOnClassesThat().resideInAnyPackage("..application..", "..infrastructure..")
             .because("en la arquitectura hexagonal las dependencias apuntan hacia domain");
+
+    @ArchTest
+    static final ArchRule aplicacionSinInfraestructuraNiFrameworks = noClasses()
+            .that().resideInAPackage("..application..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "..infrastructure..",
+                    "org.springframework..",
+                    "jakarta.persistence..",
+                    "org.hibernate..",
+                    "org.bson..",
+                    "com.mongodb..")
+            .because("los casos de uso solo dependen de domain y de sus puertos");
+
+    @ArchTest
+    static final ArchRule adaptadoresDeEntradaSoloUsanPuertosDeEntrada = noClasses()
+            .that().resideInAPackage("..adapter.in..")
+            .should().dependOnClassesThat().resideInAnyPackage("..application.service..", "..application.port.out..")
+            .because("los controladores invocan los casos de uso solo a través de los puertos de entrada");
 }
