@@ -9,6 +9,7 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 - **Alcance de esta iteración:** inicio de sesión (`ms-auth`) y vista principal del catálogo (`ms-catalog`).
 - **Fuera de alcance:** registro de usuarios, reservas, chatbot real, notificaciones, analítica. No implementarlos aunque parezcan fáciles.
 - Si una regla de negocio no está definida en el SRS (`docs/srs/`), **preguntar**; no inventarla.
+- Fuente única de requisitos: `docs/srs/especificacion de requisitos.pdf`. Modelo de datos: `docs/sad/diagramas/modelo-logico.dbml`. Ignorar las carpetas `Documentos extras/`, `DocumentosEntregable1/` y `Diagramas de casos de uso/`, que contienen versiones anteriores.
 
 ## Arquitectura
 
@@ -65,6 +66,7 @@ cd ms-auth && ./mvnw spring-boot:run
 
 ## No hacer
 
+- No ejecutar comandos de Git que modifiquen el repositorio (commit, push, merge, rebase, crear o cambiar de rama). El desarrollador gestiona Git; al terminar, resume qué archivos cambiaste. Solo puedes usar git status y git diff para consultar.
 - No subir `.env` ni nada de `infra/keys/` (salvo su README).
 - No modificar `docs/` (SRS, SAD, diagramas) sin pedir confirmación.
 - No agregar dependencias al `pom.xml` sin justificarlas.
