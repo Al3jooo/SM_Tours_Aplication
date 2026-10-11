@@ -10,6 +10,7 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 - **Fuera de alcance:** registro de usuarios, reservas, chatbot real, notificaciones, analítica. No implementarlos aunque parezcan fáciles.
 - Si una regla de negocio no está definida en el SRS (`docs/srs/`), **preguntar**; no inventarla.
 - Fuente única de requisitos: `docs/srs/especificacion de requisitos.pdf`. Modelo de datos: `docs/sad/diagramas/modelo-logico.dbml`. Ignorar las carpetas `Documentos extras/`, `DocumentosEntregable1/` y `Diagramas de casos de uso/`, que contienen versiones anteriores.
+   - Las pantallas del frontend y los datos que exponen los endpoints deben corresponder a los wireframes de `docs/wireframes/`. Si un elemento del wireframe queda fuera del alcance del prototipo, se muestra deshabilitado y se lista como pendiente.
 
 ## Arquitectura
 

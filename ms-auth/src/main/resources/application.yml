@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: ms-auth
+  config:
+    # .env de la raíz del monorepo (ms-auth se ejecuta desde su propia carpeta)
+    import: optional:file:../.env[.properties]
+  profiles:
+    default: dev
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/auth_db
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration
+
+---
+# La semilla (usuarios de prueba) solo se carga en dev y test.
+spring:
+  config:
+    activate:
+      on-profile: dev | test
+  flyway:
+    locations: classpath:db/migration,classpath:db/semilla
