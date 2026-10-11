@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Gastronomía">
+  <rect width="320" height="200" fill="#FDF1D6"/>
+  <circle cx="64" cy="40" r="60" fill="#F4B740" opacity=".35"/>
+  <path d="M0 150h320v50H0z" fill="#6A3E1E"/>
+  <path d="M0 150h320v8H0z" fill="#C2461F"/>
+  <ellipse cx="150" cy="140" rx="76" ry="22" fill="#FFFFFF"/>
+  <ellipse cx="150" cy="136" rx="58" ry="14" fill="#F3EADB"/>
+  <path d="M110 134c14-14 46-16 66-2-20 12-52 12-66 2z" fill="#E2603A"/>
+  <path d="m176 132 18-10v20z" fill="#E2603A"/>
+  <circle cx="122" cy="132" r="2.5" fill="#073B44"/>
+  <path d="M138 128h10m-6 10h12" stroke="#2E6A4E" stroke-width="4" stroke-linecap="round"/>
+  <path d="M246 104h40v26a20 20 0 0 1-40 0z" fill="#FFFFFF"/>
+  <path d="M286 110h8a8 8 0 0 1 0 16h-8" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+  <path d="M258 96c0-8 8-8 8-16m8 16c0-8 8-8 8-16" stroke="#6A3E1E" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M46 92v52m-10-52v18a10 10 0 0 0 20 0V92" stroke="#073B44" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M74 92c10 6 10 26 0 32v20" stroke="#073B44" stroke-width="4" fill="none" stroke-linecap="round"/>
+</svg>

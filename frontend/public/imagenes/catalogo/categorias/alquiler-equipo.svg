@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Alquiler de equipos">
+  <rect width="320" height="200" fill="#DCF1F2"/>
+  <circle cx="60" cy="50" r="22" fill="#F4B740"/>
+  <path d="M0 96h320v104H0z" fill="#1497A6"/>
+  <path d="M0 110q20-8 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0v90H0z" fill="#0B6574"/>
+  <path d="M0 150q20-8 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0v50H0z" fill="#073B44"/>
+  <path d="M86 128c40-16 108-16 148 0-40 14-108 14-148 0z" fill="#C2461F"/>
+  <ellipse cx="160" cy="126" rx="18" ry="5" fill="#073B44"/>
+  <path d="m120 90 80 60" stroke="#6A3E1E" stroke-width="5" stroke-linecap="round"/>
+  <path d="m112 84 14 10-4 6-14-10zM196 146l14 10-4 6-14-10z" fill="#F4B740"/>
+  <path d="M260 92V40m0 0 30 44h-30z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M244 92h36l-6 8h-26z" fill="#E2603A"/>
+</svg>

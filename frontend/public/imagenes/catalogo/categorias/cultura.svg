@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Cultura">
+  <rect width="320" height="200" fill="#FDF1D6"/>
+  <circle cx="262" cy="46" r="22" fill="#F4B740"/>
+  <path d="M0 170h320v30H0z" fill="#F3EADB"/>
+  <path d="M90 170V90h140v80z" fill="#FFFFFF" stroke="#6A3E1E" stroke-width="4"/>
+  <path d="M78 92 160 50l82 42z" fill="#C2461F"/>
+  <path d="M140 72V40h40v32" fill="#FFFFFF" stroke="#6A3E1E" stroke-width="4"/>
+  <path d="m136 42 24-18 24 18z" fill="#C2461F"/>
+  <circle cx="160" cy="52" r="6" fill="#F4B740"/>
+  <path d="M146 170v-40a14 14 0 0 1 28 0v40z" fill="#6A3E1E"/>
+  <path d="M106 108h20v26h-20zM194 108h20v26h-20z" fill="#DCF1F2" stroke="#6A3E1E" stroke-width="3"/>
+  <path d="M30 170v-60m0 0c-14-8-24-4-28 4m28-4c12-10 24-8 30 0" stroke="#2E6A4E" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M290 170v-50m0 0c-12-8-22-4-26 4m26-4c10-10 22-8 28 0" stroke="#2E6A4E" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>

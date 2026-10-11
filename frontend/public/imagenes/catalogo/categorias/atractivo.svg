@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Atractivo">
+  <defs>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4B740"/>
+      <stop offset=".6" stop-color="#E2603A"/>
+      <stop offset="1" stop-color="#C2461F"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="200" fill="url(#cielo)"/>
+  <circle cx="200" cy="120" r="34" fill="#FDF1D6"/>
+  <path d="m0 120 60-44 40 22 56-50 50 46 40-20 74 46v80H0z" fill="#073B44" opacity=".6"/>
+  <path d="M0 130h320v70H0z" fill="#0B6574"/>
+  <path d="M0 150q20-8 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0v50H0z" fill="#073B44"/>
+  <path d="M160 34c-16 0-28 12-28 28 0 22 28 46 28 46s28-24 28-46c0-16-12-28-28-28z" fill="#FFFFFF"/>
+  <circle cx="160" cy="62" r="10" fill="#C2461F"/>
+</svg>

@@ -1,48 +1,60 @@
 import { screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { USUARIO_TURISTA, respuestaJson, respuestaProblema, simularFetch } from '../../../test/fetchSimulado'
-import { renderApp } from '../../../test/renderApp'
+import {
+  USUARIO_TURISTA,
+  paginaOferta,
+  respuestaJson,
+  respuestaProblema,
+  simularFetch,
+} from '../../../test/fetchSimulado'
+import { renderApp, ubicacionActual } from '../../../test/renderApp'
 
 const ME = 'GET /api/v1/auth/me'
+// El inicio (WF-04) consulta los destacados del catálogo.
+const CATALOGO = { 'GET /api/v1/catalogo/oferta': () => respuestaJson(200, paginaOferta([])) }
 
 function sesionGuardada(token = 'token-guardado') {
   sessionStorage.setItem('samaria360.token', token)
 }
 
-describe('Sesión y rutas protegidas', () => {
+describe('Sesión', () => {
   it('una sesión guardada se restaura con /me', async () => {
     sesionGuardada()
-    const { solicitudes } = simularFetch({ [ME]: () => respuestaJson(200, USUARIO_TURISTA) })
+    const { solicitudes } = simularFetch({ [ME]: () => respuestaJson(200, USUARIO_TURISTA), ...CATALOGO })
     renderApp('/')
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Hola, Ana Pérez' })).toBeInTheDocument()
-    expect(solicitudes[0].cabeceras.Authorization).toBe('Bearer token-guardado')
+    // Antes esperaba el título «Hola, Ana Pérez» del inicio provisional, que ya no existe.
+    expect(await screen.findByRole('button', { name: 'Menú de usuario de Ana Pérez' })).toHaveTextContent('AP')
+    const me = solicitudes.find((s) => s.url === '/api/v1/auth/me')
+    expect(me?.cabeceras.Authorization).toBe('Bearer token-guardado')
   })
 
-  it('un 401 de /me cierra la sesión y vuelve al login', async () => {
+  // «/» ahora es pública: la sesión se cierra y el usuario se queda en la página, con un aviso (antes iba al login).
+  it('un 401 de /me en una página pública cierra la sesión y avisa sin sacar al usuario', async () => {
     sesionGuardada()
-    simularFetch({ [ME]: () => respuestaProblema(401, 'NO_AUTENTICADO') })
-    renderApp('/')
+    simularFetch({ [ME]: () => respuestaProblema(401, 'NO_AUTENTICADO'), ...CATALOGO })
+    const { usuario } = renderApp('/')
 
-    expect(await screen.findByRole('button', { name: 'Iniciar sesión' })).toBeInTheDocument()
+    const aviso = (await screen.findByText(/Tu sesión expiró\./)).closest('[role="status"]')
+    expect(aviso).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Inicia sesión de nuevo' })).toHaveAttribute('href', '/login')
+    expect(ubicacionActual()).toBe('/')
     expect(sessionStorage.getItem('samaria360.token')).toBeNull()
+    expect(screen.queryByRole('button', { name: /Menú de usuario/ })).not.toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('button', { name: 'Cerrar aviso' }))
+    expect(screen.queryByText('Tu sesión expiró.', { exact: false })).not.toBeInTheDocument()
   })
 
-  it('un 403 de /me (cuenta desactivada) también cierra la sesión', async () => {
+  it('un 403 de /me (cuenta desactivada) cierra la sesión y avisa que la cuenta no está activa', async () => {
     sesionGuardada()
-    simularFetch({ [ME]: () => respuestaProblema(403, 'CUENTA_INACTIVA') })
+    simularFetch({ [ME]: () => respuestaProblema(403, 'CUENTA_INACTIVA'), ...CATALOGO })
     renderApp('/')
 
-    expect(await screen.findByRole('button', { name: 'Iniciar sesión' })).toBeInTheDocument()
+    expect(await screen.findByText('Tu cuenta no está activa.', { exact: false })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Iniciar sesión' })).toHaveAttribute('href', '/login')
+    expect(ubicacionActual()).toBe('/')
     expect(sessionStorage.getItem('samaria360.token')).toBeNull()
-  })
-
-  it('sin sesión, una ruta privada redirige al login sin llamar al backend', async () => {
-    const { fetchSimulado } = simularFetch({})
-    renderApp('/')
-
-    expect(await screen.findByLabelText('Correo electrónico')).toBeInTheDocument()
-    expect(fetchSimulado).not.toHaveBeenCalled()
   })
 
   it('Cerrar sesión desde el menú del avatar borra el token y vuelve al login (RF55)', async () => {

@@ -171,6 +171,12 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Mensaje de error | `.login__error` | Región `aria-live` siempre presente; el contenido es error sobre error-fondo con borde izquierdo. |
 | Fuera de alcance | `BotonProximamente` + `.insignia-proximamente` | `aria-disabled` (sigue siendo enfocable), color deshabilitado e insignia sol-100 / café-700. Nunca `disabled` ni texto sin la insignia o el tooltip. |
 | Carga | `.estado-carga` | `role="status"` y `aria-busy`, con indicador giratorio decorativo. |
+| Botón secundario | `.boton-secundario` (en `estilos.css`, como `.boton-principal`) | Píldora con borde mar-700 sobre superficie: acciones de apoyo (Reintentar, Quitar filtros). |
+| Chip de filtro | `.chip` | mar-900 sobre mar-100, removible; `aria-label` que diga qué filtro quita. |
+| Aviso de sesión | `.aviso-sesion` | tinta sobre sol-100 con borde sol-400, `role="status"` y botón para cerrarlo. |
+| Tarjeta de oferta | `.tarjeta-oferta` (`features/catalogo/catalogo.css`) | Imagen con `alt=""` y respaldo por categoría, nombre h3, datos en `<dl>`; «—» con texto «sin datos» para lectores. |
+| Insignia de estado | `.insignia-estado--<EstadoOperativo>` | Abierto: mar-700/mar-100 · Cerrado temporalmente: error/error-fondo · En mantenimiento: café-700/sol-100. |
+| Estado de búsqueda | `EstadoCatalogo` | Carga, vacío, fuera de rango y errores (503, 400, red); el error solo afecta a su región. |
 
 ### Maquetación y responsivo
 

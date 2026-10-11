@@ -7,7 +7,8 @@ import { BotonProximamente } from './Proximamente'
 import { SelectorIdioma } from './SelectorIdioma'
 
 /**
- * Encabezado común (WF-01, WF-04). Búsqueda, Servicios y Asistente IA llegan en iteraciones siguientes.
+ * Encabezado común (WF-01, WF-04). Búsqueda lleva a la exploración (WF-05); Servicios y Asistente IA llegan en
+ * iteraciones siguientes.
  * Recibe la sesión por props para que shared/ no dependa de features/.
  */
 export function Encabezado({
@@ -33,7 +34,7 @@ export function Encabezado({
               <NavLink to="/login">{t('encabezado.inicioSesion')}</NavLink>
             </li>
             <li>
-              <BotonProximamente etiquetaVisible={false}>{t('encabezado.busqueda')}</BotonProximamente>
+              <NavLink to="/explorar">{t('encabezado.busqueda')}</NavLink>
             </li>
             <li>
               <BotonProximamente etiquetaVisible={false}>{t('encabezado.servicios')}</BotonProximamente>
