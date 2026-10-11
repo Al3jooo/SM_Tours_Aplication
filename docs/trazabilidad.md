@@ -48,13 +48,13 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 | WF-05 | Migas de pan y título | Buscar oferta turística | RF16 | — | `features/catalogo/ExplorarPage.tsx` | Implementado |
 | WF-05 | Filtro de texto «Filtrar por nombre, vereda o actividad» | Buscar oferta turística | RF16 | `GET /oferta?texto=` | `componentes/FiltrosOferta.tsx` | Implementado |
 | WF-05 | Precio máximo (deslizador) | Buscar oferta turística | RF16, RF37 | `GET /oferta?precioMax=` | `componentes/FiltrosOferta.tsx` | Implementado |
-| WF-05 | Distancia máxima (deslizador) | Buscar oferta turística | RF38 | `GET /oferta?lat=&lng=&distanciaKm=` | `componentes/FiltrosOferta.tsx` | Deshabilitado sin ubicación, con explicación (la ubicación llega en la parte 2) |
+| WF-05 | Distancia máxima (deslizador); sin ubicación, deshabilitado con explicación | Buscar oferta turística | RF38 | `GET /oferta?lat=&lng=&distanciaKm=` | `componentes/FiltrosOferta.tsx` | Implementado |
 | WF-05 | Accesibilidad: WF-05 muestra solo «movilidad reducida»; se muestran las 3 condiciones de RF50 | Buscar oferta turística | RF50, RF27 | `GET /oferta?accesibilidad=` | `componentes/FiltrosOferta.tsx` | Mejora de diseño |
 | WF-05 | Chip removible de la categoría elegida en WF-04 | Buscar oferta turística | RF16 | `GET /oferta?categoria=` | `componentes/FiltrosOferta.tsx` | Mejora de diseño |
 | WF-05 | Botón «Aplicar filtros» | Buscar oferta turística | RF16 | — | `componentes/FiltrosOferta.tsx` | Implementado |
 | WF-05 | Filtros, orden y página en la URL (Atrás, recarga y enlace compartido; la ubicación nunca va en la URL) | Buscar oferta turística | RF16 | — | `features/catalogo/criteriosUrl.ts` | Implementado |
 | WF-05 | «Resultados en Santa Marta (N lugares encontrados)», con plurales, en región `aria-live` | Buscar oferta turística | RF16 | — | `features/catalogo/ExplorarPage.tsx` | Implementado |
-| WF-05 | Orden «Menor distancia» | Buscar oferta turística | RF61, RF38 | `GET /oferta?orden=Distancia` | `features/catalogo/ExplorarPage.tsx` | Deshabilitado sin ubicación, con explicación (parte 2) |
+| WF-05 | Orden «Menor distancia»: el orden por defecto con ubicación (si la URL no trae otro); sin ubicación, deshabilitado con explicación | Buscar oferta turística | RF61, RF38 | `GET /oferta?lat=&lng=` (`orden=Distancia` si se elige) | `features/catalogo/ExplorarPage.tsx` | Implementado |
 | WF-05 | Orden «Menor afluencia» | Buscar oferta turística | RF39, RF51 | — | `features/catalogo/ExplorarPage.tsx` | Deshabilitado («Próximamente») |
 | WF-05 | Orden «Calificación» | Buscar oferta turística | RF61 | — | `features/catalogo/ExplorarPage.tsx` | Deshabilitado («Próximamente») |
 | WF-05 | Orden «Precio: menor a mayor», «Precio: mayor a menor» y «Nombre» (no están en WF-05; la API los soporta) | Buscar oferta turística | RF61 | `GET /oferta?orden=` | `features/catalogo/ExplorarPage.tsx` | Mejora de diseño |
@@ -64,10 +64,15 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 | WF-05 | «Ver detalle» | Consultar detalle de oferta | RF37 | — | `componentes/TarjetaOferta.tsx` | Deshabilitado |
 | WF-05 | Paginación numerada (10 por página) | Buscar oferta turística | RF16 | `GET /oferta?pagina=` | `componentes/Paginacion.tsx` | Implementado |
 | WF-05 | Estados: carga, sin resultados («Quitar filtros»), página fuera de rango («Ir a la primera página»), 503 «El catálogo no está disponible» con «Reintentar», 400 «Revisa los filtros» | Buscar oferta turística | RF16, RNF01 | `GET /oferta` | `componentes/EstadoCatalogo.tsx` | Implementado |
-| WF-05 | Mapa con marcadores (Leaflet + OpenStreetMap) | Navegar mapa | RF23 | `GET /oferta` | — | Pendiente (parte 2; hoy un panel decorativo) |
+| WF-05 | Mapa con marcadores de servicios y atractivos de la página actual (Leaflet + teselas de OpenStreetMap), encuadre de los resultados, enfocable con el teclado y control de zoom traducido | Navegar mapa | RF23 | `GET /oferta` | `componentes/MapaOferta.tsx` | Implementado |
 | WF-05 | Leyenda de aforo: Bajo (< 40 %), Medio (40–75 %), Alto (> 75 %) | Buscar oferta turística | RF39 | — | `features/catalogo/ExplorarPage.tsx` | Deshabilitado («Sin datos de aforo») |
-| WF-05 | «Centrar en mi ubicación» | Navegar mapa | RF38 | — | `features/catalogo/ExplorarPage.tsx` | Pendiente (parte 2; hoy «Próximamente») |
-| WF-05 | Selector «Lista / Mapa» en celular | Navegar mapa | RNF04 | — | — | Pendiente (parte 2) |
+| WF-05 | «Centrar en mi ubicación»: pide la ubicación solo al pulsarlo, la guarda solo en memoria (ni URL ni almacenamiento del navegador) y la envía a la búsqueda | Navegar mapa | RF38 | `GET /oferta?lat=&lng=` | `componentes/BotonUbicacion.tsx`, `features/catalogo/useUbicacion.ts` | Implementado |
+| WF-05 | Selector «Lista / Mapa» en una columna (menos de 64 rem); en escritorio lista y mapa lado a lado | Navegar mapa | RNF04 | — | `features/catalogo/ExplorarPage.tsx` | Implementado |
+| WF-05 | Marcador «Tu ubicación» distinto de los de servicios y atractivos | Navegar mapa | RF38 | — | `componentes/MapaOferta.tsx` | Mejora de diseño |
+| WF-05 | Ubicación lejos de Santa Marta (más de 60 km del Parque de los Novios): se usa para distancias y orden, no entra en el encuadre del mapa y se avisa «Estás lejos de Santa Marta…» | Navegar mapa | RF38 | `GET /oferta?lat=&lng=` | `features/catalogo/geo.ts`, `componentes/MapaOferta.tsx` | Mejora de diseño |
+| WF-05 | Avisos de ubicación en `role="status"`: permiso denegado, ubicación no disponible, tiempo agotado; navegador sin geolocalización (botón deshabilitado con la razón) | Navegar mapa | RF38 | — | `features/catalogo/ExplorarPage.tsx`, `componentes/BotonUbicacion.tsx` | Mejora de diseño |
+| WF-05 | Resaltado marcador↔tarjeta: pulsar un marcador resalta y enfoca su tarjeta; el puntero o el foco sobre una tarjeta resaltan su marcador | Navegar mapa | RF23 | — | `componentes/MapaOferta.tsx`, `componentes/TarjetaOferta.tsx` | Mejora de diseño |
+| WF-05 | Rueda del mouse en el mapa solo con foco o clic, con la indicación «Haz clic en el mapa o enfócalo para usar la rueda» | Navegar mapa | RF23 | — | `componentes/MapaOferta.tsx` | Mejora de diseño |
 | WF-05 | «Preguntar al asistente» | Interactuar con asistente | RF04 | — | `features/catalogo/ExplorarPage.tsx` | Deshabilitado |
 
 ### Elementos comunes a todas las pantallas
@@ -102,7 +107,7 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 
 | Wireframe | Elemento | Caso de uso | RF/RNF | Endpoint | Componente frontend | Estado |
 |---|---|---|---|---|---|---|
-| WF-04, WF-05 | Búsqueda pública combinada de servicios y atractivos: texto, categoría, precio máximo, ubicación y distancia, accesibilidad, orden (distancia, precio, nombre) y paginación de 10 | Buscar oferta turística | RF16, RF23, RF38, RF50, RF61, RNF02 | `GET /api/v1/catalogo/oferta` | `features/catalogo/` (WF-04 y WF-05) | Implementado (frontend sin mapa ni ubicación: parte 2) |
+| WF-04, WF-05 | Búsqueda pública combinada de servicios y atractivos: texto, categoría, precio máximo, ubicación y distancia, accesibilidad, orden (distancia, precio, nombre) y paginación de 10 | Buscar oferta turística | RF16, RF23, RF38, RF50, RF61, RNF02 | `GET /api/v1/catalogo/oferta` | `features/catalogo/` (WF-04 y WF-05) | Implementado |
 
 ### API Gateway
 
@@ -121,7 +126,6 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 | Bloque «Plataforma» de WF-01 (Explorar destinos, Rutas y experiencias, Prestadores) | WF-01 | RF16 | Iteración actual (vista principal del catálogo); destino exacto por definir |
 | **Criterio real de «Destacados esta semana».** Hoy es provisional: `tamano=3&orden=PrecioAscendente`. Que salgan solo servicios depende de la decisión 4 (los resultados sin precio van al final), no de un filtro por tipo; el componente, además, descarta lo que no sea servicio. El equipo debe definir el criterio (p. ej. mejor calificación o una marca de destacado asignada por el gestor); cualquiera de los dos requiere datos que hoy no existen | WF-04 | RF16 | Por definir (equipo) |
 | Banner de avisos del municipio (no existe el modelo de avisos) | WF-04 | RF40 | Por definir |
-| Mapa Leaflet con marcadores, «Centrar en mi ubicación», filtro y orden por distancia, selector Lista/Mapa en celular | WF-05 | RF23, RF38, RF61 | Iteración actual (parte 2 del frontend de Buscar oferta turística) |
 | Calificación, aforo, disponibilidad, «Menor afluencia» y orden por calificación (datos aún no modelados) | WF-04, WF-05 | RF17, RF39, RF51, RF61 | Por definir |
 | «Ver detalle» (WF-06) y «Reservar» | WF-04, WF-05 | RF37, RF20 | Iteración siguiente (detalle) / Por definir (reservas) |
 | Navegación «Asistente IA» y botón flotante | Común, WF-07 | RF04 | Por definir (chatbot real fuera de alcance) |

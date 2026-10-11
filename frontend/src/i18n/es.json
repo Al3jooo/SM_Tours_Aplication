@@ -136,7 +136,8 @@
       "vacioAyuda": "Prueba quitando algunos filtros o buscando otro término.",
       "quitarFiltros": "Quitar filtros",
       "fueraDeRango": "Esta página ya no existe: los resultados cambiaron.",
-      "primeraPagina": "Ir a la primera página"
+      "primeraPagina": "Ir a la primera página",
+      "seccionNoCargada": "No pudimos cargar esta sección. Revisa tu conexión."
     }
   },
   "explorar": {
@@ -178,8 +179,28 @@
     "aforoMedio": "Medio (40–75 %)",
     "aforoAlto": "Alto (> 75 %)",
     "sinDatosAforo": "Sin datos de aforo",
-    "centrar": "Centrar en mi ubicación",
     "preguntaAsistente": "¿Preguntas sobre el estado de las vías o aforos?",
     "preguntarAsistente": "Preguntar al asistente"
+  },
+  "mapa": {
+    "acercar": "Acercar",
+    "alejar": "Alejar",
+    "tuUbicacion": "Tu ubicación",
+    "indicacionRueda": "Haz clic en el mapa o enfócalo para usar la rueda."
+  },
+  "ubicacion": {
+    "centrar": "Centrar en mi ubicación",
+    "obteniendo": "Obteniendo tu ubicación…",
+    "usando": "Usando tu ubicación aproximada.",
+    "lejos": "Estás lejos de Santa Marta: las distancias se calculan desde tu ubicación actual.",
+    "denegada": "No diste permiso para usar tu ubicación. Puedes seguir explorando sin ella.",
+    "noDisponible": "No pudimos determinar tu ubicación en este momento.",
+    "tiempoAgotado": "Obtener tu ubicación tardó demasiado. Inténtalo de nuevo.",
+    "noSoportada": "Tu navegador no permite compartir la ubicación."
+  },
+  "vista": {
+    "selector": "Vista de resultados",
+    "lista": "Lista",
+    "mapa": "Mapa"
   }
 }

@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react'
+import { useId, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IconoAuditiva, IconoMovilidadReducida, IconoVisual } from '../../../shared/components/Iconos'
 import { BotonProximamente } from '../../../shared/components/Proximamente'
@@ -16,8 +16,23 @@ const ICONOS_ACCESIBILIDAD: Record<CondicionAccesibilidad, () => ReactNode> = {
 /**
  * Tarjeta de un servicio o atractivo: lista de WF-05 ('lista') y destacados de WF-04 ('destacado').
  * Calificación, aforo y disponibilidad dependen de datos que aún no existen: se muestran como «—».
+ *
+ * En la lista, `onResaltar` avisa cuando el puntero o el foco entran o salen (para resaltar su marcador en el mapa);
+ * la tarjeta acepta el foco por programa (tabIndex -1) para cuando se pulsa su marcador.
  */
-export function TarjetaOferta({ resultado, variante }: { resultado: ResultadoOferta; variante: 'lista' | 'destacado' }) {
+export function TarjetaOferta({
+  resultado,
+  variante,
+  resaltada = false,
+  onResaltar,
+  ref,
+}: {
+  resultado: ResultadoOferta
+  variante: 'lista' | 'destacado'
+  resaltada?: boolean
+  onResaltar?: (activa: boolean) => void
+  ref?: Ref<HTMLElement>
+}) {
   const { t, i18n } = useTranslation()
   const idTitulo = useId()
   const sinDatos = (
@@ -28,7 +43,16 @@ export function TarjetaOferta({ resultado, variante }: { resultado: ResultadoOfe
   )
 
   return (
-    <article className={`tarjeta-oferta tarjeta-oferta--${variante}`} aria-labelledby={idTitulo}>
+    <article
+      ref={ref}
+      className={`tarjeta-oferta tarjeta-oferta--${variante}${resaltada ? ' tarjeta-oferta--resaltada' : ''}`}
+      aria-labelledby={idTitulo}
+      tabIndex={onResaltar ? -1 : undefined}
+      onMouseEnter={onResaltar && (() => onResaltar(true))}
+      onMouseLeave={onResaltar && (() => onResaltar(false))}
+      onFocus={onResaltar && (() => onResaltar(true))}
+      onBlur={onResaltar && (() => onResaltar(false))}
+    >
       <ImagenOferta resultado={resultado} />
       <div className="tarjeta-oferta__cuerpo">
         <p className="tarjeta-oferta__categoria">

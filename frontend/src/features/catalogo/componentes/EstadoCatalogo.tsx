@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import type { ErrorBusqueda } from '../useBusquedaOferta'
 
-export type TipoEstado = 'cargando' | 'vacio' | 'fueraDeRango' | ErrorBusqueda
+/** `seccionNoCargada`: no se pudo descargar el código de la página (ruta diferida); se reintenta recargando. */
+export type TipoEstado = 'cargando' | 'vacio' | 'fueraDeRango' | 'seccionNoCargada' | ErrorBusqueda
 
 /**
  * Estados de la búsqueda. Un fallo del catálogo (p. ej. 503 del gateway) solo afecta a esta región: el encabezado,
@@ -42,6 +43,7 @@ export function EstadoCatalogo({
     criteriosInvalidos: { mensaje: 'criteriosInvalidos', ayuda: null, accion: onQuitarFiltros, boton: 'quitarFiltros' },
     red: { mensaje: 'red', ayuda: null, accion: onReintentar, boton: 'reintentar' },
     otro: { mensaje: 'otro', ayuda: null, accion: onReintentar, boton: 'reintentar' },
+    seccionNoCargada: { mensaje: 'seccionNoCargada', ayuda: null, accion: onReintentar, boton: 'reintentar' },
   }[tipo]
 
   const esError = tipo !== 'vacio' && tipo !== 'fueraDeRango'

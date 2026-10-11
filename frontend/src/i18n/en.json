@@ -136,7 +136,8 @@
       "vacioAyuda": "Try removing some filters or searching for another term.",
       "quitarFiltros": "Clear filters",
       "fueraDeRango": "This page no longer exists: the results changed.",
-      "primeraPagina": "Go to the first page"
+      "primeraPagina": "Go to the first page",
+      "seccionNoCargada": "We couldn't load this section. Check your connection."
     }
   },
   "explorar": {
@@ -178,8 +179,28 @@
     "aforoMedio": "Medium (40–75%)",
     "aforoAlto": "High (> 75%)",
     "sinDatosAforo": "No occupancy data",
-    "centrar": "Center on my location",
     "preguntaAsistente": "Questions about roads or occupancy?",
     "preguntarAsistente": "Ask the assistant"
+  },
+  "mapa": {
+    "acercar": "Zoom in",
+    "alejar": "Zoom out",
+    "tuUbicacion": "Your location",
+    "indicacionRueda": "Click or focus the map to zoom with the mouse wheel."
+  },
+  "ubicacion": {
+    "centrar": "Center on my location",
+    "obteniendo": "Getting your location…",
+    "usando": "Using your approximate location.",
+    "lejos": "You are far from Santa Marta: distances are calculated from your current location.",
+    "denegada": "You didn't allow access to your location. You can keep exploring without it.",
+    "noDisponible": "We couldn't determine your location right now.",
+    "tiempoAgotado": "Getting your location took too long. Please try again.",
+    "noSoportada": "Your browser doesn't support sharing your location."
+  },
+  "vista": {
+    "selector": "Results view",
+    "lista": "List",
+    "mapa": "Map"
   }
 }

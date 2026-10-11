@@ -6,7 +6,7 @@ React + Vite + TypeScript. Prototipo arquitectónico de la fase de Elaboración 
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173 — /api se redirige a ms-auth (http://localhost:8081)
+npm run dev      # http://localhost:5173 — /api se redirige al API Gateway (http://localhost:8080)
 npm test         # Vitest + Testing Library (incluye la guardia de contraste)
 npm run build    # tsc -b + build de producción en dist/
 ```
@@ -22,6 +22,36 @@ Para usar la app de punta a punta: `docker compose up -d` en la raíz y `./mvnw 
 | `src/shared/api/` | Cliente HTTP (`fetch` + token Bearer) y almacenamiento del token |
 | `src/shared/components/` | Componentes reutilizables, iconos e ilustraciones |
 | `src/i18n/` | Textos en `es.json` y `en.json` (RF03, RNF08) |
+
+## Dependencias
+
+Versiones instaladas (`package-lock.json`) y licencias leídas de `node_modules`. Toda dependencia nueva se agrega aquí con su licencia y su razón.
+
+| Dependencia | Versión | Licencia | Para qué |
+|---|---|---|---|
+| `react`, `react-dom` | 19.3.0 | MIT | Interfaz |
+| `react-router-dom` | 7.18.4 | MIT | Rutas; los filtros de WF-05 viven en la URL |
+| `i18next`, `react-i18next` | 26.4.3, 17.0.16 | MIT | Textos ES/EN y plurales (RF03, RNF08) |
+| `@fontsource-variable/fraunces`, `@fontsource-variable/figtree` | 5.3.0 | OFL-1.1 | Tipografías empaquetadas (sin cargarlas desde internet) |
+| `leaflet` | 1.9.4 | BSD-2-Clause | Mapa de WF-05 (`MapaOferta.tsx`), usado directamente |
+| **Desarrollo** | | | |
+| `vite`, `@vitejs/plugin-react` | 8.3.4, 6.1.2 | MIT | Servidor de desarrollo, proxy `/api` y build |
+| `typescript` | 6.0.3 | Apache-2.0 | Tipos (`tsc -b` en el build) |
+| `vitest`, `jsdom` | 5.0.3, 30.1.2 | MIT | Pruebas |
+| `@testing-library/react`, `/dom`, `/jest-dom`, `/user-event` | 16.3.3, 10.4.2, 7.0.1, 14.6.7 | MIT | Pruebas por roles y nombres accesibles |
+| `@types/react`, `@types/react-dom`, `@types/node`, `@types/leaflet` | 19.3.0, 19.3.0, 24.19.2, 1.9.22 | MIT | Tipos |
+
+**Excluida: `react-leaflet`.** Su licencia es Hippocratic-2.1, que restringe usos por criterios éticos y no es una licencia de código abierto aprobada por la OSI; se descartó para no condicionar el uso del software de la Alcaldía. El mapa usa Leaflet directamente: se crea en un `useEffect`, se actualiza por capas (`layerGroup`) y la limpieza llama a `map.remove()`.
+
+**Carga diferida.** `/explorar` se carga con `React.lazy` (`src/app/App.tsx`), así que Leaflet y su CSS solo se descargan al entrar ahí. En el build, Leaflet queda en su propio archivo (`leaflet-[hash].js` y `.css`, grupo `codeSplitting` en `vite.config.ts`). Mientras llega la página se ve el estado de carga del catálogo; si la descarga falla, el límite de errores (`shared/components/LimiteErrores.tsx`) muestra «No pudimos cargar esta sección. Revisa tu conexión.» con «Reintentar», que recarga la página. Como `leaflet.css` llega después del CSS principal, los ajustes de `catalogo.css` sobre clases de Leaflet llevan el prefijo `.mapa-oferta` para no depender del orden.
+
+**Teselas de OpenStreetMap: el único recurso externo.** Se piden a `tile.openstreetmap.org` según su [política de uso](https://operations.osmfoundation.org/policies/tiles/):
+- la atribución «© OpenStreetMap contributors» está siempre visible;
+- el zoom máximo es 19;
+- no hay descarga masiva, prefetching ni caché offline: solo se piden las teselas del área visible;
+- se envía el `Referer` por defecto del navegador.
+
+Es adecuado para el prototipo; para un despliegue con tráfico real hace falta un proveedor de teselas propio o contratado. En las pruebas, Leaflet se reemplaza por `src/test/leafletSimulado.ts` (jsdom no dibuja mapas), así que no se pide ninguna tesela.
 
 ---
 
@@ -177,12 +207,17 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Tarjeta de oferta | `.tarjeta-oferta` (`features/catalogo/catalogo.css`) | Imagen con `alt=""` y respaldo por categoría, nombre h3, datos en `<dl>`; «—» con texto «sin datos» para lectores. |
 | Insignia de estado | `.insignia-estado--<EstadoOperativo>` | Abierto: mar-700/mar-100 · Cerrado temporalmente: error/error-fondo · En mantenimiento: café-700/sol-100. |
 | Estado de búsqueda | `EstadoCatalogo` | Carga, vacío, fuera de rango y errores (503, 400, red); el error solo afecta a su región. |
+| Marcador del mapa | `.marcador--servicio`, `--atractivo`, `--ubicacion` | `L.divIcon` con SVG propio que toma el color de la clase: pin atardecer-600 (servicio) o mar-700 (atractivo) con borde blanco; «Tu ubicación» es un círculo sol-400 con borde mar-900. Enfocable, con `title` y `aria-label`; la ventana emergente se arma con `textContent`. |
+| Resaltado marcador↔tarjeta | `.marcador--resaltado`, `.tarjeta-oferta--resaltada` | Marcador 1,3× y al frente; tarjeta con anillo mar-700 y `--sombra-2`. |
+| Selector de vista | `.vista-selector` | `role="group"` con dos botones `aria-pressed` (mar-700); solo por debajo de 64 rem. |
+| Aviso de ubicación | `.aviso-ubicacion` | `role="status"` siempre presente; mar-900 sobre mar-100 con borde izquierdo mar-700 cuando tiene texto. |
 
 ### Maquetación y responsivo
 
 - Contenido centrado con `--ancho-maximo` (76 rem) y márgenes laterales de `--espacio-4`.
 - Funciona desde **360 px** sin scroll horizontal. En menos de 640 px (`40rem`), la navegación pasa a una segunda fila desplazable y el botón flotante muestra solo el icono.
 - Desde 960 px (`60rem`), las pantallas con panel ilustrado usan dos columnas (ilustración y contenido).
+- WF-05: desde 1024 px (`64rem`), mapa y lista lado a lado; por debajo, el selector «Lista / Mapa» muestra uno a la vez. El mapa ocupa el 100 % de su columna, sin ancho fijo.
 
 ### Lista de verificación para cada pantalla nueva
 
