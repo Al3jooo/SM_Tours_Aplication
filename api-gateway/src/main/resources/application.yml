@@ -1,0 +1,58 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  config:
+    # .env de la raíz del monorepo (el gateway se ejecuta desde su propia carpeta)
+    import: optional:file:../.env[.properties]
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 2000 # ms
+            response-timeout: 5s
+          # El gateway no valida el JWT: reenvía Authorization sin cambios y cada servicio lo valida con el JWKS de
+          # ms-auth (ADR-005). No se reescriben las rutas: /api/v1/... llega igual al servicio.
+          routes:
+            - id: auth
+              uri: ${AUTH_URI:http://localhost:8081}
+              predicates:
+                - Path=/api/v1/auth/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: auth
+                    fallbackUri: forward:/fallback/auth
+                    # Solo la indisponibilidad abre el circuito; un 4xx o un 500 de negocio pasan tal cual.
+                    statusCodes: [502, 503, 504]
+            - id: catalogo
+              uri: ${CATALOG_URI:http://localhost:8082}
+              predicates:
+                - Path=/api/v1/catalogo/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: catalogo
+                    fallbackUri: forward:/fallback/catalogo
+                    statusCodes: [502, 503, 504]
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origins: ${CORS_ORIGENES:http://localhost:5173} # separados por comas
+                allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+                allowed-headers: [Authorization, Content-Type, X-Correlation-Id]
+                exposed-headers: [X-Correlation-Id]
+                allow-credentials: false # el token va en la cabecera Authorization, no en cookies
+                max-age: 3600
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never

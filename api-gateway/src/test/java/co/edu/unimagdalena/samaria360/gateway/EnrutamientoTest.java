@@ -1,0 +1,196 @@
+package co.edu.unimagdalena.samaria360.gateway;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.reactive.server.EntityExchangeResult;
+import org.springframework.test.web.reactive.server.WebTestClient;
+
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/** Enrutamiento, Authorization intacta, 404, X-Correlation-Id, CORS y health, con ambos servicios disponibles. */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class EnrutamientoTest {
+
+    private static final String CORRELACION = "X-Correlation-Id";
+    private static final String ORIGEN_PERMITIDO = "http://localhost:5173";
+
+    static final ServicioSimulado AUTH = ServicioSimulado.iniciar("ms-auth").responder(200, "{\"token\":\"t\"}");
+    static final ServicioSimulado CATALOGO = ServicioSimulado.iniciar("ms-catalog").responder(200, "{\"elementos\":[]}");
+
+    @DynamicPropertySource
+    static void destinos(DynamicPropertyRegistry registro) {
+        registro.add("AUTH_URI", AUTH::uri);
+        registro.add("CATALOG_URI", CATALOGO::uri);
+    }
+
+    @AfterAll
+    static void detener() {
+        AUTH.close();
+        CATALOGO.close();
+    }
+
+    @Autowired
+    private WebTestClient cliente;
+
+    @BeforeEach
+    void limpiar() {
+        AUTH.limpiar();
+        CATALOGO.limpiar();
+    }
+
+    @Test
+    void elPrefijoDeAuthLlegaAMsAuthSinCambiosDeRutaNiCuerpo() {
+        cliente.post().uri("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"correo\":\"turista@samaria360.test\",\"contrasena\":\"x\"}")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().valueEquals("X-Servicio", "ms-auth")
+                .expectBody().json("{\"token\":\"t\"}");
+
+        assertThat(AUTH.solicitudes()).hasSize(1);
+        assertThat(AUTH.ultima().metodo()).isEqualTo("POST");
+        assertThat(AUTH.ultima().uri()).isEqualTo("/api/v1/auth/login");
+        assertThat(AUTH.ultima().cuerpo()).isEqualTo("{\"correo\":\"turista@samaria360.test\",\"contrasena\":\"x\"}");
+        assertThat(CATALOGO.solicitudes()).isEmpty();
+    }
+
+    @Test
+    void elPrefijoDeCatalogoLlegaAMsCatalogConSuQueryString() {
+        cliente.get().uri("/api/v1/catalogo/oferta?texto=cafe&pagina=1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().valueEquals("X-Servicio", "ms-catalog");
+
+        assertThat(CATALOGO.ultima().metodo()).isEqualTo("GET");
+        assertThat(CATALOGO.ultima().uri()).isEqualTo("/api/v1/catalogo/oferta?texto=cafe&pagina=1");
+        assertThat(AUTH.solicitudes()).isEmpty();
+    }
+
+    @Test
+    void laCabeceraAuthorizationLlegaIntactaAlServicio() {
+        String token = "Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIn0.firma-de-prueba";
+
+        cliente.get().uri("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, token)
+                .exchange()
+                .expectStatus().isOk();
+
+        assertThat(AUTH.ultima().cabecera(HttpHeaders.AUTHORIZATION)).isEqualTo(token);
+    }
+
+    @Test
+    void losErroresDeNegocioDelServicioPasanSinCambios() {
+        AUTH.responder(401, "{\"codigo\":\"CREDENCIALES_INVALIDAS\"}");
+        try {
+            cliente.post().uri("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).bodyValue("{}")
+                    .exchange()
+                    .expectStatus().isUnauthorized()
+                    .expectBody().jsonPath("$.codigo").isEqualTo("CREDENCIALES_INVALIDAS");
+        } finally {
+            AUTH.responder(200, "{\"token\":\"t\"}");
+        }
+    }
+
+    @Test
+    void unaRutaDesconocidaDa404SinLlegarANingunServicio() {
+        cliente.get().uri("/api/v1/reservas/mias").exchange().expectStatus().isNotFound();
+        cliente.get().uri("/otra-cosa").exchange().expectStatus().isNotFound();
+
+        assertThat(AUTH.solicitudes()).isEmpty();
+        assertThat(CATALOGO.solicitudes()).isEmpty();
+    }
+
+    @Test
+    void sinXCorrelationIdElGatewayLoGeneraLoReenviaYLoDevuelve() {
+        EntityExchangeResult<byte[]> resultado = cliente.get().uri("/api/v1/catalogo/oferta")
+                .exchange().expectStatus().isOk().expectBody().returnResult();
+
+        String generado = resultado.getResponseHeaders().getFirst(CORRELACION);
+        assertThat(UUID.fromString(generado)).isNotNull();
+        assertThat(CATALOGO.ultima().cabecera(CORRELACION)).isEqualTo(generado);
+    }
+
+    @Test
+    void unXCorrelationIdValidoSePropagaTalCual() {
+        cliente.post().uri("/api/v1/auth/login").header(CORRELACION, "front-123.abc_XYZ")
+                .contentType(MediaType.APPLICATION_JSON).bodyValue("{}")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().valueEquals(CORRELACION, "front-123.abc_XYZ");
+
+        assertThat(AUTH.ultima().cabecera(CORRELACION)).isEqualTo("front-123.abc_XYZ");
+    }
+
+    @Test
+    void unXCorrelationIdInvalidoSeReemplaza() {
+        for (String invalido : new String[] {"con espacios", "a".repeat(65), "<script>"}) {
+            String devuelto = cliente.get().uri("/api/v1/catalogo/oferta").header(CORRELACION, invalido)
+                    .exchange().expectStatus().isOk().returnResult(String.class)
+                    .getResponseHeaders().getFirst(CORRELACION);
+
+            assertThat(devuelto).isNotEqualTo(invalido);
+            assertThat(UUID.fromString(devuelto)).isNotNull();
+            assertThat(CATALOGO.ultima().cabecera(CORRELACION)).isEqualTo(devuelto);
+        }
+    }
+
+    @Test
+    void elXCorrelationIdTambienVaEnLos404() {
+        cliente.get().uri("/no-existe").exchange()
+                .expectStatus().isNotFound()
+                .expectHeader().exists(CORRELACION);
+    }
+
+    @Test
+    void elPreflightDeCorsDesdeElOrigenPermitidoAceptaAuthorization() {
+        cliente.options().uri("/api/v1/auth/me")
+                .header(HttpHeaders.ORIGIN, ORIGEN_PERMITIDO)
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "authorization")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ORIGEN_PERMITIDO)
+                .expectHeader().value(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
+                        v -> assertThat(v).containsIgnoringCase("authorization"));
+
+        // El gateway responde el preflight sin consultar al servicio.
+        assertThat(AUTH.solicitudes()).isEmpty();
+    }
+
+    @Test
+    void elPreflightDesdeOtroOrigenSeRechaza() {
+        cliente.options().uri("/api/v1/auth/me")
+                .header(HttpHeaders.ORIGIN, "http://evil.test")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "authorization")
+                .exchange()
+                .expectStatus().isForbidden()
+                .expectHeader().doesNotExist(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
+    }
+
+    @Test
+    void unaPeticionDesdeElOrigenPermitidoExponeElXCorrelationId() {
+        cliente.get().uri("/api/v1/catalogo/oferta").header(HttpHeaders.ORIGIN, ORIGEN_PERMITIDO)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ORIGEN_PERMITIDO)
+                .expectHeader().value(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,
+                        v -> assertThat(v).containsIgnoringCase(CORRELACION));
+    }
+
+    @Test
+    void elHealthEsPublico() {
+        cliente.get().uri("/actuator/health").exchange()
+                .expectStatus().isOk()
+                .expectBody().jsonPath("$.status").isEqualTo("UP");
+    }
+}

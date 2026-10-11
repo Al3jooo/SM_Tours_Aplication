@@ -61,6 +61,12 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 |---|---|---|---|---|---|---|
 | WF-04, WF-05 | Búsqueda pública combinada de servicios y atractivos: texto, categoría, precio máximo, ubicación y distancia, accesibilidad, orden (distancia, precio, nombre) y paginación de 10 | Buscar oferta turística | RF16, RF23, RF38, RF50, RF61, RNF02 | `GET /api/v1/catalogo/oferta` | Pendiente (parte de frontend del caso de uso) | Implementado (backend) |
 
+### API Gateway
+
+| Wireframe | Elemento | Caso de uso | RF/RNF | Endpoint | Componente frontend | Estado |
+|---|---|---|---|---|---|---|
+| Todas | Único punto de entrada (`:8080`): enrutamiento de `/api/v1/auth/**` y `/api/v1/catalogo/**`; timeouts y circuit breaker por ruta con fallback 503 `SERVICIO_NO_DISPONIBLE`; CORS global; `X-Correlation-Id`. El JWT lo validan los servicios ([ADR-005](sad/adr/ADR-005-api-gateway.md)) | Transversal (todos) | RNF01, RNF02, RNF03 | `/api/v1/**` en `:8080` | `frontend/vite.config.ts` (proxy `/api` → 8080) | Implementado |
+
 ## Pendientes
 
 | Elemento | Wireframe | RF | Iteración prevista |

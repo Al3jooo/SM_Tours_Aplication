@@ -46,9 +46,25 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 - La búsqueda pública devuelve solo `estadoPublicacion = "Publicado"` y `prestadorActivo = true`. Página de máximo 10 elementos (RF16).
 - Los validadores `$jsonSchema` viven en `infra/mongo/init/`; el `oneOf` de `detalleCategoria` discrimina por `categoria` en el nivel superior.
 
-## API Gateway
+## API Gateway (Spring Cloud Gateway 4.3, WebFlux)
 
-Prefijos de rutas: `/api/v1/auth/**`, `/api/v1/catalogo/**`, `/api/v1/reservas/**`, `/api/v1/chatbot/**`, `/api/v1/analytics/**`.
+- Único punto de entrada (diagrama de despliegue del SAD). Spring Cloud 2025.0.3 sobre el mismo parent de Boot; starter `spring-cloud-starter-gateway-server-webflux` y propiedades con el prefijo `spring.cloud.gateway.server.webflux.*`.
+- Prefijos de rutas: `/api/v1/auth/**`, `/api/v1/catalogo/**`, `/api/v1/reservas/**`, `/api/v1/chatbot/**`, `/api/v1/analytics/**`. Implementados: auth (`AUTH_URI`) y catálogo (`CATALOG_URI`); las rutas llegan sin reescribir.
+- **No valida el JWT**: reenvía `Authorization` sin cambios y cada servicio lo valida con el JWKS de ms-auth (ADR-005). No agregar Spring Security al gateway.
+- Resiliencia: 2 s de conexión, 5 s de respuesta, circuit breaker por ruta (Resilience4j, solo 502/503/504 lo abren) con fallback ProblemDetail 503 `codigo: SERVICIO_NO_DISPONIBLE` y `servicio`.
+- Transversal: CORS global (`CORS_ORIGENES`) y `X-Correlation-Id` (se genera si falta o no es válido, se reenvía y se devuelve).
+- **No tiene dominio: no aplica la estructura hexagonal ni ArchUnit.** Paquete `co.edu.unimagdalena.samaria360.gateway` con `config/`.
+- Pruebas: `@SpringBootTest` + `WebTestClient` con servicios simulados sobre Reactor Netty `HttpServer` (ya incluido; sin librerías extra).
+
+## Puertos
+
+| Componente | Puerto | Nota |
+|---|---|---|
+| api-gateway | 8080 | Único punto de entrada; el frontend lo usa vía el proxy de Vite |
+| ms-auth | 8081 | |
+| ms-catalog | 8082 | |
+| frontend (Vite) | 5173 | Proxy `/api` → 8080 |
+| PostgreSQL / MongoDB | `POSTGRES_PORT` / `MONGO_PORT` | Definidos en `.env` (docker-compose) |
 
 ## Pruebas (obligatorias en cada cambio)
 
@@ -64,6 +80,9 @@ Prefijos de rutas: `/api/v1/auth/**`, `/api/v1/catalogo/**`, `/api/v1/reservas/*
 docker compose up -d            # PostgreSQL y MongoDB
 cd ms-auth && ./mvnw test       # pruebas
 cd ms-auth && ./mvnw spring-boot:run
+cd ms-catalog && ./mvnw spring-boot:run
+cd api-gateway && ./mvnw spring-boot:run   # http://localhost:8080
+cd frontend && npm run dev                 # http://localhost:5173
 ```
 ## Diseño visual del frontend
 
