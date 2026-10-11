@@ -1,0 +1,10 @@
+# Saltos de línea: LF en todo el repositorio, CRLF solo en scripts de Windows.
+# Evita que mvnw deje de funcionar en Docker/Git Bash al editarse en Windows.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binarios
+*.png binary
+*.jpg binary
+*.jar binary

@@ -1,0 +1,28 @@
+# Secretos
+.env
+infra/keys/*
+!infra/keys/README.md
+!infra/keys/.gitkeep
+
+# Java / Maven
+target/
+*.class
+*.log
+.mvn/wrapper/maven-wrapper.jar
+
+# Node / Vite
+node_modules/
+dist/
+*.local
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# IDE y sistema
+.idea/
+.vscode/
+*.iml
+.DS_Store
