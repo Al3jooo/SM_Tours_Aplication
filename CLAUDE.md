@@ -65,6 +65,15 @@ docker compose up -d            # PostgreSQL y MongoDB
 cd ms-auth && ./mvnw test       # pruebas
 cd ms-auth && ./mvnw spring-boot:run
 ```
+## Diseño visual del frontend
+
+Los wireframes (`docs/wireframes/`) son una guía de **estructura**, no de estética.
+
+- **Estructura (obligatoria, trazable):** qué elementos hay en cada pantalla, cómo se agrupan en regiones (encabezado, tarjeta de login, filtros, mapa, resultados, pie…) y el flujo entre pantallas. No se elimina ni se fusiona un elemento del wireframe.
+- **Diseño (libertad total):** colores, tipografía, espaciado, proporciones, distribución dentro de cada región, ilustraciones, iconografía, animaciones y estados (hover, foco, carga). Se busca una apariencia profesional y memorable, no la de un wireframe.
+- **Identidad visual:** inspirada en Santa Marta (mar Caribe, Sierra Nevada, café, atardecer). Debe ser coherente en todas las pantallas: los tokens (colores, tipografía, espaciado, radios, sombras) viven en `frontend/src/app/estilos.css` y se documentan en la sección "Guía visual" de `frontend/README.md`. Toda pantalla nueva reutiliza esos tokens.
+- **Elementos nuevos** que no están en el wireframe (p. ej. una ilustración o un mensaje de bienvenida) se permiten si son decorativos o mejoran la experiencia. Si tienen función, se registran en `docs/trazabilidad.md` como "Mejora de diseño".
+- **Restricciones que no cambian:** CSS propio, sin librerías de componentes ni de estilos. Fuentes con `@fontsource` (sin cargar desde internet). Sin fotos de terceros sin licencia: usar SVG, ilustraciones propias o degradados. Contraste WCAG AA, foco visible y diseño responsivo desde 360 px.
 
 ## No hacer
 
