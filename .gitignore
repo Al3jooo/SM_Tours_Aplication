@@ -26,3 +26,4 @@ __pycache__/
 .vscode/
 *.iml
 .DS_Store
+_entrada/

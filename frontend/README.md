@@ -201,7 +201,7 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Token | Uso |
 |---|---|
 | `--sombra-1` | Reposo: botón principal, marca del logo |
-| `--sombra-2` | Tarjetas, panel ilustrado, banners; hover del CTA |
+| `--sombra-2` | Tarjetas, portada del inicio, banners; hover del CTA |
 | `--sombra-3` | Elementos flotantes: menú del avatar, botón del asistente |
 
 ### Movimiento
@@ -221,8 +221,7 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 
 - **Iconos** (`src/shared/components/Iconos.tsx`): de línea, cuadrícula de 24, trazo 1,75 redondeado y `currentColor`. Siempre `aria-hidden`: el nombre accesible lo da el texto o el `aria-label` del control.
 - **Ilustraciones** (`src/shared/components/Ilustraciones.tsx`): SVG propios, sin fotos de terceros. Usan los tokens (`var(--color-…)`), así que siguen la paleta.
-  - `MarcaSamaria`: sol poniéndose sobre olas; es el logo.
-  - `EscenaSantaMarta`: atardecer, Sierra Nevada nevada y mar Caribe (panel del login).
+  - `MarcaSamaria`: sol poniéndose sobre olas; respaldo del logo (el logo es `LogoSamaria`, la imagen de `_entrada/imagenes/marca/`).
   - `Ola`: borde ondulado (`currentColor`) para pies y banners.
 - Todo lo decorativo lleva `aria-hidden="true"` y `focusable="false"`, y no agrega texto. Si un elemento nuevo tiene **función**, se registra en `docs/trazabilidad.md` como «Mejora de diseño».
 
@@ -253,7 +252,7 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 
 - Contenido centrado con `--ancho-maximo` (76 rem) y márgenes laterales de `--espacio-4`.
 - Funciona desde **360 px** sin scroll horizontal. En menos de 640 px (`40rem`), la navegación pasa a una segunda fila desplazable y el botón flotante muestra solo el icono.
-- Desde 960 px (`60rem`), las pantallas con panel ilustrado usan dos columnas (ilustración y contenido).
+- Login (WF-01, sin imagen): título, subtítulo y pestañas arriba a la izquierda (máx. 32 rem); introducción, tarjeta y «Plataforma» en una columna centrada (máx. 30 rem).
 - WF-05: desde 1024 px (`64rem`), mapa y lista lado a lado; por debajo, el selector «Lista / Mapa» muestra uno a la vez. El mapa ocupa el 100 % de su columna, sin ancho fijo.
 
 ### Lista de verificación para cada pantalla nueva

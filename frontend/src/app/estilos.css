@@ -73,6 +73,10 @@
 
   /* --- Movimiento y foco --- */
   --transicion: 160ms ease-out;
+
+  /* --- Oscurecimiento uniforme (mar-900) de las fotos con texto encima (portada del inicio). Con 0,55 el texto
+     blanco GRANDE cumple AA (3:1) con cualquier foto; tokens.test.ts calcula el peor caso (sobre un píxel blanco). --- */
+  --opacidad-velo-texto: 0.55;
   --foco: 3px solid var(--color-mar-700);
 
   /* --- Maquetación --- */
@@ -234,6 +238,25 @@ svg {
 
 .marca-samaria {
   border-radius: 9px;
+  box-shadow: var(--sombra-1);
+}
+
+/* Ícono del logo (LogoSamaria): PNG/WebP con fondo transparente. */
+.logo-samaria {
+  display: block;
+  flex: none;
+  object-fit: contain;
+}
+
+/* En el pie oscuro, el ícono va sobre un círculo de arena para que se vean la isla y las olas. */
+.logo__insignia {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--color-arena);
   box-shadow: var(--sombra-1);
 }
 
@@ -566,6 +589,14 @@ svg {
 
 .pie .enlace-deshabilitado {
   color: var(--color-pie-suave);
+}
+
+.pie__derechos p {
+  margin: 0;
+}
+
+.pie__derechos .pie__aviso {
+  margin-top: var(--espacio-1);
 }
 
 .pie__derechos {

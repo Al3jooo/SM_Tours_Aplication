@@ -150,4 +150,26 @@ describe('Inicio de sesión (RF15)', () => {
     expect(screen.getByRole('button', { name: /¿Olvidaste tu contraseña\?/ })).toHaveAttribute('aria-disabled', 'true')
     expect(screen.getByText('3 intentos fallidos bloquearán la cuenta por 15 minutos.')).toBeInTheDocument()
   })
+
+  it('sigue WF-01: sin imagen ni ilustración, y con los elementos en el orden del wireframe', () => {
+    simularFetch({})
+    renderApp('/login')
+
+    const principal = screen.getByRole('main')
+    // WF-01 no tiene imagen: ni la foto del panel ni la ilustración (los iconos SVG de los campos no cuentan).
+    expect(principal.querySelectorAll('img')).toHaveLength(0)
+    expect(principal.querySelector('.escena-santa-marta, [src*="panel-login"]')).toBeNull()
+
+    const enOrden = [
+      screen.getByRole('heading', { level: 1, name: 'Samaria360' }),
+      screen.getByText('Plataforma de turismo de Santa Marta'),
+      screen.getByRole('tablist'),
+      screen.getByText('Accede con el correo con el que te registraste o crea una cuenta nueva.'),
+      screen.getByRole('region', { name: 'Ingresa con tu cuenta' }),
+      screen.getByRole('region', { name: 'Plataforma' }),
+    ]
+    for (let i = 1; i < enOrden.length; i++) {
+      expect(enOrden[i - 1].compareDocumentPosition(enOrden[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+  })
 })

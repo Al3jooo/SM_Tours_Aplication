@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router-dom'
 import { IconoBuscar } from './Iconos'
-import { MarcaSamaria } from './Ilustraciones'
+import { LogoSamaria } from './LogoSamaria'
 import { MenuUsuario, type UsuarioEncabezado } from './MenuUsuario'
 import { BotonProximamente } from './Proximamente'
 import { SelectorIdioma } from './SelectorIdioma'
@@ -24,7 +24,7 @@ export function Encabezado({
     <header className="encabezado">
       <div className="encabezado__contenido">
         <Link to="/" className="logo" aria-label={t('encabezado.inicio')}>
-          <MarcaSamaria />
+          <LogoSamaria />
           <span aria-hidden="true">Samaria360</span>
         </Link>
 

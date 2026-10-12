@@ -40,6 +40,7 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 | WF-04 | Calificación y disponibilidad en los destacados | Buscar oferta turística | RF17, RF11 | — | `componentes/TarjetaOferta.tsx` | Deshabilitado («—», sin datos) |
 | WF-04 | «Ver detalle» y «Reservar» | Consultar detalle / Reservar | RF37, RF20 | — | `componentes/TarjetaOferta.tsx` | Deshabilitado |
 | WF-04 | Banner de aviso del municipio (cerrable) | Publicar avisos | RF40 | — | — | Pendiente (no existe el modelo de avisos) |
+| WF-04, WF-05 | Foto real de cada lugar (21, WebP 3:2, como máximo 1200×800, sin metadatos), decorativa (`alt=""`: el nombre está en el `h3`) | Buscar oferta turística | RF23, RF37 | `GET /oferta` (`imagen`) | `componentes/ImagenOferta.tsx`, `public/imagenes/catalogo/`, `scripts/optimizar-imagenes.mjs` | Implementado (sin créditos verificados; ver `docs/recursos-graficos/README.md`) |
 | WF-04, WF-05 | Ilustración propia por categoría cuando falta la imagen del elemento | Buscar oferta turística | RF23 | — | `componentes/ImagenOferta.tsx`, `public/imagenes/catalogo/categorias/` | Implementado |
 
 ### WF-05 — Exploración: mapa y resultados
@@ -61,12 +62,12 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 | WF-05 | Orden «Precio: menor a mayor», «Precio: mayor a menor» y «Nombre» (no están en WF-05; la API los soporta) | Buscar oferta turística | RF61 | `GET /oferta?orden=` | `features/catalogo/ExplorarPage.tsx` | Mejora de diseño |
 | WF-05 | Tarjetas: imagen, nombre, descripción corta, precio en COP según el idioma, distancia, iconos de accesibilidad | Buscar oferta turística | RF16, RF37, RF38, RF50 | `GET /oferta` | `componentes/TarjetaOferta.tsx` | Implementado |
 | WF-05 | Insignia de estado operativo en atractivos (Abierto, Cerrado temporalmente, En mantenimiento) — decisión 5 | Buscar oferta turística | RF33, RF08 | `GET /oferta` | `componentes/TarjetaOferta.tsx` | Implementado |
-| WF-05 | Calificación y aforo en las tarjetas | Buscar oferta turística | RF17, RF39 | — | `componentes/TarjetaOferta.tsx` | Deshabilitado («—», sin datos) |
+| WF-05 | Calificación y afluencia (atractivos, RF39) o disponibilidad (servicios, RF11) en las tarjetas. WF-05 dice «nivel de aforo»; se usa «afluencia», el término del SRS | Buscar oferta turística | RF17, RF39, RF11 | — | `componentes/TarjetaOferta.tsx` | Deshabilitado («—», sin datos) |
 | WF-05 | «Ver detalle» | Consultar detalle de oferta | RF37 | — | `componentes/TarjetaOferta.tsx` | Deshabilitado |
 | WF-05 | Paginación numerada (10 por página) | Buscar oferta turística | RF16 | `GET /oferta?pagina=` | `componentes/Paginacion.tsx` | Implementado |
 | WF-05 | Estados: carga, sin resultados («Quitar filtros»), página fuera de rango («Ir a la primera página»), 502, 503 o 504 (o `SERVICIO_NO_DISPONIBLE`) «El catálogo no está disponible» con «Reintentar», 400 «Revisa los filtros»; un 500 sigue siendo «Ocurrió un error inesperado» | Buscar oferta turística | RF16, RNF01 | `GET /oferta` | `componentes/EstadoCatalogo.tsx` | Implementado |
 | WF-05 | Mapa con marcadores de servicios y atractivos de la página actual (Leaflet + teselas de OpenStreetMap), encuadre de los resultados, enfocable con el teclado y control de zoom traducido | Navegar mapa | RF23 | `GET /oferta` | `componentes/MapaOferta.tsx` | Implementado |
-| WF-05 | Leyenda de aforo: Bajo (< 40 %), Medio (40–75 %), Alto (> 75 %) | Buscar oferta turística | RF39 | — | `features/catalogo/ExplorarPage.tsx` | Deshabilitado («Sin datos de aforo») |
+| WF-05 | Leyenda de afluencia (WF-05: «aforo»): Bajo (< 40 %), Medio (40–75 %), Alto (> 75 %) | Buscar oferta turística | RF39 | — | `features/catalogo/ExplorarPage.tsx` | Deshabilitado («Sin datos de aforo») |
 | WF-05 | «Centrar en mi ubicación»: pide la ubicación solo al pulsarlo, la guarda solo en memoria (ni URL ni almacenamiento del navegador) y la envía a la búsqueda | Navegar mapa | RF38 | `GET /oferta?lat=&lng=` | `componentes/BotonUbicacion.tsx`, `features/catalogo/useUbicacion.ts` | Implementado |
 | WF-05 | Selector «Lista / Mapa» en una columna (menos de 64 rem); en escritorio lista y mapa lado a lado | Navegar mapa | RNF04 | — | `features/catalogo/ExplorarPage.tsx` | Implementado |
 | WF-05 | Marcador «Tu ubicación» distinto de los de servicios y atractivos | Navegar mapa | RF38 | — | `componentes/MapaOferta.tsx` | Mejora de diseño |
@@ -94,6 +95,7 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 | Común | Aviso de sesión vencida en páginas públicas: «Tu sesión expiró» (401) o «Tu cuenta no está activa» (403), con enlace al login; el usuario se queda en la página | Iniciar sesión | RF15, RF22, RF62 | `GET /me` | `features/auth/AvisoSesion.tsx` | Mejora de diseño |
 | Común | Pie: columnas Explorar, Municipio, Prestadores y Legal | Varios | RF16, RF26, RF46 | — | `shared/components/PiePagina.tsx` | Deshabilitado |
 | Común | Pie: «© 2026 Alcaldía de Santa Marta · Samaria360» | — | — | — | `shared/components/PiePagina.tsx` | Implementado |
+| Común | Pie: aviso «Prototipo académico — Universidad del Magdalena. Las imágenes son de referencia y pueden pertenecer a terceros; no se usan con fines comerciales.» (ES/EN), en lugar de una página de créditos | — | — | — | `shared/components/PiePagina.tsx` | Mejora de diseño |
 | Común | Botón flotante «Asistente virtual IA» | Interactuar con asistente | RF04 | — | `shared/components/BotonAsistente.tsx` | Deshabilitado |
 
 ### Endpoints de ms-auth
@@ -127,13 +129,16 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 | Bloque «Plataforma» de WF-01 (Explorar destinos, Rutas y experiencias, Prestadores) | WF-01 | RF16 | Iteración actual (vista principal del catálogo); destino exacto por definir |
 | **Criterio real de «Destacados esta semana».** Hoy es provisional: `tamano=3&orden=PrecioAscendente`. Que salgan solo servicios depende de la decisión 4 (los resultados sin precio van al final), no de un filtro por tipo; el componente, además, descarta lo que no sea servicio. El equipo debe definir el criterio (p. ej. mejor calificación o una marca de destacado asignada por el gestor); cualquiera de los dos requiere datos que hoy no existen | WF-04 | RF16 | Por definir (equipo) |
 | Banner de avisos del municipio (no existe el modelo de avisos) | WF-04 | RF40 | Por definir |
-| Calificación, aforo, disponibilidad, «Menor afluencia» y orden por calificación (datos aún no modelados) | WF-04, WF-05 | RF17, RF39, RF51, RF61 | Por definir |
+| Calificación, afluencia, disponibilidad, «Menor afluencia» y orden por calificación (datos aún no modelados) | WF-04, WF-05 | RF17, RF39, RF51, RF61 | Por definir |
 | «Ver detalle» (WF-06) y «Reservar» | WF-04, WF-05 | RF37, RF20 | Iteración siguiente (detalle) / Por definir (reservas) |
+| Texto alternativo y dimensiones por imagen en catalog_db (cambio de $jsonSchema), cuando se implemente el registro de fotos del prestador | WF-04, WF-05 | RF23 | Por definir |
 | Navegación «Asistente IA» y botón flotante | Común, WF-07 | RF04 | Por definir (chatbot real fuera de alcance) |
 | Pie: columna Explorar (Alojamiento, Gastronomía, Tours, Alquiler de equipos) | Común | RF16 | Iteración actual (filtros por categoría del catálogo) |
-| Pie: columna Municipio (Noticias, Emergencias, Aforos en vivo, Contacto) | Común | RF40, RF39 | Por definir |
+| Pie: columna Municipio (Noticias, Emergencias, Afluencia en vivo —en el wireframe, «Aforos en vivo»—, Contacto) | Común | RF40, RF39 | Por definir |
 | Pie: columna Prestadores (Registrar servicio, Panel del gestor, Preguntas frecuentes) | Común | RF09, RF64, RF26 | Por definir |
 | Pie y texto legal: página de Términos, Condiciones y Políticas de Privacidad | Común, WF-01 | RF46 | Por definir |
+
+**Terminología: «afluencia», no «aforo».** Los wireframes dicen «nivel de aforo» (WF-05), «aforo en tiempo real» (WF-04) y «Aforos en vivo» (pie). La fuente es el SRS, que usa «afluencia» (RF39: «indicador visual del nivel de afluencia actual (Bajo, Medio, Alto) de cada atractivo»). Por eso todos los textos visibles dicen «afluencia» (ES) / «crowd level» (EN). En las tarjetas, la etiqueta depende del tipo de oferta: «Afluencia» en los atractivos (RF39) y «Disponibilidad» en los servicios (RF11, «disponibilidad de cupos y horarios»), tanto en el inicio como en /explorar.
 
 ## Buscar oferta turística — decisiones de búsqueda (RF16, RF23, RF33, RF38, RF50, RF61)
 

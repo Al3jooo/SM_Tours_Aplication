@@ -21,7 +21,9 @@ const PRESTADOR_INACTIVO = "00000000-0000-4000-8000-000000000005"; // prestador2
 const GESTOR = "00000000-0000-4000-8000-000000000003"; // gestor@samaria360.test
 
 const punto = (longitud, latitud) => ({ type: "Point", coordinates: [longitud, latitud] });
-const imagen = (slug) => [`/imagenes/catalogo/${slug}.svg`];
+// Fotos optimizadas por frontend/scripts/optimizar-imagenes.mjs (3:2, WebP). Si una no carga, el frontend usa la
+// ilustración SVG de la categoría.
+const imagen = (slug) => [`/imagenes/catalogo/${slug}.webp`];
 
 catalogo.servicios.insertMany([
   // ------------------------------------------------------------------ Alojamiento

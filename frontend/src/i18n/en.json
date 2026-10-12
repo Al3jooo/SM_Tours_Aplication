@@ -55,7 +55,7 @@
   },
   "inicio": {
     "titular": "Find accommodation, food and tours in Santa Marta",
-    "apoyo": "Verified providers, attractions with live occupancy and a virtual assistant that answers your questions before you travel.",
+    "apoyo": "Verified providers, attractions with live crowd levels and a virtual assistant that answers your questions before you travel.",
     "buscarEtiqueta": "What are you looking for?",
     "buscarPlaceholder": "What are you looking for? E.g. cabins, restaurants, coffee tour",
     "buscar": "Search",
@@ -72,7 +72,7 @@
     "municipio": "Municipality",
     "noticias": "News",
     "emergencias": "Emergencies",
-    "aforos": "Live occupancy",
+    "afluencia": "Live crowd levels",
     "contacto": "Contact",
     "prestadores": "Service providers",
     "registrarServicio": "Register a service",
@@ -80,7 +80,8 @@
     "preguntasFrecuentes": "FAQ",
     "legal": "Legal",
     "terminos": "Terms, Conditions and Privacy Policies",
-    "derechos": "© 2026 Santa Marta City Hall · Samaria360"
+    "derechos": "© 2026 Santa Marta City Hall · Samaria360",
+    "avisoAcademico": "Academic prototype — Universidad del Magdalena. Images are for reference only and may belong to third parties; they are not used for commercial purposes."
   },
   "asistente": {
     "boton": "AI virtual assistant"
@@ -117,7 +118,7 @@
     "tarjeta": {
       "desde": "From {{precio}}",
       "calificacion": "Rating",
-      "aforo": "Occupancy",
+      "afluencia": "Crowd level",
       "disponibilidad": "Availability",
       "distancia": "Distance",
       "accesibilidad": "Accessibility",
@@ -146,8 +147,8 @@
     "migaExploracion": "Interactive exploration",
     "migaActual": "Map and results",
     "titulo": "Exploring Attractions and Services in Santa Marta",
-    "apoyo": "Monitor live occupancy, filter by proximity and plan your trips with official information from the municipality.",
-    "filtros": "Search and occupancy filters",
+    "apoyo": "Monitor live crowd levels, filter by proximity and plan your trips with official information from the municipality.",
+    "filtros": "Search and crowd-level filters",
     "texto": "Name, area or activity",
     "textoPlaceholder": "Filter by name, area or activity",
     "precioMax": "Maximum price",
@@ -174,13 +175,13 @@
     "anterior": "Previous",
     "siguiente": "Next",
     "pagina": "Page {{numero}}",
-    "mapa": "Interactive occupancy and attractions map",
-    "leyendaAforo": "Occupancy",
-    "aforoBajo": "Low (< 40%)",
-    "aforoMedio": "Medium (40–75%)",
-    "aforoAlto": "High (> 75%)",
-    "sinDatosAforo": "No occupancy data",
-    "preguntaAsistente": "Questions about roads or occupancy?",
+    "mapa": "Interactive crowd-level and attractions map",
+    "leyendaAfluencia": "Crowd level",
+    "nivelBajo": "Low (< 40%)",
+    "nivelMedio": "Medium (40–75%)",
+    "nivelAlto": "High (> 75%)",
+    "sinDatosAfluencia": "No crowd-level data",
+    "preguntaAsistente": "Questions about roads or crowd levels?",
     "preguntarAsistente": "Ask the assistant"
   },
   "mapa": {

@@ -79,3 +79,45 @@ describe('Tokens de color (WCAG AA)', () => {
     expect(contraste(a!, b!)).toBeGreaterThanOrEqual(minimo)
   })
 })
+
+/**
+ * Mezcla alfa en sRGB (como compone el navegador): `frente` con opacidad `alfa` sobre `fondo`. Cada canal se redondea
+ * hacia el valor del fondo cuando el fondo es más claro, así el resultado nunca es más oscuro que el real y el
+ * contraste calculado nunca supera al medido en el navegador.
+ */
+function mezcla(frente: string, fondo: string, alfa: number): string {
+  const canal = (hex: string, i: number) => parseInt(hex.slice(i, i + 2), 16)
+  return `#${[1, 3, 5]
+    .map((i) => {
+      const valor = alfa * canal(frente, i) + (1 - alfa) * canal(fondo, i)
+      return canal(fondo, i) >= canal(frente, i) ? Math.ceil(valor) : Math.floor(valor)
+    })
+    .map((c) => c.toString(16).padStart(2, '0'))
+    .join('')}`
+}
+
+const opacidadVelo = Number(estilos.match(/--opacidad-velo-texto:\s*([0-9.]+)/)?.[1])
+
+/** Texto grande según WCAG 1.4.3: ≥ 24 px, o ≥ 18,67 px (14 pt) en negrita (≥ 700). Le basta 3:1. */
+const TEXTO_GRANDE = 3
+
+/**
+ * Texto sobre fotos (portada del inicio). La foto se oscurece de forma uniforme con mar-900 al --opacidad-velo-texto.
+ * Como el contraste depende de la foto, se comprueba el peor caso: ese oscurecimiento sobre un píxel BLANCO, el más
+ * claro posible. Si cumple ahí, cumple con cualquier foto. El título (32–44 px) y el texto de apoyo (19 px, 700) son
+ * texto grande, en blanco. El contraste medido sobre la foto real se reporta aparte y debe ser mayor o igual que este.
+ */
+describe('Texto sobre la portada oscurecida (peor caso: píxel blanco)', () => {
+  it('el token --opacidad-velo-texto existe y está entre 0 y 1', () => {
+    expect(opacidadVelo).toBeGreaterThan(0)
+    expect(opacidadVelo).toBeLessThanOrEqual(1)
+  })
+
+  it.each([
+    ['superficie', 'título de la portada (32–44 px)'],
+    ['superficie', 'texto de apoyo de la portada (19 px, 700)'],
+  ])('%s sobre la foto oscurecida ≥ 3:1, texto grande (%s)', (texto) => {
+    const fondoPeorCaso = mezcla(colores.get('mar-900')!, '#ffffff', opacidadVelo)
+    expect(contraste(colores.get(texto)!, fondoPeorCaso)).toBeGreaterThanOrEqual(TEXTO_GRANDE)
+  })
+})
