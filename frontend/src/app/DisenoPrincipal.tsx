@@ -19,6 +19,8 @@ export function DisenoPrincipal() {
       </a>
       <Encabezado
         usuario={sesion.estado === 'autenticado' ? sesion.usuario : null}
+        // Solo sin sesión: con sesión o mientras se valida la guardada, el enlace no se muestra.
+        mostrarInicioSesion={sesion.estado === 'anonimo'}
         onCerrarSesion={() => {
           cerrarSesion()
           navegar('/login', { replace: true })

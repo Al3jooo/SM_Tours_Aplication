@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import type { ComponentProps } from 'react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { App } from '../app/App'
@@ -13,7 +14,10 @@ function UbicacionActual() {
   )
 }
 
-export function renderApp(ruta = '/') {
+/** Ruta inicial: texto ('/explorar?texto=x') o una entrada con estado ({ pathname, state }), como la de RutaProtegida. */
+type EntradaInicial = NonNullable<ComponentProps<typeof MemoryRouter>['initialEntries']>[number]
+
+export function renderApp(ruta: EntradaInicial = '/') {
   const usuario = userEvent.setup()
   const resultado = render(
     <MemoryRouter initialEntries={[ruta]}>

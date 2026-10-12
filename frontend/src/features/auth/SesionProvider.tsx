@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { ApiError, alExpirarSesion } from '../../shared/api/httpClient'
 import { borrarToken, guardarToken, leerToken } from '../../shared/api/tokenSesion'
 import { consultarUsuarioActual, iniciarSesion as solicitarInicioSesion } from './authApi'
-import { SesionContext, type AvisoSesion, type EstadoSesion, type ValorSesion } from './SesionContext'
+import { LIMITE_VALIDACION_MS, SesionContext, type AvisoSesion, type EstadoSesion, type ValorSesion } from './SesionContext'
 
 /** 401 → la sesión expiró; 403 → la cuenta dejó de estar activa. Otros errores no cierran la sesión. */
 function avisoPara(error: unknown): AvisoSesion | null {
@@ -19,27 +19,38 @@ export function SesionProvider({ children }: { children: ReactNode }) {
   const [aviso, setAviso] = useState<AvisoSesion | null>(null)
 
   // Al cargar la app con un token guardado, se valida con /me; un 401 o 403 cierra la sesión.
+  // Si /me no confirma la sesión (503, error de red o más de LIMITE_VALIDACION_MS sin respuesta), la sesión queda
+  // como no confirmada: estado anónimo, pero el token se conserva, porque nada demostró que sea inválido; al recargar
+  // se valida de nuevo. Una respuesta tardía solo vale si el token guardado sigue siendo el mismo con el que se pidió:
+  // si hubo un nuevo inicio de sesión o un cierre de sesión mientras tanto, se descarta.
   useEffect(() => {
-    if (!leerToken()) {
+    const token = leerToken()
+    if (!token) {
       return
     }
     let vigente = true
+    const mismoToken = () => vigente && leerToken() === token
+    const limite = setTimeout(() => {
+      if (vigente) setSesion((actual) => (actual.estado === 'cargando' ? { estado: 'anonimo' } : actual))
+    }, LIMITE_VALIDACION_MS)
     consultarUsuarioActual()
       .then((usuario) => {
-        if (vigente) setSesion({ estado: 'autenticado', usuario })
+        if (mismoToken()) setSesion({ estado: 'autenticado', usuario })
       })
       .catch((error: unknown) => {
+        // Un 401 o 403 ya lo atendió alExpirarSesion (borra el token y avisa); aquí solo queda lo que no lo es.
+        if (!mismoToken()) return
         const motivo = avisoPara(error)
         if (motivo) {
           borrarToken()
         }
-        if (vigente) {
-          setSesion({ estado: 'anonimo' })
-          setAviso(motivo)
-        }
+        setSesion({ estado: 'anonimo' })
+        setAviso(motivo)
       })
+      .finally(() => clearTimeout(limite))
     return () => {
       vigente = false
+      clearTimeout(limite)
     }
   }, [])
 

@@ -82,7 +82,8 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 | Wireframe | Elemento | Caso de uso | RF/RNF | Endpoint | Componente frontend | Estado |
 |---|---|---|---|---|---|---|
 | Común | Logo «Samaria360» | — | — | — | `shared/components/Encabezado.tsx` | Implementado |
-| Común | Navegación «Inicio de sesión» | Iniciar sesión | RF15 | — | `shared/components/Encabezado.tsx` | Implementado |
+| Común | Navegación «Inicio de sesión»: solo sin sesión. Con la sesión iniciada (y mientras se valida la sesión guardada, hasta 8 s) se oculta; vuelve al cerrar sesión o si la sesión expira, sin recargar. WF-04 y WF-05 muestran el enlace y el avatar a la vez; con sesión el enlace no tiene sentido y se oculta | Iniciar sesión | RF15, RF55 | `GET /me` | `shared/components/Encabezado.tsx`, `app/DisenoPrincipal.tsx` | Implementado |
+| Común | `/login` con la sesión iniciada redirige a la ruta de origen (solo rutas internas: empieza con «/» y no con «//») o al inicio, sin mostrar el formulario | Iniciar sesión | RF15 | — | `features/auth/LoginPage.tsx`, `features/auth/destinoTrasLogin.ts` | Implementado |
 | Común | Navegación «Búsqueda» (lleva a `/explorar`) | Buscar oferta turística | RF16 | `GET /api/v1/catalogo/oferta` | `shared/components/Encabezado.tsx` | Implementado |
 | Común | Navegación «Servicios» | Buscar oferta turística | RF16 | — | `shared/components/Encabezado.tsx` | Deshabilitado |
 | Común | Navegación «Asistente IA» | Interactuar con asistente | RF04 | — | `shared/components/Encabezado.tsx` | Deshabilitado |
