@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import { MarcaSamaria, Ola } from './Ilustraciones'
+import { Ola } from './Ilustraciones'
+import { LogoSamaria } from './LogoSamaria'
 
 const COLUMNAS = [
   { titulo: 'pie.explorar', enlaces: ['pie.alojamiento', 'pie.gastronomia', 'pie.tours', 'pie.alquilerEquipos'] },
-  { titulo: 'pie.municipio', enlaces: ['pie.noticias', 'pie.emergencias', 'pie.aforos', 'pie.contacto'] },
+  { titulo: 'pie.municipio', enlaces: ['pie.noticias', 'pie.emergencias', 'pie.afluencia', 'pie.contacto'] },
   { titulo: 'pie.prestadores', enlaces: ['pie.registrarServicio', 'pie.panelGestor', 'pie.preguntasFrecuentes'] },
   { titulo: 'pie.legal', enlaces: ['pie.terminos'] },
 ] as const
@@ -19,7 +20,10 @@ export function PiePagina() {
       <Ola className="pie__ola" />
       <div className="pie__contenido">
         <p className="logo logo--pie">
-          <MarcaSamaria />
+          {/* Sobre mar-900 la isla marrón y las olas se pierden: el ícono va en un círculo claro. */}
+          <span className="logo__insignia">
+            <LogoSamaria tamano={36} />
+          </span>
           Samaria360
         </p>
         {COLUMNAS.map((columna) => (
@@ -37,7 +41,11 @@ export function PiePagina() {
           </section>
         ))}
       </div>
-      <p className="pie__derechos">{t('pie.derechos')}</p>
+      <div className="pie__derechos">
+        <p>{t('pie.derechos')}</p>
+        {/* Las fotos del catálogo no tienen créditos verificados (CLAUDE.md, «Imágenes del catálogo»). */}
+        <p className="pie__aviso">{t('pie.avisoAcademico')}</p>
+      </div>
     </footer>
   )
 }

@@ -264,7 +264,7 @@ describe('Exploración WF-05: mapa', () => {
 
     const mapa = mapaVivo()
     expect(mapa.contenedor).toHaveAttribute('tabindex', '0')
-    expect(mapa.contenedor).toHaveAccessibleName('Mapa interactivo de aforos y atractivos')
+    expect(mapa.contenedor).toHaveAccessibleName('Mapa interactivo de afluencia y atractivos')
     expect(mapa.contenedor).toHaveAccessibleDescription('Haz clic en el mapa o enfócalo para usar la rueda.')
     expect(mapa.scrollWheelZoom.enabled()).toBe(false)
 

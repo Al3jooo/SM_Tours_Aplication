@@ -7,33 +7,78 @@
   gap: var(--espacio-7);
 }
 
+/* Portada con foto, oscurecida de forma UNIFORME de borde a borde (sin forma visible) con mar-900 al
+   --opacidad-velo-texto (0,55). Con esa opacidad, el blanco sobre el peor fondo posible (un píxel blanco) da 3,2:1: alcanza
+   para texto GRANDE (WCAG: 24 px, o 18,67 px en negrita ≥ 700). Por eso el título (32–44 px) y el texto de apoyo
+   (19 px, 700) van en blanco y en tamaño grande. Las sombras ayudan a leer, pero no cuentan para el contraste.
+   Peor caso verificado en tokens.test.ts. */
 .inicio__portada {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
-  padding: var(--espacio-7) var(--espacio-6);
+  padding: var(--espacio-8) var(--espacio-6);
   border-radius: var(--radio-lg);
-  background:
-    radial-gradient(circle at 90% 10%, var(--color-sol-100) 0 16%, transparent 42%),
-    linear-gradient(135deg, var(--color-mar-100), var(--color-arena) 70%);
+  background: var(--color-mar-900); /* mientras carga la foto, o si falla */
   box-shadow: var(--sombra-2);
   text-align: center;
   animation: subir 320ms ease-out;
 }
 
-.inicio__portada h1 {
+.inicio__portada-foto {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 60%;
+}
+
+.inicio__portada::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-mar-900);
+  opacity: var(--opacidad-velo-texto);
+}
+
+.inicio__portada-contenido {
   max-width: 44rem;
+  margin: 0 auto;
+}
+
+.inicio__portada h1 {
   margin: 0 auto var(--espacio-3);
-  color: var(--color-mar-900);
+  color: var(--color-superficie);
   font-size: var(--texto-3xl);
   font-weight: 650;
   letter-spacing: -0.015em;
+  text-shadow: 0 2px 12px rgb(7 59 68 / 55%);
 }
 
+/* Texto grande WCAG: 1.1875rem = 19 px (≥ 18,67 px = 14 pt) en negrita 700. */
 .inicio__apoyo {
   max-width: 40rem;
   margin: 0 auto var(--espacio-6);
-  color: var(--color-tinta-suave);
-  font-size: var(--texto-lg);
+  color: var(--color-superficie);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.45;
+  text-shadow: 0 1px 8px rgb(7 59 68 / 60%);
+}
+
+/* Sobre la foto, el buscador lleva una sombra marcada para despegarse, y el foco usa sol-400 (como en el pie
+   oscuro), porque mar-700 no se distingue sobre la foto oscurecida. */
+.inicio__portada .buscador {
+  border-color: transparent;
+  box-shadow:
+    0 0 0 4px rgb(255 255 255 / 18%),
+    var(--sombra-3);
+}
+
+.inicio__portada .buscador:focus-within {
+  outline-color: var(--color-sol-400);
 }
 
 .buscador {
@@ -154,21 +199,72 @@
   flex-direction: column;
 }
 
+/* Foto de la tarjeta (scripts/optimizar-imagenes.mjs garantiza 3:2). El marco fija el tamaño y la foto lo llena con
+   object-fit: cover, así nunca se deforma. Va a sangre: las esquinas las recorta la tarjeta (overflow: hidden).
+   - Destacados y lista apilada: marco 3:2 arriba.
+   - Lista de escritorio: columna izquierda con la altura de la tarjeta y, si el texto es corto, al menos 3:2.
+   Como el tamaño del marco no depende de la carga de la imagen, Chrome no avisa «Lazy-loaded images should have
+   explicit dimensions». */
 .imagen-oferta {
-  display: block;
+  position: relative;
   flex: none;
+  overflow: hidden;
   width: 100%;
-  height: auto;
-  aspect-ratio: 8 / 5;
-  object-fit: cover;
+  aspect-ratio: 3 / 2;
   background: var(--color-arena-200);
 }
 
+.imagen-oferta__foto {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 400ms ease-out;
+}
+
+/* Degradado muy suave hacia el texto: despega la foto del fondo blanco de la tarjeta sin oscurecerla. */
+.imagen-oferta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 70%, rgb(7 59 68 / 14%));
+  pointer-events: none;
+}
+
 .tarjeta-oferta--lista .imagen-oferta {
-  width: 11rem;
+  align-self: stretch;
+  width: 13.5rem;
+  min-height: 9rem; /* 13,5 × 2/3: con poco texto, la foto sigue en 3:2 */
   aspect-ratio: auto;
-  height: auto;
-  min-height: 100%;
+}
+
+.tarjeta-oferta--lista .imagen-oferta::after {
+  background: linear-gradient(to right, transparent 70%, rgb(7 59 68 / 14%));
+}
+
+/* Zoom leve de la foto. Con puntero (hover: hover) al pasar el cursor; con teclado al enfocar algo de la tarjeta o la
+   tarjeta misma (foco desde el marcador del mapa). En pantallas táctiles no hay hover, así que no se queda pegado. */
+@media (hover: hover) {
+  .tarjeta-oferta:hover .imagen-oferta__foto {
+    transform: scale(1.04);
+  }
+}
+
+.tarjeta-oferta:focus-within .imagen-oferta__foto {
+  transform: scale(1.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .imagen-oferta__foto {
+    transition: none;
+  }
+
+  .tarjeta-oferta:hover .imagen-oferta__foto,
+  .tarjeta-oferta:focus-within .imagen-oferta__foto {
+    transform: none;
+  }
 }
 
 .tarjeta-oferta__cuerpo {
@@ -833,18 +929,18 @@
   }
 }
 
-.leyenda-aforo__titulo {
+.leyenda-afluencia__titulo {
   margin: 0 0 var(--espacio-2);
   font-size: var(--texto-sm);
   font-weight: 600;
 }
 
-.leyenda-aforo__titulo span {
+.leyenda-afluencia__titulo span {
   color: var(--color-deshabilitado);
   font-weight: 400;
 }
 
-.leyenda-aforo ul {
+.leyenda-afluencia ul {
   display: flex;
   flex-wrap: wrap;
   gap: var(--espacio-2) var(--espacio-4);
@@ -853,8 +949,8 @@
   list-style: none;
 }
 
-/* Sin datos de aforo: la leyenda se muestra deshabilitada. */
-.leyenda-aforo__item {
+/* Sin datos de afluencia (RF39): la leyenda se muestra deshabilitada. */
+.leyenda-afluencia__item {
   display: flex;
   align-items: center;
   gap: var(--espacio-2);
@@ -862,7 +958,7 @@
   font-size: var(--texto-xs);
 }
 
-.leyenda-aforo__item::before {
+.leyenda-afluencia__item::before {
   content: '';
   width: 0.75rem;
   height: 0.75rem;
@@ -870,15 +966,15 @@
   opacity: 0.45;
 }
 
-.leyenda-aforo__item--bajo::before {
+.leyenda-afluencia__item--bajo::before {
   background: var(--color-sierra-700);
 }
 
-.leyenda-aforo__item--medio::before {
+.leyenda-afluencia__item--medio::before {
   background: var(--color-sol-400);
 }
 
-.leyenda-aforo__item--alto::before {
+.leyenda-afluencia__item--alto::before {
   background: var(--color-atardecer-600);
 }
 
@@ -896,7 +992,7 @@
 
 @media (max-width: 40rem) {
   .inicio__portada {
-    padding: var(--espacio-6) var(--espacio-4);
+    padding: var(--espacio-7) var(--espacio-4);
   }
 
   .buscador {
@@ -913,10 +1009,16 @@
     flex-direction: column;
   }
 
+  /* Lista apilada: la foto vuelve a 3:2 arriba y no hereda la altura de la tarjeta de escritorio. */
   .tarjeta-oferta--lista .imagen-oferta {
+    align-self: auto;
     width: 100%;
-    aspect-ratio: 8 / 5;
     min-height: 0;
+    aspect-ratio: 3 / 2;
+  }
+
+  .tarjeta-oferta--lista .imagen-oferta::after {
+    background: linear-gradient(to bottom, transparent 70%, rgb(7 59 68 / 14%));
   }
 
   .filtros {

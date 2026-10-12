@@ -55,7 +55,7 @@
   },
   "inicio": {
     "titular": "Encuentra alojamiento, gastronomía y tours en Santa Marta",
-    "apoyo": "Prestadores verificados, atractivos con aforo en tiempo real y un asistente virtual que responde tus preguntas antes de viajar.",
+    "apoyo": "Prestadores verificados, atractivos con afluencia en tiempo real y un asistente virtual que responde tus preguntas antes de viajar.",
     "buscarEtiqueta": "¿Qué buscas?",
     "buscarPlaceholder": "¿Qué buscas? Ej: cabañas, restaurantes, tour de café",
     "buscar": "Buscar",
@@ -72,7 +72,7 @@
     "municipio": "Municipio",
     "noticias": "Noticias",
     "emergencias": "Emergencias",
-    "aforos": "Aforos en vivo",
+    "afluencia": "Afluencia en vivo",
     "contacto": "Contacto",
     "prestadores": "Prestadores",
     "registrarServicio": "Registrar servicio",
@@ -80,7 +80,8 @@
     "preguntasFrecuentes": "Preguntas frecuentes",
     "legal": "Legal",
     "terminos": "Términos, Condiciones y Políticas de Privacidad",
-    "derechos": "© 2026 Alcaldía de Santa Marta · Samaria360"
+    "derechos": "© 2026 Alcaldía de Santa Marta · Samaria360",
+    "avisoAcademico": "Prototipo académico — Universidad del Magdalena. Las imágenes son de referencia y pueden pertenecer a terceros; no se usan con fines comerciales."
   },
   "asistente": {
     "boton": "Asistente virtual IA"
@@ -117,7 +118,7 @@
     "tarjeta": {
       "desde": "Desde {{precio}}",
       "calificacion": "Calificación",
-      "aforo": "Aforo",
+      "afluencia": "Afluencia",
       "disponibilidad": "Disponibilidad",
       "distancia": "Distancia",
       "accesibilidad": "Accesibilidad",
@@ -174,13 +175,13 @@
     "anterior": "Anterior",
     "siguiente": "Siguiente",
     "pagina": "Página {{numero}}",
-    "mapa": "Mapa interactivo de aforos y atractivos",
-    "leyendaAforo": "Aforo",
-    "aforoBajo": "Bajo (< 40 %)",
-    "aforoMedio": "Medio (40–75 %)",
-    "aforoAlto": "Alto (> 75 %)",
-    "sinDatosAforo": "Sin datos de aforo",
-    "preguntaAsistente": "¿Preguntas sobre el estado de las vías o aforos?",
+    "mapa": "Mapa interactivo de afluencia y atractivos",
+    "leyendaAfluencia": "Afluencia",
+    "nivelBajo": "Bajo (< 40 %)",
+    "nivelMedio": "Medio (40–75 %)",
+    "nivelAlto": "Alto (> 75 %)",
+    "sinDatosAfluencia": "Sin datos de afluencia",
+    "preguntaAsistente": "¿Preguntas sobre el estado de las vías o la afluencia?",
     "preguntarAsistente": "Preguntar al asistente"
   },
   "mapa": {

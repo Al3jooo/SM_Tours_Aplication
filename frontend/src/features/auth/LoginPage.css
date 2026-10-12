@@ -1,44 +1,15 @@
 /* WF-01 con la identidad «Santa Marta». Solo usa los tokens de src/app/estilos.css. */
 
+/* Disposición de WF-01, sin imagen: el encabezado (título, subtítulo y pestañas) arriba a la izquierda, y la
+   introducción, la tarjeta y «Plataforma» en una columna centrada de ancho cómodo. En celular, todo a lo ancho. */
 .login {
   display: grid;
-  gap: var(--espacio-6);
-}
-
-/* Panel ilustrado (decorativo). En móvil es una franja; desde 960 px, una columna. */
-.login__escena {
-  overflow: hidden;
-  height: 9.5rem;
-  border-radius: var(--radio-lg);
-  box-shadow: var(--sombra-2);
-}
-
-.escena-santa-marta {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.login__contenido {
-  width: 100%;
-  max-width: 32rem;
-  justify-self: center;
   animation: subir 320ms ease-out;
 }
 
-@media (min-width: 60rem) {
-  .login {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-    align-items: start;
-    gap: var(--espacio-8);
-  }
-
-  .login__escena {
-    position: sticky;
-    top: calc(var(--alto-encabezado) + var(--espacio-5));
-    height: min(40rem, calc(100vh - var(--alto-encabezado) - var(--espacio-7)));
-    min-height: 28rem;
-  }
+.login__encabezado {
+  width: 100%;
+  max-width: 32rem;
 }
 
 .login__titulo {
@@ -93,7 +64,10 @@
 }
 
 .login__cuerpo {
+  width: 100%;
+  max-width: 30rem;
   margin-top: var(--espacio-5);
+  justify-self: center;
 }
 
 .login__introduccion {
@@ -237,9 +211,16 @@
   animation: aparecer var(--transicion);
 }
 
-/* Botón principal: el patrón común está en estilos.css; en la tarjeta del login ocupa todo el ancho. */
+/* Botón principal: el patrón común está en estilos.css. Como en WF-01, con su ancho propio y alineado a la izquierda;
+   en celular ocupa todo el ancho, para que sea fácil de tocar. */
 .login .boton-principal {
-  width: 100%;
+  justify-self: start;
+}
+
+@media (max-width: 40rem) {
+  .login .boton-principal {
+    justify-self: stretch;
+  }
 }
 
 .login__legal {
@@ -260,10 +241,12 @@
   font-weight: 600;
 }
 
+/* Como en WF-01: un enlace debajo del otro. */
 .login__plataforma ul {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--espacio-2) var(--espacio-5);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-2);
   margin: 0;
   padding: 0;
   list-style: none;

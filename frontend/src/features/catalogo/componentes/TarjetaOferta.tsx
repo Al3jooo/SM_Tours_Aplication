@@ -15,7 +15,7 @@ const ICONOS_ACCESIBILIDAD: Record<CondicionAccesibilidad, () => ReactNode> = {
 
 /**
  * Tarjeta de un servicio o atractivo: lista de WF-05 ('lista') y destacados de WF-04 ('destacado').
- * Calificación, aforo y disponibilidad dependen de datos que aún no existen: se muestran como «—».
+ * Calificación, afluencia y disponibilidad dependen de datos que aún no existen: se muestran como «—».
  *
  * En la lista, `onResaltar` avisa cuando el puntero o el foco entran o salen (para resaltar su marcador en el mapa);
  * la tarjeta acepta el foco por programa (tabIndex -1) para cuando se pulsa su marcador.
@@ -93,7 +93,8 @@ export function TarjetaOferta({
             <dd>{sinDatos}</dd>
           </div>
           <div>
-            <dt>{t(variante === 'lista' ? 'catalogo.tarjeta.aforo' : 'catalogo.tarjeta.disponibilidad')}</dt>
+            {/* Según el SRS: afluencia de los atractivos (RF39) y disponibilidad de cupos de los servicios (RF11). */}
+            <dt>{t(resultado.tipo === 'Atractivo' ? 'catalogo.tarjeta.afluencia' : 'catalogo.tarjeta.disponibilidad')}</dt>
             <dd>{sinDatos}</dd>
           </div>
         </dl>

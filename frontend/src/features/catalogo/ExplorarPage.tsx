@@ -242,14 +242,14 @@ export function ExplorarPage() {
             resaltada={resaltada}
             onSeleccionar={seleccionarDesdeMapa}
           />
-          <div className="leyenda-aforo">
-            <p className="leyenda-aforo__titulo">
-              {t('explorar.leyendaAforo')}: <span>{t('explorar.sinDatosAforo')}</span>
+          <div className="leyenda-afluencia">
+            <p className="leyenda-afluencia__titulo">
+              {t('explorar.leyendaAfluencia')}: <span>{t('explorar.sinDatosAfluencia')}</span>
             </p>
-            <ul aria-label={t('explorar.leyendaAforo')}>
-              <li className="leyenda-aforo__item leyenda-aforo__item--bajo">{t('explorar.aforoBajo')}</li>
-              <li className="leyenda-aforo__item leyenda-aforo__item--medio">{t('explorar.aforoMedio')}</li>
-              <li className="leyenda-aforo__item leyenda-aforo__item--alto">{t('explorar.aforoAlto')}</li>
+            <ul aria-label={t('explorar.leyendaAfluencia')}>
+              <li className="leyenda-afluencia__item leyenda-afluencia__item--bajo">{t('explorar.nivelBajo')}</li>
+              <li className="leyenda-afluencia__item leyenda-afluencia__item--medio">{t('explorar.nivelMedio')}</li>
+              <li className="leyenda-afluencia__item leyenda-afluencia__item--alto">{t('explorar.nivelAlto')}</li>
             </ul>
           </div>
           {esEscritorio && botonUbicacion}

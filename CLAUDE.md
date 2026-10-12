@@ -99,7 +99,7 @@ Los wireframes (`docs/wireframes/`) son una guía de **estructura**, no de esté
 - **Diseño (libertad total):** colores, tipografía, espaciado, proporciones, distribución dentro de cada región, ilustraciones, iconografía, animaciones y estados (hover, foco, carga). Se busca una apariencia profesional y memorable, no la de un wireframe.
 - **Identidad visual:** inspirada en Santa Marta (mar Caribe, Sierra Nevada, café, atardecer). Debe ser coherente en todas las pantallas: los tokens (colores, tipografía, espaciado, radios, sombras) viven en `frontend/src/app/estilos.css` y se documentan en la sección "Guía visual" de `frontend/README.md`. Toda pantalla nueva reutiliza esos tokens.
 - **Elementos nuevos** que no están en el wireframe (p. ej. una ilustración o un mensaje de bienvenida) se permiten si son decorativos o mejoran la experiencia. Si tienen función, se registran en `docs/trazabilidad.md` como "Mejora de diseño".
-- **Restricciones que no cambian:** CSS propio, sin librerías de componentes ni de estilos. Fuentes con `@fontsource` (sin cargar desde internet). Sin fotos de terceros sin licencia: usar SVG, ilustraciones propias o degradados. Contraste WCAG AA, foco visible y diseño responsivo desde 360 px.
+- **Imágenes del catálogo:** las fotos de `_entrada/imagenes/` no tienen autor, fuente ni licencia verificados. Se integran igual porque el prototipo solo se ejecuta en local con fines académicos. No se inventan créditos. La portada del inicio y el logo usan las imágenes de `_entrada/imagenes/` (`ambiente/` y `marca/`), optimizadas con `frontend/scripts/optimizar-imagenes.mjs` (nunca se amplían); los SVG propios (`MarcaSamaria` y las ilustraciones de categoría) quedan como respaldo. El login no lleva imagen, como WF-01. La foto con texto encima se oscurece de forma uniforme con mar-900 al `--opacidad-velo-texto` y el texto es blanco y grande (WCAG: 3:1); `tokens.test.ts` verifica el peor caso (sobre un píxel blanco). Contraste WCAG AA, foco visible y diseño responsivo desde 360 px.
 - **Única excepción de recurso externo: las teselas de OpenStreetMap** del mapa de WF-05 (`https://tile.openstreetmap.org/{z}/{x}/{y}.png`, en `features/catalogo/componentes/MapaOferta.tsx`). Política de uso obligatoria: atribución «© OpenStreetMap contributors» siempre visible (no ocultar el control de atribución); zoom máximo 19; sin descarga masiva, prefetching ni caché offline (Leaflet solo pide las teselas del área visible, sin plugins de caché); `Referer` por defecto del navegador. Para un despliegue con tráfico real hay que usar un proveedor de teselas propio o contratado. El mapa usa **Leaflet directo** (BSD-2-Clause); no usar react-leaflet (licencia Hippocratic-2.1).
 
 ## No hacer
@@ -108,3 +108,15 @@ Los wireframes (`docs/wireframes/`) son una guía de **estructura**, no de esté
 - No subir `.env` ni nada de `infra/keys/` (salvo su README).
 - No modificar `docs/` (SRS, SAD, diagramas) sin pedir confirmación.
 - No agregar dependencias al `pom.xml` sin justificarlas.
+
+## Modelo de datos (leer antes de tocar bases de datos)
+- El modelo conceptual y el modelo lógico (`docs/sad/diagramas/modelo-logico.dbml`) están **unificados en un solo diagrama por petición del profesor**. Esa unificación es un requisito académico: no representa una base única. No propongas separarlos ni simplificarlos.
+- En la arquitectura son **dos microservicios con dos bases PostgreSQL distintas**:
+  - **ms-auth → `auth_db`**: `rol`, `usuario`, `turista`, `prestador`, `gestor`, `administrador`, `token_recuperacion`, `turista_categoria_interes`.
+  - **ms-booking (planificado) → `reservas_db`**: `reserva`, `inventario_cupo`, `reserva_cupo_dia`.
+- Ningún servicio lee ni escribe la base de otro. No crees tablas de reservas en `auth_db` ni tablas de autenticación en `reservas_db`.
+- Las relaciones del diagrama que cruzan bases son **referencias lógicas sin llave foránea física**, y la integridad la valida la aplicación:
+  - `Reserva.id_turista` → `usuario.id_usuario` de `auth_db` (`uuid`, tomado del claim `sub` del JWT);
+  - `id_servicio_mongo` → `_id` del documento en `catalog_db` (MongoDB).
+- El catálogo vive en MongoDB (`catalog_db`, ms-catalog), con los esquemas de `docs/sad/modelo-nosql/`.
+- Pendiente conocido, que no se corrige sin un pedido explícito: ms-auth y ms-catalog se conectan con las credenciales de superusuario de PostgreSQL y `root` de MongoDB.

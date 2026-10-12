@@ -47,27 +47,40 @@ export function InicioPage() {
   return (
     <div className="inicio">
       <section className="inicio__portada" aria-labelledby="titulo-inicio">
-        <h1 id="titulo-inicio">{t('inicio.titular')}</h1>
-        <p className="inicio__apoyo">{t('inicio.apoyo')}</p>
-        <form className="buscador" role="search" onSubmit={buscar}>
-          <label htmlFor="buscador-inicio" className="solo-lector">
-            {t('inicio.buscarEtiqueta')}
-          </label>
-          <span className="buscador__icono" aria-hidden="true">
-            <IconoBuscar />
-          </span>
-          <input
-            id="buscador-inicio"
-            type="search"
-            maxLength={100}
-            placeholder={t('inicio.buscarPlaceholder')}
-            value={texto}
-            onChange={(evento) => setTexto(evento.target.value)}
-          />
-          <button type="submit" className="boton-principal">
-            {t('inicio.buscar')}
-          </button>
-        </form>
+        {/* Foto decorativa de la bahía de Santa Marta (LCP: sin carga diferida). Se oscurece de forma uniforme
+            (--opacidad-velo-texto) y los textos son grandes y blancos: AA con cualquier foto (ver tokens.test.ts). */}
+        <img
+          className="inicio__portada-foto"
+          src="/imagenes/ambiente/portada-inicio.webp"
+          alt=""
+          width={1920}
+          height={1080}
+          fetchPriority="high"
+          decoding="async"
+        />
+        <div className="inicio__portada-contenido">
+          <h1 id="titulo-inicio">{t('inicio.titular')}</h1>
+          <p className="inicio__apoyo">{t('inicio.apoyo')}</p>
+          <form className="buscador" role="search" onSubmit={buscar}>
+            <label htmlFor="buscador-inicio" className="solo-lector">
+              {t('inicio.buscarEtiqueta')}
+            </label>
+            <span className="buscador__icono" aria-hidden="true">
+              <IconoBuscar />
+            </span>
+            <input
+              id="buscador-inicio"
+              type="search"
+              maxLength={100}
+              placeholder={t('inicio.buscarPlaceholder')}
+              value={texto}
+              onChange={(evento) => setTexto(evento.target.value)}
+            />
+            <button type="submit" className="boton-principal">
+              {t('inicio.buscar')}
+            </button>
+          </form>
+        </div>
       </section>
 
       <section className="inicio__categorias" aria-labelledby="titulo-categorias">
