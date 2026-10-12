@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation } from 'react-router-dom'
 import { IconoCandado, IconoEntrar, IconoRayo, IconoSobre } from '../../shared/components/Iconos'
 import { BotonProximamente } from '../../shared/components/Proximamente'
+import { destinoTrasLogin } from './destinoTrasLogin'
 import { aErrorInicioSesion, textoError, type ErrorInicioSesion } from './mensajesError'
 import { useSesion } from './useSesion'
 import './LoginPage.css'
@@ -29,9 +30,9 @@ export function LoginPage() {
       </p>
     )
   }
+  // Con la sesión iniciada (por URL, con «Atrás» o justo después de iniciar sesión) nunca se muestra el formulario.
   if (sesion.estado === 'autenticado') {
-    const desde = (ubicacion.state as { desde?: string } | null)?.desde
-    return <Navigate to={desde && desde !== '/login' ? desde : '/'} replace />
+    return <Navigate to={destinoTrasLogin((ubicacion.state as { desde?: unknown } | null)?.desde)} replace />
   }
 
   const enviar = async (evento: FormEvent<HTMLFormElement>) => {

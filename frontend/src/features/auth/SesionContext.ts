@@ -19,4 +19,7 @@ export interface ValorSesion {
   cerrarSesion: () => void
 }
 
+/** Tiempo máximo para validar con /me una sesión guardada: el enlace «Inicio de sesión» nunca queda oculto indefinidamente. */
+export const LIMITE_VALIDACION_MS = 8_000
+
 export const SesionContext = createContext<ValorSesion | null>(null)

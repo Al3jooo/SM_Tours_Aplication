@@ -10,12 +10,16 @@ import { SelectorIdioma } from './SelectorIdioma'
  * Encabezado común (WF-01, WF-04). Búsqueda lleva a la exploración (WF-05); Servicios y Asistente IA llegan en
  * iteraciones siguientes.
  * Recibe la sesión por props para que shared/ no dependa de features/.
+ * «Inicio de sesión» solo se muestra sin sesión (`mostrarInicioSesion`). Mientras se valida una sesión guardada
+ * tampoco se muestra, para que no aparezca y desaparezca al cargar.
  */
 export function Encabezado({
   usuario,
+  mostrarInicioSesion,
   onCerrarSesion,
 }: {
   usuario: UsuarioEncabezado | null
+  mostrarInicioSesion: boolean
   onCerrarSesion: () => void
 }) {
   const { t } = useTranslation()
@@ -30,9 +34,11 @@ export function Encabezado({
 
         <nav className="navegacion" aria-label={t('encabezado.navegacion')}>
           <ul>
-            <li>
-              <NavLink to="/login">{t('encabezado.inicioSesion')}</NavLink>
-            </li>
+            {mostrarInicioSesion && (
+              <li>
+                <NavLink to="/login">{t('encabezado.inicioSesion')}</NavLink>
+              </li>
+            )}
             <li>
               <NavLink to="/explorar">{t('encabezado.busqueda')}</NavLink>
             </li>

@@ -16,7 +16,8 @@ export function RutaProtegida() {
     )
   }
   if (sesion.estado === 'anonimo') {
-    return <Navigate to="/login" replace state={{ desde: ubicacion.pathname }} />
+    // Ruta completa (con ?consulta y #ancla) para volver exactamente a donde se quería ir.
+    return <Navigate to="/login" replace state={{ desde: ubicacion.pathname + ubicacion.search + ubicacion.hash }} />
   }
   return <Outlet />
 }
