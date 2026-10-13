@@ -86,7 +86,7 @@ catalogo.createCollection("servicios", {
                 "capacidadMaxHuespedes": { "bsonType": "int" },
                 "serviciosIncluidos": {
                   "bsonType": "array",
-                  "items": { "bsonType": "string" }
+                  "items": { "bsonType": "string", "enum": ["WiFi", "Desayuno", "Piscina", "Parqueadero"] }
                 }
               }
             }

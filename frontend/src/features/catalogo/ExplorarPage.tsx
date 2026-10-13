@@ -9,7 +9,7 @@ import { FiltrosOferta, type CambiosFiltros } from './componentes/FiltrosOferta'
 import { MapaOferta, claveResultado } from './componentes/MapaOferta'
 import { Paginacion } from './componentes/Paginacion'
 import { TarjetaOferta } from './componentes/TarjetaOferta'
-import { escribirCriterios, leerCriterios } from './criteriosUrl'
+import { escribirCriterios, leerCriterios, sinMasFiltrosDescartados } from './criteriosUrl'
 import { useBusquedaOferta } from './useBusquedaOferta'
 import { useEsEscritorio } from './useEsEscritorio'
 import { useUbicacion } from './useUbicacion'
@@ -57,6 +57,12 @@ export function ExplorarPage() {
     if (criterios.pagina > 1) setParametros(escribirCriterios({ ...criterios, pagina: 1 }), { replace: true })
   }, [ubicacion, criterios, setParametros])
 
+  // Una URL con «Más filtros» de otra categoría (o sin categoría) se limpia sin mostrar un error: la API los rechazaría.
+  useEffect(() => {
+    const limpios = sinMasFiltrosDescartados(parametros)
+    if (limpios) setParametros(limpios, { replace: true })
+  }, [parametros, setParametros])
+
   const navegar = (nuevos: CriteriosBusqueda, enfocarResultados = false) => {
     enfocarAlCargar.current = enfocarResultados
     setParametros(escribirCriterios(nuevos))
@@ -87,8 +93,7 @@ export function ExplorarPage() {
           <li>
             <Link to="/">Samaria360</Link>
           </li>
-          <li>{t('explorar.migaExploracion')}</li>
-          <li aria-current="page">{t('explorar.migaActual')}</li>
+          <li aria-current="page">{t('explorar.migaExploracion')}</li>
         </ol>
       </nav>
       <h1 className="explorar__titulo">{t('explorar.titulo')}</h1>
@@ -99,7 +104,8 @@ export function ExplorarPage() {
         criterios={criterios}
         hayUbicacion={ubicacion !== undefined}
         onAplicar={(cambios: CambiosFiltros) => navegar({ ...criterios, ...cambios, pagina: 1 })}
-        onQuitarCategoria={() => navegar({ ...criterios, categoria: undefined, pagina: 1 })}
+        onQuitarCategoria={() => navegar({ ...criterios, categoria: undefined, masFiltros: undefined, pagina: 1 })}
+        onQuitarMasFiltro={(restantes) => navegar({ ...criterios, masFiltros: restantes, pagina: 1 })}
       />
 
       <div className="explorar__barra">
@@ -255,11 +261,6 @@ export function ExplorarPage() {
           {esEscritorio && botonUbicacion}
         </aside>
       </div>
-
-      <p className="explorar__asistente">
-        {t('explorar.preguntaAsistente')}{' '}
-        <BotonProximamente className="boton-secundario">{t('explorar.preguntarAsistente')}</BotonProximamente>
-      </p>
     </div>
   )
 }

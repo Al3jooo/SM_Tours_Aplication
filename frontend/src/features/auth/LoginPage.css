@@ -1,7 +1,7 @@
 /* WF-01 con la identidad «Santa Marta». Solo usa los tokens de src/app/estilos.css. */
 
-/* Disposición de WF-01, sin imagen: el encabezado (título, subtítulo y pestañas) arriba a la izquierda, y la
-   introducción, la tarjeta y «Plataforma» en una columna centrada de ancho cómodo. En celular, todo a lo ancho. */
+/* Disposición de WF-01 (v2), sin imagen: subtítulo, pestañas e introducción alineados a la izquierda, con el ancho de
+   la línea de las pestañas; la tarjeta, centrada y de ancho cómodo. En celular, todo a lo ancho. */
 .login {
   display: grid;
   animation: subir 320ms ease-out;
@@ -9,21 +9,16 @@
 
 .login__encabezado {
   width: 100%;
-  max-width: 32rem;
-}
-
-.login__titulo {
-  margin: 0;
-  color: var(--color-mar-900);
-  font-size: var(--texto-3xl);
-  font-weight: 650;
-  letter-spacing: -0.015em;
+  max-width: 44rem;
 }
 
 .login__subtitulo {
-  margin: var(--espacio-2) 0 var(--espacio-5);
-  color: var(--color-tinta-suave);
-  font-size: var(--texto-lg);
+  margin: 0 0 var(--espacio-6);
+  color: var(--color-mar-900);
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-xl);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 /* Pestañas */
@@ -64,15 +59,21 @@
 }
 
 .login__cuerpo {
+  display: grid;
   width: 100%;
-  max-width: 30rem;
-  margin-top: var(--espacio-5);
-  justify-self: center;
+  margin-top: var(--espacio-4);
 }
 
 .login__introduccion {
-  margin: 0 0 var(--espacio-4);
+  max-width: 44rem;
+  margin: 0 0 var(--espacio-6);
   color: var(--color-tinta-suave);
+}
+
+.login__cuerpo > .tarjeta {
+  width: 100%;
+  max-width: 34rem;
+  justify-self: center;
 }
 
 /* Tarjeta «Ingresa con tu cuenta» */
@@ -228,35 +229,4 @@
   color: var(--color-tinta-suave);
   font-size: var(--texto-xs);
   line-height: 1.6;
-}
-
-/* Bloque «Plataforma» */
-.login__plataforma {
-  margin-top: var(--espacio-6);
-}
-
-.login__plataforma h2 {
-  margin: 0 0 var(--espacio-3);
-  font-size: var(--texto-lg);
-  font-weight: 600;
-}
-
-/* Como en WF-01: un enlace debajo del otro. */
-.login__plataforma ul {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--espacio-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.login__plataforma .enlace {
-  padding: var(--espacio-1) 0;
-  border: 0;
-  background: none;
-  font-size: var(--texto-sm);
-  text-decoration: underline dotted;
-  text-underline-offset: 0.2em;
 }

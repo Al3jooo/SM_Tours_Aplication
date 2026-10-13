@@ -17,3 +17,4 @@ Las demás colecciones del Entregable 2 (`eventos`, `faq`, `favoritos`, `histori
 - `bsonType: "decimal"` exige Decimal128: en mongosh, `NumberDecimal("120000")`; en Java, `BigDecimal` con `@Field(targetType = FieldType.DECIMAL128)`.
 - Las coordenadas van en orden **[longitud, latitud]** y requieren un índice `2dsphere`, que no forma parte del validador.
 - El `oneOf` de `servicios` discrimina por `categoria`: cada rama fija un único valor y exige su `detalleCategoria`.
+- **Cambio posterior al Entregable 2:** `detalleCategoria.serviciosIncluidos` (Alojamiento) admite solo `WiFi`, `Desayuno`, `Piscina` y `Parqueadero` (`enum`), el vocabulario cerrado de RF10 y WF-08 que usa «Más filtros» (WF-05). Pendiente de llevarlo a la sección NoSQL del SAD (ver `docs/trazabilidad.md`).

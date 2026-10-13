@@ -5,6 +5,11 @@ import co.edu.unimagdalena.samaria360.catalog.domain.model.CondicionAccesibilida
 import co.edu.unimagdalena.samaria360.catalog.domain.model.Coordenada;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.CriteriosBusqueda;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.EstadoOperativo;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.FiltrosAlojamiento;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.FiltrosAlquilerEquipo;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.FiltrosCategoria;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.FiltrosGastronomia;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.FiltrosTour;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.OrdenBusqueda;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.PaginaResultados;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ResultadoOferta;
@@ -41,6 +46,7 @@ public class OfertaMongoAdapter implements OfertaRepositoryPort {
 
     private static final String SERVICIOS = "servicios";
     private static final String ATRACTIVOS = "atractivos";
+    private static final String DETALLE = "detalleCategoria.";
     private static final Pattern METACARACTERES_REGEX = Pattern.compile("[\\\\^$.|?*+()\\[\\]{}]");
     private static final Collation COLACION_ESPANOL = Collation.of("es").strength(Collation.ComparisonLevel.primary());
 
@@ -117,7 +123,48 @@ public class OfertaMongoAdapter implements OfertaRepositoryPort {
         if (criterios.precioMaximo() != null) {
             filtro.append("precioBase", new Document("$lte", new Decimal128(criterios.precioMaximo())));
         }
+        if (criterios.filtrosCategoria() != null) {
+            filtrosDetalle(filtro, criterios.filtrosCategoria());
+        }
         return filtrosComunes(filtro, criterios, "nombreComercial");
+    }
+
+    /** «Más filtros» (RF10) sobre detalleCategoria, con las mismas reglas que {@link FiltrosCategoria#cumple}. */
+    private static void filtrosDetalle(Document filtro, FiltrosCategoria filtros) {
+        if (filtros instanceof FiltrosAlojamiento alojamiento) {
+            if (!alojamiento.serviciosIncluidos().isEmpty()) {
+                filtro.append(DETALLE + "serviciosIncluidos",
+                        new Document("$all", alojamiento.nombresServiciosIncluidos()));
+            }
+            if (alojamiento.huespedes() != null) {
+                filtro.append(DETALLE + "capacidadMaxHuespedes", new Document("$gte", alojamiento.huespedes()));
+            }
+            textoExacto(filtro, "tipoHabitacion", alojamiento.tipoHabitacion());
+        } else if (filtros instanceof FiltrosGastronomia gastronomia) {
+            if (gastronomia.soloVegetariano()) {
+                filtro.append(DETALLE + "menuVegetariano", true);
+            }
+            textoExacto(filtro, "tipoCocina", gastronomia.tipoCocina());
+        } else if (filtros instanceof FiltrosTour tour) {
+            textoExacto(filtro, "nivelDificultad", tour.nivelDificultad());
+            if (tour.duracionMaxHoras() != null) {
+                filtro.append(DETALLE + "duracionHoras", new Document("$lte", new Decimal128(tour.duracionMaxHoras())));
+            }
+        } else if (filtros instanceof FiltrosAlquilerEquipo alquiler) {
+            textoExacto(filtro, "tipoVehiculoEquipo", alquiler.tipoVehiculoEquipo());
+        }
+    }
+
+    /**
+     * Valor completo sin distinguir mayúsculas (sí tildes): regex anclada ({@code \z}, no {@code $}, que también
+     * aceptaría un salto de línea final), escapada y con la opción {@code i}. No se usa la colación «es» porque la
+     * agregación solo la lleva al ordenar por nombre, y con ella cambiaría la regla.
+     */
+    private static void textoExacto(Document filtro, String campo, String valor) {
+        if (valor != null) {
+            filtro.append(DETALLE + campo,
+                    new Document("$regex", "^" + escaparRegex(valor) + "\\z").append("$options", "i"));
+        }
     }
 
     /** Decisión 5: los atractivos no se filtran por estado operativo. */

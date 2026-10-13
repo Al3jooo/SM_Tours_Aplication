@@ -6,6 +6,7 @@ import { EstadoCatalogo } from '../features/catalogo/componentes/EstadoCatalogo'
 import { InicioPage } from '../features/catalogo/InicioPage'
 import { LimiteErrores } from '../shared/components/LimiteErrores'
 import { navegador } from '../shared/navegador'
+import { DisenoAcceso } from './DisenoAcceso'
 import { DisenoPrincipal } from './DisenoPrincipal'
 
 /**
@@ -17,8 +18,8 @@ const ExplorarPage = lazy(() => import('../features/catalogo/ExplorarPage').then
 
 /**
  * El router (BrowserRouter o MemoryRouter en pruebas) lo aporta quien monta la App.
- * Inicio (WF-04) y exploración (WF-05) son públicas. Las pantallas privadas futuras (prestador, gestor) irán dentro
- * de <Route element={<RutaProtegida />}>.
+ * Inicio (WF-04) y exploración (WF-05) son públicas, con el diseño de la plataforma; el inicio de sesión (WF-01), con
+ * el de acceso. Las pantallas privadas futuras (prestador, gestor) irán dentro de <Route element={<RutaProtegida />}>.
  */
 export function App() {
   return (
@@ -36,8 +37,10 @@ export function App() {
               </LimiteErrores>
             }
           />
-          <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+        <Route element={<DisenoAcceso />}>
+          <Route path="/login" element={<LoginPage />} />
         </Route>
       </Routes>
     </SesionProvider>

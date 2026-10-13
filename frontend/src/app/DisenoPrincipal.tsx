@@ -2,11 +2,13 @@ import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { AvisoSesion } from '../features/auth/AvisoSesion'
 import { useSesion } from '../features/auth/useSesion'
-import { BotonAsistente } from '../shared/components/BotonAsistente'
 import { Encabezado } from '../shared/components/Encabezado'
 import { PiePagina } from '../shared/components/PiePagina'
 
-/** Elementos comunes a todas las pantallas (docs/wireframes/README.md). */
+/**
+ * Elementos comunes de las pantallas de la plataforma (WF-04 a WF-10, docs/wireframes/README.md v2). Sin botón
+ * flotante del asistente (decisión del equipo): el acceso a RF04 es «Asistente IA» en la navegación.
+ */
 export function DisenoPrincipal() {
   const { t } = useTranslation()
   const { sesion, cerrarSesion } = useSesion()
@@ -31,7 +33,6 @@ export function DisenoPrincipal() {
         <Outlet />
       </main>
       <PiePagina />
-      <BotonAsistente />
     </div>
   )
 }

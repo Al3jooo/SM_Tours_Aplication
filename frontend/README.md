@@ -17,7 +17,7 @@ Para usar la app de punta a punta: `docker compose up -d` en la raíz y `./mvnw 
 
 | Carpeta | Contenido |
 |---|---|
-| `src/app/` | Rutas, diseño principal (encabezado, pie, botón flotante), ruta protegida, **`estilos.css` (tokens)** |
+| `src/app/` | Rutas, diseños de la plataforma y de acceso (encabezado y pie), ruta protegida, **`estilos.css` (tokens)** |
 | `src/features/<caso de uso>/` | Páginas, estado y llamadas de cada caso de uso (p. ej. `auth/`) |
 | `src/shared/api/` | Cliente HTTP (`fetch` + token Bearer) y almacenamiento del token |
 | `src/shared/components/` | Componentes reutilizables, iconos e ilustraciones |
@@ -183,7 +183,6 @@ Escala con base de 4 px. Usa solo estos valores en `margin`, `padding` y `gap`.
 | `--espacio-6` | 2 rem | Separación entre secciones |
 | `--espacio-7` | 3 rem | Padding de banners y del pie |
 | `--espacio-8` | 4 rem | Separación entre columnas en escritorio |
-| `--espacio-9` | 6 rem | Aire inferior de la página (deja sitio al botón flotante) |
 
 ### Radios
 
@@ -192,7 +191,7 @@ Escala con base de 4 px. Usa solo estos valores en `margin`, `padding` y `gap`.
 | `--radio-sm` | 8 px | Campos, avisos, mensajes de error, opciones de menú |
 | `--radio-md` | 14 px | Tarjetas y menús |
 | `--radio-lg` | 24 px | Paneles ilustrados y banners |
-| `--radio-pill` | 999 px | Botones, selector de idioma, insignias, botón flotante |
+| `--radio-pill` | 999 px | Botones, selector de idioma, insignias |
 
 ### Sombras
 
@@ -202,7 +201,7 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 |---|---|
 | `--sombra-1` | Reposo: botón principal, marca del logo |
 | `--sombra-2` | Tarjetas, portada del inicio, banners; hover del CTA |
-| `--sombra-3` | Elementos flotantes: menú del avatar, botón del asistente |
+| `--sombra-3` | Elementos flotantes: menú del avatar |
 
 ### Movimiento
 
@@ -239,6 +238,7 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Carga | `.estado-carga` | `role="status"` y `aria-busy`, con indicador giratorio decorativo. |
 | Botón secundario | `.boton-secundario` (en `estilos.css`, como `.boton-principal`) | Píldora con borde mar-700 sobre superficie: acciones de apoyo (Reintentar, Quitar filtros). |
 | Chip de filtro | `.chip` | mar-900 sobre mar-100, removible; `aria-label` que diga qué filtro quita. |
+| Panel desplegable | `.mas-filtros__boton`, `.mas-filtros__panel` | Botón secundario con `aria-expanded` (relleno mar-700 al abrir) y contador superficie sobre atardecer-600; panel con `hidden` cuando está cerrado, foco al primer control al abrir y de vuelta al botón con Escape o «Cerrar». |
 | Aviso de sesión | `.aviso-sesion` | tinta sobre sol-100 con borde sol-400, `role="status"` y botón para cerrarlo. |
 | Tarjeta de oferta | `.tarjeta-oferta` (`features/catalogo/catalogo.css`) | Imagen con `alt=""` y respaldo por categoría, nombre h3, datos en `<dl>`; «—» con texto «sin datos» para lectores. |
 | Insignia de estado | `.insignia-estado--<EstadoOperativo>` | Abierto: mar-700/mar-100 · Cerrado temporalmente: error/error-fondo · En mantenimiento: café-700/sol-100. |
@@ -251,8 +251,9 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 ### Maquetación y responsivo
 
 - Contenido centrado con `--ancho-maximo` (76 rem) y márgenes laterales de `--espacio-4`.
-- Funciona desde **360 px** sin scroll horizontal. En menos de 640 px (`40rem`), la navegación pasa a una segunda fila desplazable y el botón flotante muestra solo el icono.
-- Login (WF-01, sin imagen): título, subtítulo y pestañas arriba a la izquierda (máx. 32 rem); introducción, tarjeta y «Plataforma» en una columna centrada (máx. 30 rem).
+- Funciona desde **360 px** sin scroll horizontal. En menos de 640 px (`40rem`), la navegación pasa a una segunda fila desplazable.
+- Pantallas de acceso (WF-01, `app/DisenoAcceso.tsx`): encabezado reducido (logo y ES / EN) y pie reducido en una fila. Login sin imagen: subtítulo, pestañas e introducción a la izquierda (máx. 44 rem); la tarjeta, centrada (máx. 34 rem). El `h1` es solo para lectores de pantalla.
+- «Más filtros» (WF-05): el botón va en la fila de filtros y el panel ocupa una fila completa debajo (borde izquierdo mar-700 sobre arena), así «Aplicar filtros» queda después del panel abierto. Por debajo de 640 px, categorías y campos en una sola columna.
 - WF-05: desde 1024 px (`64rem`), mapa y lista lado a lado; por debajo, el selector «Lista / Mapa» muestra uno a la vez. El mapa ocupa el 100 % de su columna, sin ancho fijo.
 
 ### Lista de verificación para cada pantalla nueva

@@ -151,7 +151,8 @@ describe('Inicio de sesión (RF15)', () => {
     expect(screen.getByText('3 intentos fallidos bloquearán la cuenta por 15 minutos.')).toBeInTheDocument()
   })
 
-  it('sigue WF-01: sin imagen ni ilustración, y con los elementos en el orden del wireframe', () => {
+  // WF-01 v2: sin el título grande «Samaria360» (el h1 queda solo para lectores de pantalla) ni el bloque «Plataforma».
+  it('sigue WF-01 v2: sin imagen ni ilustración, y con los elementos en el orden del wireframe', () => {
     simularFetch({})
     renderApp('/login')
 
@@ -160,13 +161,17 @@ describe('Inicio de sesión (RF15)', () => {
     expect(principal.querySelectorAll('img')).toHaveLength(0)
     expect(principal.querySelector('.escena-santa-marta, [src*="panel-login"]')).toBeNull()
 
+    const titulo = screen.getByRole('heading', { level: 1, name: 'Iniciar sesión en Samaria360' })
+    expect(titulo).toHaveClass('solo-lector')
+    expect(screen.queryByRole('region', { name: 'Plataforma' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Explorar destinos')).not.toBeInTheDocument()
+
     const enOrden = [
-      screen.getByRole('heading', { level: 1, name: 'Samaria360' }),
+      titulo,
       screen.getByText('Plataforma de turismo de Santa Marta'),
       screen.getByRole('tablist'),
       screen.getByText('Accede con el correo con el que te registraste o crea una cuenta nueva.'),
       screen.getByRole('region', { name: 'Ingresa con tu cuenta' }),
-      screen.getByRole('region', { name: 'Plataforma' }),
     ]
     for (let i = 1; i < enOrden.length; i++) {
       expect(enOrden[i - 1].compareDocumentPosition(enOrden[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()

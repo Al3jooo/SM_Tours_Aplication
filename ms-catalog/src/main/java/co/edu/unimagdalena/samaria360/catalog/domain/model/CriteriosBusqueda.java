@@ -11,6 +11,7 @@ import java.util.Set;
  *
  * @param texto              nombre, vereda o actividad; se normaliza con trim y vacío equivale a null
  * @param categoria          categoría de servicio
+ * @param filtrosCategoria   «Más filtros» (RF10); exige {@code categoria} igual a la suya
  * @param precioMaximo       precio máximo, mayor o igual que 0
  * @param ubicacion          ubicación actual del turista, si la comparte (RF38)
  * @param distanciaMaximaKm  distancia máxima en línea recta; exige ubicación
@@ -19,9 +20,10 @@ import java.util.Set;
  * @param pagina             número de página, desde 0
  * @param tamanoPagina       elementos por página, de 1 a 10 (RF16)
  */
-public record CriteriosBusqueda(String texto, Categoria categoria, BigDecimal precioMaximo, Coordenada ubicacion,
-                                Double distanciaMaximaKm, Set<CondicionAccesibilidad> accesibilidad,
-                                OrdenBusqueda orden, int pagina, int tamanoPagina) {
+public record CriteriosBusqueda(String texto, Categoria categoria, FiltrosCategoria filtrosCategoria,
+                                BigDecimal precioMaximo, Coordenada ubicacion, Double distanciaMaximaKm,
+                                Set<CondicionAccesibilidad> accesibilidad, OrdenBusqueda orden, int pagina,
+                                int tamanoPagina) {
 
     /** RF16: lista paginada de 10 elementos o menos por vista. */
     public static final int TAMANO_PAGINA_MAXIMO = 10;
@@ -32,6 +34,13 @@ public record CriteriosBusqueda(String texto, Categoria categoria, BigDecimal pr
     public CriteriosBusqueda {
         texto = texto == null || texto.isBlank() ? null : texto.trim();
         accesibilidad = accesibilidad == null ? Set.of() : Set.copyOf(accesibilidad);
+        if (filtrosCategoria != null && filtrosCategoria.camposActivos().isEmpty()) {
+            filtrosCategoria = null;
+        }
+        if (filtrosCategoria != null && filtrosCategoria.categoria() != categoria) {
+            throw new CriteriosBusquedaInvalidosException(filtrosCategoria.camposActivos().get(0)
+                    + " requiere categoria=" + filtrosCategoria.categoria().name());
+        }
 
         if (texto != null && texto.length() > LONGITUD_MAXIMA_TEXTO) {
             throw new CriteriosBusquedaInvalidosException(
@@ -63,6 +72,14 @@ public record CriteriosBusqueda(String texto, Categoria categoria, BigDecimal pr
         }
     }
 
+    /** Sin «Más filtros». */
+    public CriteriosBusqueda(String texto, Categoria categoria, BigDecimal precioMaximo, Coordenada ubicacion,
+                             Double distanciaMaximaKm, Set<CondicionAccesibilidad> accesibilidad, OrdenBusqueda orden,
+                             int pagina, int tamanoPagina) {
+        this(texto, categoria, null, precioMaximo, ubicacion, distanciaMaximaKm, accesibilidad, orden, pagina,
+                tamanoPagina);
+    }
+
     /** Primera página, de tamaño máximo, sin filtros ni orden. */
     public static CriteriosBusqueda sinFiltros() {
         return new CriteriosBusqueda(null, null, null, null, null, Set.of(), null, 0, TAMANO_PAGINA_MAXIMO);
@@ -70,7 +87,7 @@ public record CriteriosBusqueda(String texto, Categoria categoria, BigDecimal pr
 
     /** Copia con otro orden (el caso de uso resuelve el orden por defecto). */
     public CriteriosBusqueda conOrden(OrdenBusqueda nuevoOrden) {
-        return new CriteriosBusqueda(texto, categoria, precioMaximo, ubicacion, distanciaMaximaKm, accesibilidad,
-                nuevoOrden, pagina, tamanoPagina);
+        return new CriteriosBusqueda(texto, categoria, filtrosCategoria, precioMaximo, ubicacion, distanciaMaximaKm,
+                accesibilidad, nuevoOrden, pagina, tamanoPagina);
     }
 }

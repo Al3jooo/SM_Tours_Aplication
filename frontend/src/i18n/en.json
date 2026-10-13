@@ -13,7 +13,6 @@
     "busqueda": "Search",
     "servicios": "Services",
     "asistente": "AI Assistant",
-    "buscar": "Search",
     "idioma": "Language",
     "espanol": "Spanish",
     "ingles": "English",
@@ -21,7 +20,7 @@
     "cerrarSesion": "Sign out"
   },
   "login": {
-    "titulo": "Samaria360",
+    "titulo": "Sign in to Samaria360",
     "subtitulo": "Santa Marta tourism platform",
     "pestanas": "Account access",
     "pestanaIniciar": "Sign in",
@@ -37,10 +36,6 @@
     "boton": "Sign in",
     "enviando": "Signing in…",
     "legal": "By signing in you accept the Terms, Conditions and Privacy Policies and the data processing of Samaria360.",
-    "plataforma": "Platform",
-    "explorarDestinos": "Explore destinations",
-    "rutasExperiencias": "Routes and experiences",
-    "prestadores": "Service providers",
     "campoObligatorio": "This field is required."
   },
   "errores": {
@@ -71,20 +66,18 @@
     "alquilerEquipos": "Equipment rental",
     "municipio": "Municipality",
     "noticias": "News",
-    "emergencias": "Emergencies",
-    "afluencia": "Live crowd levels",
-    "contacto": "Contact",
     "prestadores": "Service providers",
     "registrarServicio": "Register a service",
     "panelGestor": "Manager dashboard",
     "preguntasFrecuentes": "FAQ",
-    "legal": "Legal",
-    "terminos": "Terms, Conditions and Privacy Policies",
+    "legal": "Legal and Support",
+    "terminos": "Terms and conditions",
+    "privacidad": "Privacy policies",
+    "ayuda": "Help / Support",
     "derechos": "© 2026 Santa Marta City Hall · Samaria360",
+    "derechosAcceso": "© 2026 Samaria360 · Verified tourism platform",
+    "enlacesAcceso": "Legal and support links",
     "avisoAcademico": "Academic prototype — Universidad del Magdalena. Images are for reference only and may belong to third parties; they are not used for commercial purposes."
-  },
-  "asistente": {
-    "boton": "AI virtual assistant"
   },
   "sesion": {
     "avisoExpirada": "Your session expired.",
@@ -123,8 +116,7 @@
       "distancia": "Distance",
       "accesibilidad": "Accessibility",
       "estado": "Status",
-      "verDetalle": "View details",
-      "reservar": "Book"
+      "verDetalle": "View details"
     },
     "busqueda": {
       "cargando": "Searching for places…",
@@ -140,12 +132,17 @@
       "fueraDeRango": "This page no longer exists: the results changed.",
       "primeraPagina": "Go to the first page",
       "seccionNoCargada": "We couldn't load this section. Check your connection."
+    },
+    "serviciosIncluidos": {
+      "WiFi": "Wi-Fi",
+      "Desayuno": "Breakfast",
+      "Piscina": "Pool",
+      "Parqueadero": "Parking"
     }
   },
   "explorar": {
     "migas": "Breadcrumb",
     "migaExploracion": "Interactive exploration",
-    "migaActual": "Map and results",
     "titulo": "Exploring Attractions and Services in Santa Marta",
     "apoyo": "Monitor live crowd levels, filter by proximity and plan your trips with official information from the municipality.",
     "filtros": "Search and crowd-level filters",
@@ -158,7 +155,37 @@
     "accesibilidad": "Accessibility",
     "categoria": "Category: {{categoria}}",
     "quitarCategoria": "Remove the {{categoria}} category filter",
+    "filtrosActivos": "Active filters",
     "aplicar": "Apply filters",
+    "masFiltros": {
+      "boton": "More filters",
+      "activos_one": "{{count}} active",
+      "activos_other": "{{count}} active",
+      "titulo": "Filters by category",
+      "cerrar": "Close",
+      "categoria": "Category",
+      "todas": "All (includes attractions)",
+      "elegirCategoria": "Choose a category to see its filters. Attractions have no category filters: these filters only apply to services.",
+      "cargando": "Loading options…",
+      "error": "We could not load the options for this category.",
+      "sinOpciones": "There are no published services in this category yet.",
+      "cualquiera": "Any",
+      "serviciosIncluidos": "Included services",
+      "huespedes": "Guests",
+      "huespedesAyuda": "There are accommodations for up to {{maximo}} guests.",
+      "tipoHabitacion": "Room type",
+      "opcionVegetariana": "Vegetarian option",
+      "sinOpcionVegetariana": "No published restaurant offers it yet.",
+      "tipoCocina": "Cuisine",
+      "nivelDificultad": "Difficulty level",
+      "duracionMax": "Maximum duration",
+      "horas": "Up to {{horas}} h",
+      "tipoVehiculoEquipo": "Vehicle or equipment type",
+      "chip": "{{filtro}}: {{valor}}",
+      "chipHuespedes_one": "{{count}} guest",
+      "chipHuespedes_other": "{{count}} guests",
+      "quitar": "Remove the filter {{filtro}}"
+    },
     "contador_one": "Results in Santa Marta ({{count}} place found)",
     "contador_other": "Results in Santa Marta ({{count}} places found)",
     "resultados": "Results in Santa Marta",
@@ -180,9 +207,7 @@
     "nivelBajo": "Low (< 40%)",
     "nivelMedio": "Medium (40–75%)",
     "nivelAlto": "High (> 75%)",
-    "sinDatosAfluencia": "No crowd-level data",
-    "preguntaAsistente": "Questions about roads or crowd levels?",
-    "preguntarAsistente": "Ask the assistant"
+    "sinDatosAfluencia": "No crowd-level data"
   },
   "mapa": {
     "acercar": "Zoom in",
