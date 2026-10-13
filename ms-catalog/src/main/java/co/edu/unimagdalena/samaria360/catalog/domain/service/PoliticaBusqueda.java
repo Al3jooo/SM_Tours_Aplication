@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Reglas de la búsqueda combinada de servicios y atractivos (RF16, RF23, RF33, RF38, RF50, RF61), según las
+ * Reglas de la búsqueda combinada de servicios y atractivos (RF10, RF16, RF23, RF33, RF38, RF50, RF61), según las
  * decisiones registradas en docs/trazabilidad.md:
  * <ol>
  *   <li>los atractivos aparecen junto con los servicios;</li>
@@ -27,6 +27,8 @@ import java.util.Optional;
  *   <li>los atractivos cerrados o en mantenimiento aparecen, con su estado;</li>
  *   <li>el filtro de accesibilidad aplica a ambos.</li>
  * </ol>
+ * «Más filtros» ({@link co.edu.unimagdalena.samaria360.catalog.domain.model.FiltrosCategoria}) exige categoría, así
+ * que, por la decisión 2, nunca incluye atractivos.
  * Es la referencia en Java de esas reglas: el adaptador MongoDB las traduce a una agregación (ADR-004) y sus
  * pruebas verifican que el resultado coincida.
  */
@@ -43,6 +45,9 @@ public final class PoliticaBusqueda {
             return Optional.empty();
         }
         if (criterios.categoria() != null && servicio.getCategoria() != criterios.categoria()) {
+            return Optional.empty();
+        }
+        if (criterios.filtrosCategoria() != null && !criterios.filtrosCategoria().cumple(servicio.getDetalle())) {
             return Optional.empty();
         }
         if (criterios.precioMaximo() != null) {

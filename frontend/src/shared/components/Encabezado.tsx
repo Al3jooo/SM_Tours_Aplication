@@ -1,13 +1,23 @@
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router-dom'
-import { IconoBuscar } from './Iconos'
 import { LogoSamaria } from './LogoSamaria'
 import { MenuUsuario, type UsuarioEncabezado } from './MenuUsuario'
 import { BotonProximamente } from './Proximamente'
 import { SelectorIdioma } from './SelectorIdioma'
 
+function LogoInicio() {
+  const { t } = useTranslation()
+  return (
+    <Link to="/" className="logo" aria-label={t('encabezado.inicio')}>
+      <LogoSamaria />
+      <span aria-hidden="true">Samaria360</span>
+    </Link>
+  )
+}
+
 /**
- * Encabezado común (WF-01, WF-04). Búsqueda lleva a la exploración (WF-05); Servicios y Asistente IA llegan en
+ * Encabezado de las pantallas de la plataforma (WF-04 a WF-10, v2): logo; navegación Búsqueda, Servicios y Asistente
+ * IA; ES / EN y, con sesión, el avatar. Búsqueda lleva a la exploración (WF-05); Servicios y Asistente IA llegan en
  * iteraciones siguientes.
  * Recibe la sesión por props para que shared/ no dependa de features/.
  * «Inicio de sesión» solo se muestra sin sesión (`mostrarInicioSesion`). Mientras se valida una sesión guardada
@@ -27,10 +37,7 @@ export function Encabezado({
   return (
     <header className="encabezado">
       <div className="encabezado__contenido">
-        <Link to="/" className="logo" aria-label={t('encabezado.inicio')}>
-          <LogoSamaria />
-          <span aria-hidden="true">Samaria360</span>
-        </Link>
+        <LogoInicio />
 
         <nav className="navegacion" aria-label={t('encabezado.navegacion')}>
           <ul>
@@ -53,14 +60,21 @@ export function Encabezado({
 
         <div className="encabezado__acciones">
           <SelectorIdioma />
-          {usuario ? (
-            // WF-04: con sesión iniciada el avatar ocupa el lugar del icono de búsqueda.
-            <MenuUsuario usuario={usuario} onCerrarSesion={onCerrarSesion} />
-          ) : (
-            <BotonProximamente className="boton-icono" etiquetaAccesible={t('encabezado.buscar')}>
-              <IconoBuscar />
-            </BotonProximamente>
-          )}
+          {usuario && <MenuUsuario usuario={usuario} onCerrarSesion={onCerrarSesion} />}
+        </div>
+      </div>
+    </header>
+  )
+}
+
+/** Encabezado reducido de las pantallas de acceso (WF-01 a WF-03, v2): solo el logo y ES / EN. */
+export function EncabezadoAcceso() {
+  return (
+    <header className="encabezado">
+      <div className="encabezado__contenido encabezado__contenido--acceso">
+        <LogoInicio />
+        <div className="encabezado__acciones">
+          <SelectorIdioma />
         </div>
       </div>
     </header>

@@ -104,6 +104,28 @@ class ScriptsInicializacionMongoTest {
     }
 
     @Test
+    void elValidadorRechazaUnServicioIncluidoFueraDelVocabulario() {
+        assertRechazado(alojamiento(List.of("WiFi", "Jacuzzi")));
+        assertRechazado(alojamiento(List.of("wifi"))); // el nombre canónico distingue mayúsculas
+    }
+
+    @Test
+    void elValidadorAceptaLosCuatroServiciosIncluidos() {
+        MongoCollection<Document> servicios = catalogo.getCollection("servicios");
+        Document alojamiento = alojamiento(List.of("WiFi", "Desayuno", "Piscina", "Parqueadero"));
+
+        servicios.insertOne(alojamiento);
+        servicios.deleteOne(Filters.eq("_id", alojamiento.getObjectId("_id")));
+    }
+
+    @Test
+    void laSemillaSoloUsaElVocabularioDeServiciosIncluidos() {
+        assertThat(catalogo.getCollection("servicios")
+                .distinct("detalleCategoria.serviciosIncluidos", String.class).into(new HashSet<>()))
+                .containsExactlyInAnyOrder("WiFi", "Desayuno", "Piscina", "Parqueadero");
+    }
+
+    @Test
     void elValidadorAceptaUnTourValido() {
         MongoCollection<Document> servicios = catalogo.getCollection("servicios");
         Document tour = tourValido();
@@ -216,6 +238,15 @@ class ScriptsInicializacionMongoTest {
                 .isInstanceOf(MongoWriteException.class)
                 .satisfies(e -> assertThat(((MongoWriteException) e).getError().getCode())
                         .isEqualTo(VALIDACION_DOCUMENTO_FALLIDA));
+    }
+
+    private static Document alojamiento(List<String> serviciosIncluidos) {
+        return tourValido()
+                .append("categoria", "Alojamiento")
+                .append("detalleCategoria", new Document("tipoHabitacion", "Doble")
+                        .append("numHabitaciones", 4)
+                        .append("capacidadMaxHuespedes", 2)
+                        .append("serviciosIncluidos", serviciosIncluidos));
     }
 
     private static Document tourValido() {

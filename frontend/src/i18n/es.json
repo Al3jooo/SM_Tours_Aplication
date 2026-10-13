@@ -13,7 +13,6 @@
     "busqueda": "Búsqueda",
     "servicios": "Servicios",
     "asistente": "Asistente IA",
-    "buscar": "Buscar",
     "idioma": "Idioma",
     "espanol": "Español",
     "ingles": "Inglés",
@@ -21,7 +20,7 @@
     "cerrarSesion": "Cerrar sesión"
   },
   "login": {
-    "titulo": "Samaria360",
+    "titulo": "Iniciar sesión en Samaria360",
     "subtitulo": "Plataforma de turismo de Santa Marta",
     "pestanas": "Acceso a la cuenta",
     "pestanaIniciar": "Iniciar sesión",
@@ -37,10 +36,6 @@
     "boton": "Iniciar sesión",
     "enviando": "Iniciando sesión…",
     "legal": "Al iniciar sesión aceptas los Términos, Condiciones y Políticas de Privacidad y el tratamiento de datos de Samaria360.",
-    "plataforma": "Plataforma",
-    "explorarDestinos": "Explorar destinos",
-    "rutasExperiencias": "Rutas y experiencias",
-    "prestadores": "Prestadores",
     "campoObligatorio": "Este campo es obligatorio."
   },
   "errores": {
@@ -71,20 +66,18 @@
     "alquilerEquipos": "Alquiler de equipos",
     "municipio": "Municipio",
     "noticias": "Noticias",
-    "emergencias": "Emergencias",
-    "afluencia": "Afluencia en vivo",
-    "contacto": "Contacto",
     "prestadores": "Prestadores",
     "registrarServicio": "Registrar servicio",
     "panelGestor": "Panel del gestor",
     "preguntasFrecuentes": "Preguntas frecuentes",
-    "legal": "Legal",
-    "terminos": "Términos, Condiciones y Políticas de Privacidad",
+    "legal": "Legal y Soporte",
+    "terminos": "Términos y condiciones",
+    "privacidad": "Políticas de privacidad",
+    "ayuda": "Ayuda / Soporte",
     "derechos": "© 2026 Alcaldía de Santa Marta · Samaria360",
+    "derechosAcceso": "© 2026 Samaria360 · Plataforma turística verificada",
+    "enlacesAcceso": "Enlaces legales y de soporte",
     "avisoAcademico": "Prototipo académico — Universidad del Magdalena. Las imágenes son de referencia y pueden pertenecer a terceros; no se usan con fines comerciales."
-  },
-  "asistente": {
-    "boton": "Asistente virtual IA"
   },
   "sesion": {
     "avisoExpirada": "Tu sesión expiró.",
@@ -123,8 +116,7 @@
       "distancia": "Distancia",
       "accesibilidad": "Accesibilidad",
       "estado": "Estado",
-      "verDetalle": "Ver detalle",
-      "reservar": "Reservar"
+      "verDetalle": "Ver detalle"
     },
     "busqueda": {
       "cargando": "Buscando lugares…",
@@ -140,12 +132,17 @@
       "fueraDeRango": "Esta página ya no existe: los resultados cambiaron.",
       "primeraPagina": "Ir a la primera página",
       "seccionNoCargada": "No pudimos cargar esta sección. Revisa tu conexión."
+    },
+    "serviciosIncluidos": {
+      "WiFi": "WiFi",
+      "Desayuno": "Desayuno",
+      "Piscina": "Piscina",
+      "Parqueadero": "Parqueadero"
     }
   },
   "explorar": {
     "migas": "Migas de pan",
     "migaExploracion": "Exploración interactiva",
-    "migaActual": "Mapa y resultados",
     "titulo": "Exploración de Atractivos y Servicios en Santa Marta",
     "apoyo": "Monitorea la afluencia en tiempo real, filtra por cercanía y planifica tus recorridos con información oficial del municipio.",
     "filtros": "Filtros de búsqueda y afluencia",
@@ -158,7 +155,37 @@
     "accesibilidad": "Accesibilidad",
     "categoria": "Categoría: {{categoria}}",
     "quitarCategoria": "Quitar el filtro de categoría {{categoria}}",
+    "filtrosActivos": "Filtros activos",
     "aplicar": "Aplicar filtros",
+    "masFiltros": {
+      "boton": "Más filtros",
+      "activos_one": "{{count}} activo",
+      "activos_other": "{{count}} activos",
+      "titulo": "Filtros por categoría",
+      "cerrar": "Cerrar",
+      "categoria": "Categoría",
+      "todas": "Todas (incluye atractivos)",
+      "elegirCategoria": "Elige una categoría para ver sus filtros. Los atractivos no tienen filtros por categoría: estos filtros solo aplican a servicios.",
+      "cargando": "Cargando opciones…",
+      "error": "No pudimos cargar las opciones de esta categoría.",
+      "sinOpciones": "Todavía no hay servicios publicados en esta categoría.",
+      "cualquiera": "Cualquiera",
+      "serviciosIncluidos": "Servicios incluidos",
+      "huespedes": "Huéspedes",
+      "huespedesAyuda": "Hay alojamientos para hasta {{maximo}} huéspedes.",
+      "tipoHabitacion": "Tipo de habitación",
+      "opcionVegetariana": "Opción vegetariana",
+      "sinOpcionVegetariana": "Por ahora ningún restaurante publicado la ofrece.",
+      "tipoCocina": "Tipo de cocina",
+      "nivelDificultad": "Nivel de dificultad",
+      "duracionMax": "Duración máxima",
+      "horas": "Hasta {{horas}} h",
+      "tipoVehiculoEquipo": "Tipo de vehículo o equipo",
+      "chip": "{{filtro}}: {{valor}}",
+      "chipHuespedes_one": "{{count}} huésped",
+      "chipHuespedes_other": "{{count}} huéspedes",
+      "quitar": "Quitar el filtro {{filtro}}"
+    },
     "contador_one": "Resultados en Santa Marta ({{count}} lugar encontrado)",
     "contador_other": "Resultados en Santa Marta ({{count}} lugares encontrados)",
     "resultados": "Resultados en Santa Marta",
@@ -180,9 +207,7 @@
     "nivelBajo": "Bajo (< 40 %)",
     "nivelMedio": "Medio (40–75 %)",
     "nivelAlto": "Alto (> 75 %)",
-    "sinDatosAfluencia": "Sin datos de afluencia",
-    "preguntaAsistente": "¿Preguntas sobre el estado de las vías o la afluencia?",
-    "preguntarAsistente": "Preguntar al asistente"
+    "sinDatosAfluencia": "Sin datos de afluencia"
   },
   "mapa": {
     "acercar": "Acercar",

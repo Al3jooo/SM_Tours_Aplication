@@ -58,7 +58,6 @@
   --espacio-6: 2rem;
   --espacio-7: 3rem;
   --espacio-8: 4rem;
-  --espacio-9: 6rem;
 
   /* --- Radios --- */
   --radio-sm: 8px;
@@ -170,7 +169,7 @@ svg {
   width: 100%;
   max-width: var(--ancho-maximo);
   margin: 0 auto;
-  padding: var(--espacio-6) var(--espacio-4) var(--espacio-9);
+  padding: var(--espacio-6) var(--espacio-4) var(--espacio-7);
 }
 
 .contenido:focus {
@@ -341,6 +340,10 @@ svg {
   font-weight: 650;
 }
 
+.encabezado__contenido--acceso {
+  justify-content: space-between;
+}
+
 .encabezado__acciones {
   display: flex;
   align-items: center;
@@ -380,16 +383,6 @@ svg {
 .selector-idioma button[aria-pressed='true'] {
   background: var(--color-mar-700);
   color: var(--color-superficie);
-}
-
-.boton-icono {
-  display: inline-grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 0;
-  border-radius: 50%;
-  background: none;
 }
 
 /* ===================== Avatar y menú ===================== */
@@ -591,6 +584,51 @@ svg {
   color: var(--color-pie-suave);
 }
 
+/* Enlaces con destino (Explorar → /explorar?categoria=…): claros sobre el mar oscuro, subrayados al pasar. */
+.pie a {
+  color: var(--color-pie-texto);
+  text-decoration: none;
+  text-underline-offset: 0.2em;
+}
+
+.pie a:hover {
+  text-decoration: underline;
+}
+
+/* Pie reducido de las pantallas de acceso (WF-01 a WF-03): derechos y enlaces en una fila. */
+.pie--acceso {
+  margin-top: var(--espacio-7);
+}
+
+.pie__fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3) var(--espacio-6);
+  max-width: var(--ancho-maximo);
+  margin: 0 auto;
+  padding: var(--espacio-5) var(--espacio-4) var(--espacio-3);
+}
+
+.pie__fila p {
+  margin: 0;
+}
+
+.pie__fila ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2) var(--espacio-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pie--acceso .pie__derechos {
+  padding-top: var(--espacio-3);
+  padding-bottom: var(--espacio-5);
+}
+
 .pie__derechos p {
   margin: 0;
 }
@@ -606,37 +644,6 @@ svg {
   border-top: 1px solid rgb(232 243 243 / 14%);
   color: var(--color-pie-suave);
   font-size: var(--texto-xs);
-}
-
-/* ============ Botón flotante del asistente (RF04) ============ */
-
-.boton-asistente {
-  position: fixed;
-  right: var(--espacio-4);
-  bottom: var(--espacio-4);
-  z-index: 8;
-}
-
-.boton-asistente button {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--espacio-2);
-  padding: var(--espacio-2) var(--espacio-4) var(--espacio-2) var(--espacio-3);
-  border: 1.5px solid var(--color-mar-700);
-  border-radius: var(--radio-pill);
-  background: var(--color-superficie);
-  box-shadow: var(--sombra-3);
-  font-size: var(--texto-sm);
-  font-weight: 600;
-}
-
-.boton-asistente svg {
-  width: 1.75rem;
-  height: 1.75rem;
-  padding: 0.3rem;
-  border-radius: 50%;
-  background: var(--color-mar-100);
-  color: var(--color-mar-700);
 }
 
 /* ============ Botones comunes (ver Guía visual) ============ */
@@ -842,20 +849,5 @@ svg {
 
   .inicio-provisional {
     padding: var(--espacio-6) var(--espacio-5) var(--espacio-8);
-  }
-
-  /* En móvil el botón flotante muestra solo el icono; el nombre sigue disponible para lectores. */
-  .boton-asistente button {
-    padding: var(--espacio-2);
-  }
-
-  .boton-asistente button > span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    white-space: nowrap;
   }
 }

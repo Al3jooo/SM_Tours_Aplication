@@ -20,3 +20,8 @@ export function formatearPrecio(valor: number, idioma: string): string {
 export function formatearDistancia(km: number, idioma: string): string {
   return `${new Intl.NumberFormat(localeDe(idioma), { maximumFractionDigits: 1 }).format(km)} km`
 }
+
+/** Horas de un tour, con un decimal como máximo: «5,5» (es-CO) o «5.5» (en-US). */
+export function formatearHoras(horas: number, idioma: string): string {
+  return new Intl.NumberFormat(localeDe(idioma), { maximumFractionDigits: 1 }).format(horas)
+}

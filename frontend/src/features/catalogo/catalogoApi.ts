@@ -13,6 +13,53 @@ export type Orden = (typeof ORDENES)[number]
 
 export type EstadoOperativo = 'Abierto' | 'Cerrado_temporalmente' | 'En_mantenimiento'
 
+/** Vocabulario cerrado de RF10 y WF-08 (el validador de MongoDB lo restringe con el mismo enum). */
+export const SERVICIOS_INCLUIDOS = ['WiFi', 'Desayuno', 'Piscina', 'Parqueadero'] as const
+export type ServicioIncluido = (typeof SERVICIOS_INCLUIDOS)[number]
+
+/**
+ * «Más filtros» de WF-05 (RF10): filtros sobre el detalle de una categoría. Cada uno exige su categoría; la API
+ * responde 400 si llega sin ella o con otra, así que nunca se envían sueltos (ver `soloDeCategoria`).
+ */
+export interface MasFiltros {
+  serviciosIncluidos?: ServicioIncluido[]
+  huespedes?: number
+  tipoHabitacion?: string
+  /** Solo `true` filtra («Opción vegetariana»). */
+  menuVegetariano?: boolean
+  tipoCocina?: string
+  nivelDificultad?: string
+  duracionMaxHoras?: number
+  tipoVehiculoEquipo?: string
+}
+
+export const CAMPOS_POR_CATEGORIA = {
+  Alojamiento: ['serviciosIncluidos', 'huespedes', 'tipoHabitacion'],
+  Gastronomia: ['menuVegetariano', 'tipoCocina'],
+  Tour: ['nivelDificultad', 'duracionMaxHoras'],
+  AlquilerEquipo: ['tipoVehiculoEquipo'],
+} as const satisfies Record<Categoria, readonly (keyof MasFiltros)[]>
+
+/** Cantidad de filtros con valor (cada servicio incluido cuenta uno). */
+export function contarMasFiltros(filtros: MasFiltros): number {
+  return Object.values(filtros).reduce<number>(
+    (total, valor) => total + (Array.isArray(valor) ? valor.length : valor === undefined || valor === false ? 0 : 1),
+    0,
+  )
+}
+
+/** Solo los filtros con valor de la categoría dada; sin categoría, ninguno. */
+export function soloDeCategoria(filtros: MasFiltros | undefined, categoria: Categoria | undefined): MasFiltros {
+  if (!filtros || !categoria) return {}
+  const resultado: MasFiltros = {}
+  for (const campo of CAMPOS_POR_CATEGORIA[categoria]) {
+    const valor = filtros[campo]
+    const conValor = Array.isArray(valor) ? valor.length > 0 : valor !== undefined && valor !== false && valor !== ''
+    if (conValor) Object.assign(resultado, { [campo]: valor })
+  }
+  return resultado
+}
+
 export interface ResultadoOferta {
   tipo: 'Servicio' | 'Atractivo'
   id: string
@@ -48,6 +95,8 @@ export interface Ubicacion {
 export interface CriteriosBusqueda {
   texto?: string
   categoria?: Categoria
+  /** Solo los de `categoria` (los demás se descartan al leer la URL y al consultar la API). */
+  masFiltros?: MasFiltros
   precioMax?: number
   distanciaKm?: number
   accesibilidad: CondicionAccesibilidad[]
@@ -68,6 +117,7 @@ export function consultaApi(criterios: CriteriosBusqueda): string {
   const parametros = new URLSearchParams()
   if (criterios.texto) parametros.set('texto', criterios.texto)
   if (criterios.categoria) parametros.set('categoria', criterios.categoria)
+  agregarMasFiltros(parametros, soloDeCategoria(criterios.masFiltros, criterios.categoria))
   if (criterios.precioMax !== undefined) parametros.set('precioMax', String(criterios.precioMax))
   if (criterios.ubicacion) {
     parametros.set('lat', String(criterios.ubicacion.latitud))
@@ -81,6 +131,18 @@ export function consultaApi(criterios: CriteriosBusqueda): string {
   parametros.set('pagina', String(Math.max(0, criterios.pagina - 1)))
   parametros.set('tamano', String(criterios.tamano ?? TAMANO_PAGINA))
   return parametros.toString()
+}
+
+/** Mismos nombres en la URL de la pantalla y en la API; `serviciosIncluidos` se repite. */
+export function agregarMasFiltros(parametros: URLSearchParams, filtros: MasFiltros) {
+  filtros.serviciosIncluidos?.forEach((servicio) => parametros.append('serviciosIncluidos', servicio))
+  if (filtros.huespedes !== undefined) parametros.set('huespedes', String(filtros.huespedes))
+  if (filtros.tipoHabitacion) parametros.set('tipoHabitacion', filtros.tipoHabitacion)
+  if (filtros.menuVegetariano) parametros.set('menuVegetariano', 'true')
+  if (filtros.tipoCocina) parametros.set('tipoCocina', filtros.tipoCocina)
+  if (filtros.nivelDificultad) parametros.set('nivelDificultad', filtros.nivelDificultad)
+  if (filtros.duracionMaxHoras !== undefined) parametros.set('duracionMaxHoras', String(filtros.duracionMaxHoras))
+  if (filtros.tipoVehiculoEquipo) parametros.set('tipoVehiculoEquipo', filtros.tipoVehiculoEquipo)
 }
 
 export function buscarOferta(criterios: CriteriosBusqueda): Promise<PaginaOferta> {

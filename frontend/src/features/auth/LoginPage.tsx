@@ -64,11 +64,12 @@ export function LoginPage() {
     ) : null
 
   return (
-    // Disposición de WF-01: título, subtítulo y pestañas arriba a la izquierda; debajo, en una columna centrada, la
-    // introducción, la tarjeta del formulario y «Plataforma». Sin imagen.
+    // Disposición de WF-01 (v2), sin imagen: subtítulo, pestañas e introducción alineados a la izquierda; debajo, la
+    // tarjeta del formulario, centrada. El título «Samaria360» ya no se ve (el logo está en el encabezado reducido): el
+    // h1 queda solo para lectores de pantalla.
     <div className="login">
+      <h1 className="solo-lector">{t('login.titulo')}</h1>
       <div className="login__encabezado">
-        <h1 className="login__titulo">{t('login.titulo')}</h1>
         <p className="login__subtitulo">{t('login.subtitulo')}</p>
 
         <div className="pestanas" role="tablist" aria-label={t('login.pestanas')}>
@@ -146,21 +147,6 @@ export function LoginPage() {
 
             <p className="login__legal">{t('login.legal')}</p>
           </form>
-        </section>
-
-        <section className="login__plataforma" aria-labelledby="titulo-plataforma">
-          <h2 id="titulo-plataforma">{t('login.plataforma')}</h2>
-          <ul>
-            <li>
-              <BotonProximamente className="enlace">{t('login.explorarDestinos')}</BotonProximamente>
-            </li>
-            <li>
-              <BotonProximamente className="enlace">{t('login.rutasExperiencias')}</BotonProximamente>
-            </li>
-            <li>
-              <BotonProximamente className="enlace">{t('login.prestadores')}</BotonProximamente>
-            </li>
-          </ul>
         </section>
       </div>
     </div>

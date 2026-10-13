@@ -20,8 +20,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * API sin estado con token Bearer emitido por ms-auth. La búsqueda es pública (WF-04, WF-05); los endpoints
- * protegidos que vengan validan el JWT con el JWKS de ms-auth.
+ * API sin estado con token Bearer emitido por ms-auth. La búsqueda y sus opciones de filtro son públicas (WF-04,
+ * WF-05); los endpoints protegidos que vengan validan el JWT con el JWKS de ms-auth.
  */
 @Configuration
 public class SecurityConfig {
@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(acceso -> {
                     acceso.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
-                    acceso.requestMatchers(HttpMethod.GET, "/api/v1/catalogo/oferta").permitAll();
+                    acceso.requestMatchers(HttpMethod.GET, "/api/v1/catalogo/oferta", "/api/v1/catalogo/filtros").permitAll();
                     acceso.requestMatchers("/actuator/health", "/actuator/health/**").permitAll();
                     if (dev) {
                         acceso.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();

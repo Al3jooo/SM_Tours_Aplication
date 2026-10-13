@@ -11,10 +11,13 @@ import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleCategoria;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleTour;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.EstadoOperativo;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.EstadoPublicacion;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.FiltrosAlojamiento;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.FiltrosCategoria;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.OrdenBusqueda;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.PaginaResultados;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ResultadoOferta;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioComercial;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioIncluido;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.TipoOferta;
 import org.junit.jupiter.api.Test;
 
@@ -78,6 +81,23 @@ class BuscarOfertaServiceTest {
         PaginaResultados<ResultadoOferta> pagina = servicio.buscar(criterios(null, Categoria.Tour, null, null, null, Set.of()));
 
         assertThat(ids(pagina)).containsExactly("s2");
+    }
+
+    @Test
+    void masFiltrosDejaSoloLosServiciosDeLaCategoriaQueCumplenSuDetalle() {
+        ServicioComercial cabanaWifi = servicio("s6", "Cabaña con WiFi",
+                new DetalleAlojamiento("Cabaña", 3, 4, List.of("WiFi", "Desayuno")), "200000", MINCA,
+                EstadoPublicacion.Publicado, true, Set.of());
+        OfertaRepositoryEnMemoria conCabana = new OfertaRepositoryEnMemoria()
+                .con(hotel, cabanas, tourCafe, cabanaWifi)
+                .con(catedral);
+        FiltrosCategoria wifiParaTres = new FiltrosAlojamiento(Set.of(ServicioIncluido.WiFi), 3, null);
+
+        PaginaResultados<ResultadoOferta> pagina = new BuscarOfertaService(conCabana).buscar(new CriteriosBusqueda(
+                null, Categoria.Alojamiento, wifiParaTres, null, null, null, Set.of(), null, 0, 10));
+
+        assertThat(ids(pagina)).containsExactly("s6");
+        assertThat(conCabana.ultimosCriterios().filtrosCategoria()).isEqualTo(wifiParaTres);
     }
 
     @Test

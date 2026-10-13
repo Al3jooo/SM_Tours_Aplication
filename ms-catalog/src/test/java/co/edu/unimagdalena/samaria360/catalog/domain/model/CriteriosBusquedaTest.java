@@ -91,6 +91,44 @@ class CriteriosBusquedaTest {
         assertThat(enBlanco.accesibilidad()).isEmpty();
     }
 
+    @Test
+    void losFiltrosDeCategoriaExigenSuCategoria() {
+        FiltrosCategoria cocina = new FiltrosGastronomia(false, "Típica");
+
+        assertThatThrownBy(() -> conFiltros(null, cocina))
+                .isInstanceOf(CriteriosBusquedaInvalidosException.class)
+                .hasMessage("tipoCocina requiere categoria=Gastronomia");
+        assertThatThrownBy(() -> conFiltros(Categoria.Tour, cocina))
+                .isInstanceOf(CriteriosBusquedaInvalidosException.class)
+                .hasMessage("tipoCocina requiere categoria=Gastronomia");
+        assertThat(conFiltros(Categoria.Gastronomia, cocina).filtrosCategoria()).isEqualTo(cocina);
+    }
+
+    @Test
+    void unosFiltrosDeCategoriaSinValoresEquivalenASinFiltros() {
+        CriteriosBusqueda criterios = conFiltros(null, new FiltrosTour(" ", null));
+
+        assertThat(criterios.filtrosCategoria()).isNull();
+    }
+
+    @Test
+    void elConstructorSinFiltrosDeCategoriaLosDejaNulos() {
+        assertThat(CriteriosBusqueda.sinFiltros().filtrosCategoria()).isNull();
+    }
+
+    @Test
+    void conOrdenConservaLosFiltrosDeCategoria() {
+        FiltrosCategoria vegetariano = new FiltrosGastronomia(true, null);
+
+        CriteriosBusqueda ordenados = conFiltros(Categoria.Gastronomia, vegetariano).conOrden(OrdenBusqueda.Nombre);
+
+        assertThat(ordenados.filtrosCategoria()).isEqualTo(vegetariano);
+    }
+
+    private static CriteriosBusqueda conFiltros(Categoria categoria, FiltrosCategoria filtros) {
+        return new CriteriosBusqueda(null, categoria, filtros, null, null, null, Set.of(), null, 0, 10);
+    }
+
     private static CriteriosBusqueda criterios(BigDecimal precioMaximo, Coordenada ubicacion, Double distanciaKm,
                                                OrdenBusqueda orden, int pagina, int tamano) {
         return new CriteriosBusqueda(null, Categoria.Tour, precioMaximo, ubicacion, distanciaKm, Set.of(), orden,

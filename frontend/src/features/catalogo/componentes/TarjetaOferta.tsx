@@ -114,11 +114,9 @@ export function TarjetaOferta({
           </ul>
         )}
 
+        {/* WF-04 y WF-05 (v2): solo «Ver detalle» (WF-06, pendiente); la reserva se hace desde el detalle (WF-10). */}
         <div className="tarjeta-oferta__acciones">
           <BotonProximamente className="enlace">{t('catalogo.tarjeta.verDetalle')}</BotonProximamente>
-          {variante === 'destacado' && (
-            <BotonProximamente className="enlace">{t('catalogo.tarjeta.reservar')}</BotonProximamente>
-          )}
         </div>
       </div>
     </article>

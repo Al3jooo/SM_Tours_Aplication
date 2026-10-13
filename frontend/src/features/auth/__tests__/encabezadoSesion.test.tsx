@@ -59,6 +59,8 @@ describe('Encabezado según la sesión', () => {
     expect(enlaceInicioSesion()).not.toBeInTheDocument()
   })
 
+  // Cerrar sesión lleva a /login, que en la v2 tiene el encabezado reducido (sin navegación): el enlace se comprueba al
+  // volver al inicio con el logo, sin recargar.
   it('al cerrar sesión, el enlace vuelve sin recargar', async () => {
     sessionStorage.setItem('samaria360.token', 'token-guardado')
     simularFetch({ [ME]: () => respuestaJson(200, USUARIO_TURISTA), ...CATALOGO })
@@ -67,9 +69,13 @@ describe('Encabezado según la sesión', () => {
     await usuario.click(await screen.findByRole('button', { name: 'Menú de usuario de Ana Pérez' }))
     await usuario.click(screen.getByRole('menuitem', { name: 'Cerrar sesión' }))
 
-    expect(await screen.findByRole('link', { name: 'Inicio de sesión' })).toBeInTheDocument()
+    expect(await screen.findByLabelText('Correo electrónico')).toBeInTheDocument()
+    expect(ubicacionActual()).toBe('/login')
     expect(screen.queryByRole('button', { name: /Menú de usuario/ })).not.toBeInTheDocument()
     expect(token()).toBeNull()
+
+    await usuario.click(screen.getByRole('link', { name: 'Samaria360, ir al inicio' }))
+    expect(await screen.findByRole('link', { name: 'Inicio de sesión' })).toBeInTheDocument()
   })
 
   it('si la sesión expira a mitad de uso (401 en una petición), el enlace vuelve con el aviso', async () => {

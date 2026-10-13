@@ -7,6 +7,7 @@ import co.edu.unimagdalena.samaria360.catalog.domain.model.CondicionAccesibilida
 import co.edu.unimagdalena.samaria360.catalog.domain.model.Coordenada;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.CriteriosBusqueda;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.OrdenBusqueda;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.ParametrosFiltrosCategoria;
 import co.edu.unimagdalena.samaria360.catalog.infrastructure.adapter.in.web.dto.RespuestaPaginaOferta;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +34,10 @@ public class OfertaController {
      * @param accesibilidad repetible: MovilidadReducida, Visual, Auditiva (RF50)
      * @param orden         Distancia, PrecioAscendente, PrecioDescendente o Nombre (RF61); por defecto, distancia si
      *                      hay ubicación y nombre si no
+     * @param serviciosIncluidos repetible: WiFi, Desayuno, Piscina, Parqueadero. Este y los siguientes son
+     *                      «Más filtros» (RF10): cada uno exige su categoría (serviciosIncluidos, huespedes y
+     *                      tipoHabitacion → Alojamiento; menuVegetariano y tipoCocina → Gastronomia;
+     *                      nivelDificultad y duracionMaxHoras → Tour; tipoVehiculoEquipo → AlquilerEquipo)
      */
     @GetMapping("/oferta")
     public RespuestaPaginaOferta buscar(
@@ -45,9 +50,20 @@ public class OfertaController {
             @RequestParam(required = false) List<CondicionAccesibilidad> accesibilidad,
             @RequestParam(required = false) OrdenBusqueda orden,
             @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "" + CriteriosBusqueda.TAMANO_PAGINA_MAXIMO) int tamano) {
-        CriteriosBusqueda criterios = new CriteriosBusqueda(texto, categoria, precioMax, ubicacion(lat, lng),
-                distanciaKm, accesibilidad == null ? Set.of() : Set.copyOf(accesibilidad), orden, pagina, tamano);
+            @RequestParam(defaultValue = "" + CriteriosBusqueda.TAMANO_PAGINA_MAXIMO) int tamano,
+            @RequestParam(required = false) List<String> serviciosIncluidos,
+            @RequestParam(required = false) Integer huespedes,
+            @RequestParam(required = false) String tipoHabitacion,
+            @RequestParam(required = false) Boolean menuVegetariano,
+            @RequestParam(required = false) String tipoCocina,
+            @RequestParam(required = false) String nivelDificultad,
+            @RequestParam(required = false) BigDecimal duracionMaxHoras,
+            @RequestParam(required = false) String tipoVehiculoEquipo) {
+        ParametrosFiltrosCategoria masFiltros = new ParametrosFiltrosCategoria(serviciosIncluidos, huespedes,
+                tipoHabitacion, menuVegetariano, tipoCocina, nivelDificultad, duracionMaxHoras, tipoVehiculoEquipo);
+        CriteriosBusqueda criterios = new CriteriosBusqueda(texto, categoria, masFiltros.paraCategoria(categoria),
+                precioMax, ubicacion(lat, lng), distanciaKm,
+                accesibilidad == null ? Set.of() : Set.copyOf(accesibilidad), orden, pagina, tamano);
         return RespuestaPaginaOferta.de(buscarOferta.buscar(criterios));
     }
 

@@ -200,13 +200,26 @@ describe('Exploración WF-05', () => {
     expect(screen.getByRole('heading', { name: 'Results in Santa Marta (1 place found)' })).toBeInTheDocument()
   })
 
-  it('las migas de pan llevan al inicio', async () => {
+  // WF-05 v2: dos niveles (Samaria360 › Exploración interactiva); la v1 tenía un tercero, «Mapa y resultados».
+  it('las migas de pan son las de la v2 y llevan al inicio', async () => {
     conResultados()
     renderApp('/explorar')
     await screen.findByRole('heading', { name: 'Hotel Casa Tayrona' })
 
     const migas = screen.getByRole('navigation', { name: 'Migas de pan' })
+    expect(within(migas).getAllByRole('listitem')).toHaveLength(2)
     expect(within(migas).getByRole('link', { name: 'Samaria360' })).toHaveAttribute('href', '/')
-    expect(within(migas).getByText('Mapa y resultados')).toHaveAttribute('aria-current', 'page')
+    expect(within(migas).getByText('Exploración interactiva')).toHaveAttribute('aria-current', 'page')
+    expect(within(migas).queryByText('Mapa y resultados')).not.toBeInTheDocument()
+  })
+
+  // WF-05 v2 ya no tiene «¿Preguntas sobre el estado de las vías…? Preguntar al asistente».
+  it('no muestra la invitación a preguntar al asistente que la v2 quitó', async () => {
+    conResultados()
+    renderApp('/explorar')
+    await screen.findByRole('heading', { name: 'Hotel Casa Tayrona' })
+
+    expect(screen.queryByText(/Preguntas sobre el estado de las vías/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Preguntar al asistente/ })).not.toBeInTheDocument()
   })
 })
