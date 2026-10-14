@@ -50,6 +50,12 @@ public class Usuario {
         this.intentosFallidos = 0;
     }
 
+    /** Solo el conteo de intentos; no toca el bloqueo ni cuenta como acceso. */
+    public void reiniciarIntentos() {
+        this.intentosFallidos = 0;
+    }
+
+    /** Acceso concedido (se emitió el token): reinicia el conteo y quita un bloqueo ya vencido. */
     public void registrarAccesoExitoso() {
         this.intentosFallidos = 0;
         this.bloqueadoHasta = null;

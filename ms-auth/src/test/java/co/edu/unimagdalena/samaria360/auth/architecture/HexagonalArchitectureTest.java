@@ -39,6 +39,13 @@ class HexagonalArchitectureTest {
             .because("los casos de uso solo dependen de domain y de sus puertos; la transacción va en infraestructura");
 
     @ArchTest
+    static final ArchRule driverPostgresSoloEnPersistencia = noClasses()
+            .that().resideOutsideOfPackage("..infrastructure.adapter.out.persistence..")
+            .should().dependOnClassesThat().resideInAPackage("org.postgresql..")
+            .because("el driver solo se usa en la persistencia, para leer el nombre de la restricción violada"
+                    + " (RestriccionesUnicas, ADR-006)");
+
+    @ArchTest
     static final ArchRule adaptadoresDeEntradaSoloUsanPuertosDeEntrada = noClasses()
             .that().resideInAPackage("..adapter.in..")
             .should().dependOnClassesThat().resideInAnyPackage("..application.service..", "..application.port.out..")

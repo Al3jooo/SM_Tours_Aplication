@@ -147,3 +147,30 @@ export function IconoUbicacion() {
     </Icono>
   )
 }
+
+// --- Registro (WF-02, WF-03) ---
+
+export function IconoEscudo() {
+  return (
+    <Icono>
+      <path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V6z" />
+    </Icono>
+  )
+}
+
+export function IconoTelefono() {
+  return (
+    <Icono>
+      <path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" />
+    </Icono>
+  )
+}
+
+export function IconoInfo() {
+  return (
+    <Icono>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5M12 8h.01" />
+    </Icono>
+  )
+}

@@ -48,6 +48,8 @@ Pestaña **Registrarse** activa; «Selecciona el tipo de cuenta que quieres regi
 
 Pestaña **Registrarse** activa; opción **Prestador de Servicios** seleccionada. «Formulario – Prestador de Servicios»: nombre del representante legal, número RNT, correo corporativo, teléfono, contraseña; aviso **«Su cuenta quedará Pendiente de Validación.»** (RF02); casilla de Política de Privacidad (nueva en la v2); botón **Registrar prestador**.
 
+**Prototipo:** la razón social no está en este formulario, y la API la acepta como opcional (`razonSocial`; decisión D2, migración V5, `docs/trazabilidad.md`). El correo corporativo es también el correo de inicio de sesión.
+
 ## WF-04 — Inicio y búsqueda
 
 - **Banner de aviso** del municipio, cerrable (RF40). Ej.: cierre del sendero Cascada El Salto por lluvias.

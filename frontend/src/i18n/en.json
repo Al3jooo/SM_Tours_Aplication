@@ -36,13 +36,98 @@
     "boton": "Sign in",
     "enviando": "Signing in…",
     "legal": "By signing in you accept the Terms, Conditions and Privacy Policies and the data processing of Samaria360.",
-    "campoObligatorio": "This field is required."
+    "campoObligatorio": "This field is required.",
+    "trasRegistro": {
+      "turista": "Registration received. Sign in with your email.",
+      "prestador": "Request received; it will remain pending validation."
+    }
+  },
+  "registro": {
+    "titulo": "Create a Samaria360 account",
+    "introduccion": "Choose the type of account you want to register.",
+    "tipo": {
+      "turista": "Tourist",
+      "prestador": "Service Provider"
+    },
+    "formulario": {
+      "turista": "Form – Tourist",
+      "prestador": "Form – Service Provider"
+    },
+    "opcional": "(optional)",
+    "primerNombre": "First name",
+    "primerNombrePlaceholder": "E.g.: María",
+    "segundoNombre": "Middle name",
+    "segundoNombrePlaceholder": "E.g.: Isabel",
+    "primerApellido": "Last name",
+    "primerApellidoPlaceholder": "E.g.: Rodríguez",
+    "segundoApellido": "Second last name",
+    "segundoApellidoPlaceholder": "E.g.: Pérez",
+    "correo": "Email",
+    "crearContrasena": "Create password",
+    "paisOrigen": "Country of origin",
+    "paisElegir": "Select your country",
+    "paisesCargando": "Loading countries…",
+    "paisesError": "We could not load the list of countries.",
+    "categoriasInteres": "Interest categories",
+    "categorias": {
+      "Naturaleza": "Nature",
+      "Cultura": "Culture",
+      "Aventura": "Adventure"
+    },
+    "aceptoPoliticas": "I accept the <politica>Privacy Policy</politica> and the processing of my data.",
+    "botonTurista": "Create tourist account",
+    "nombreRepresentanteLegal": "Legal representative name",
+    "nombreRepresentanteLegalPlaceholder": "E.g.: Juan Carlos Pérez",
+    "rnt": "RNT number (National Tourism Registry)",
+    "rntPlaceholder": "E.g.: 123456",
+    "correoCorporativo": "Business email",
+    "correoCorporativoPlaceholder": "contact@company.com",
+    "telefono": "Phone",
+    "telefonoPlaceholder": "E.g.: +57 300 000 0000",
+    "avisoPendiente": "Your account will remain pending validation until an administrator reviews it.",
+    "botonPrestador": "Create provider account",
+    "enviando": "Sending…",
+    "resumen_one": "Check {{count}} marked field.",
+    "resumen_other": "Check the {{count}} marked fields.",
+    "errorGeneral": {
+      "REGISTRO_INVALIDO": "We could not process the registration. Check your details and try again."
+    },
+    "errores": {
+      "REQUERIDO": "This field is required.",
+      "FORMATO": "The format is not valid.",
+      "LONGITUD_MINIMA": "It must have at least {{minimo}} characters.",
+      "LONGITUD_MAXIMA": "It allows at most {{maximo}} characters.",
+      "NO_PERMITIDO": "Choose an option from the list.",
+      "DUPLICADO": "Do not repeat an option.",
+      "POLITICAS_NO_ACEPTADAS": "You must accept the Privacy Policy to create the account.",
+      "RNT_YA_REGISTRADO": "A provider is already registered with this RNT.",
+      "correo": {
+        "FORMATO": "Enter a valid email, for example name@email.com."
+      },
+      "correoCorporativo": {
+        "FORMATO": "Enter a valid email, for example contact@company.com."
+      },
+      "contrasena": {
+        "LONGITUD_MAXIMA": "The password is too long."
+      },
+      "paisOrigen": {
+        "REQUERIDO": "Select your country of origin.",
+        "FORMATO": "Choose a country from the list."
+      },
+      "categoriasInteres": {
+        "REQUERIDO": "Choose at least one interest category."
+      }
+    },
+    "ayudaContrasena": "At least 8 characters.",
+    "ayudaCategorias": "Choose at least one."
   },
   "errores": {
     "CREDENCIALES_INVALIDAS": "Incorrect email or password.",
     "CUENTA_BLOQUEADA": "Your account is locked after 3 failed attempts. You can try again at {{hora}}.",
     "CUENTA_BLOQUEADA_SIN_HORA": "Your account is temporarily locked after failed attempts. Try again in a few minutes.",
     "CUENTA_INACTIVA": "Your account is not active. Please contact the platform administrator.",
+    "CUENTA_PENDIENTE_VALIDACION": "Your account is being reviewed by the administrator. You can sign in once it is validated.",
+    "CUENTA_RECHAZADA": "The administrator rejected your account request. Contact the platform for more information.",
     "DATOS_INVALIDOS": "Check your details: enter a valid email address and your password.",
     "ERROR_RED": "Could not reach the server. Check your connection and try again.",
     "SERVICIO_NO_DISPONIBLE": "The service is temporarily unavailable. Please try again in a few minutes.",

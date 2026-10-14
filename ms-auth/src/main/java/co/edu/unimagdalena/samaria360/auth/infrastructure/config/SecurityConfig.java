@@ -36,6 +36,10 @@ public class SecurityConfig {
                     // Un error interno no debe convertirse en 401 al despachar /error.
                     acceso.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
                     acceso.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll();
+                    // Registro (RF01, RF02) y su lista de países: anónimos.
+                    acceso.requestMatchers(HttpMethod.POST, "/api/v1/auth/registro/turista",
+                            "/api/v1/auth/registro/prestador").permitAll();
+                    acceso.requestMatchers(HttpMethod.GET, "/api/v1/auth/paises").permitAll();
                     acceso.requestMatchers(HttpMethod.GET, "/api/v1/auth/.well-known/jwks.json").permitAll();
                     acceso.requestMatchers("/actuator/health", "/actuator/health/**").permitAll();
                     if (dev) {

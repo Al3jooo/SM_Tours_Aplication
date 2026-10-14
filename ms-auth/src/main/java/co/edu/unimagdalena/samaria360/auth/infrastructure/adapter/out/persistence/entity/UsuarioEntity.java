@@ -54,6 +54,20 @@ public class UsuarioEntity {
     protected UsuarioEntity() {
     }
 
+    /** Cuenta nueva (registro, RF01 y RF02): sin intentos fallidos ni bloqueo. */
+    public static UsuarioEntity nueva(UUID idUsuario, RolEntity rol, String correo, String contrasenaHash,
+                                      LocalDate fechaRegistro, EstadoCuenta estadoCuenta) {
+        UsuarioEntity entidad = new UsuarioEntity();
+        entidad.idUsuario = idUsuario;
+        entidad.rol = rol;
+        entidad.correo = correo;
+        entidad.contrasenaHash = contrasenaHash;
+        entidad.fechaRegistro = fechaRegistro;
+        entidad.intentosFallidos = 0;
+        entidad.estadoCuenta = estadoCuenta;
+        return entidad;
+    }
+
     public UUID getIdUsuario() {
         return idUsuario;
     }

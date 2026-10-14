@@ -36,13 +36,98 @@
     "boton": "Iniciar sesión",
     "enviando": "Iniciando sesión…",
     "legal": "Al iniciar sesión aceptas los Términos, Condiciones y Políticas de Privacidad y el tratamiento de datos de Samaria360.",
-    "campoObligatorio": "Este campo es obligatorio."
+    "campoObligatorio": "Este campo es obligatorio.",
+    "trasRegistro": {
+      "turista": "Registro recibido. Inicia sesión con tu correo.",
+      "prestador": "Solicitud recibida; quedará pendiente de validación."
+    }
+  },
+  "registro": {
+    "titulo": "Crear una cuenta en Samaria360",
+    "introduccion": "Selecciona el tipo de cuenta que quieres registrar.",
+    "tipo": {
+      "turista": "Turista",
+      "prestador": "Prestador de Servicios"
+    },
+    "formulario": {
+      "turista": "Formulario – Turista",
+      "prestador": "Formulario – Prestador de Servicios"
+    },
+    "opcional": "(opcional)",
+    "primerNombre": "Primer nombre",
+    "primerNombrePlaceholder": "Ej.: María",
+    "segundoNombre": "Segundo nombre",
+    "segundoNombrePlaceholder": "Ej.: Isabel",
+    "primerApellido": "Primer apellido",
+    "primerApellidoPlaceholder": "Ej.: Rodríguez",
+    "segundoApellido": "Segundo apellido",
+    "segundoApellidoPlaceholder": "Ej.: Pérez",
+    "correo": "Correo electrónico",
+    "crearContrasena": "Crear contraseña",
+    "paisOrigen": "País de origen",
+    "paisElegir": "Selecciona tu país",
+    "paisesCargando": "Cargando países…",
+    "paisesError": "No pudimos cargar la lista de países.",
+    "categoriasInteres": "Categorías de interés",
+    "categorias": {
+      "Naturaleza": "Naturaleza",
+      "Cultura": "Cultura",
+      "Aventura": "Aventura"
+    },
+    "aceptoPoliticas": "Acepto la <politica>Política de Privacidad</politica> y el tratamiento de mis datos.",
+    "botonTurista": "Crear cuenta de turista",
+    "nombreRepresentanteLegal": "Nombre del representante legal",
+    "nombreRepresentanteLegalPlaceholder": "Ej.: Juan Carlos Pérez",
+    "rnt": "Número RNT (Registro Nacional de Turismo)",
+    "rntPlaceholder": "Ej.: 123456",
+    "correoCorporativo": "Correo corporativo",
+    "correoCorporativoPlaceholder": "contacto@empresa.com",
+    "telefono": "Teléfono",
+    "telefonoPlaceholder": "Ej.: +57 300 000 0000",
+    "avisoPendiente": "Tu cuenta quedará pendiente de validación hasta que un administrador la revise.",
+    "botonPrestador": "Crear cuenta de prestador",
+    "enviando": "Enviando…",
+    "resumen_one": "Revisa {{count}} campo marcado.",
+    "resumen_other": "Revisa los {{count}} campos marcados.",
+    "errorGeneral": {
+      "REGISTRO_INVALIDO": "No pudimos procesar el registro. Revisa los datos e inténtalo de nuevo."
+    },
+    "errores": {
+      "REQUERIDO": "Este campo es obligatorio.",
+      "FORMATO": "El formato no es válido.",
+      "LONGITUD_MINIMA": "Debe tener al menos {{minimo}} caracteres.",
+      "LONGITUD_MAXIMA": "Admite como máximo {{maximo}} caracteres.",
+      "NO_PERMITIDO": "Elige una opción de la lista.",
+      "DUPLICADO": "No repitas una opción.",
+      "POLITICAS_NO_ACEPTADAS": "Debes aceptar la Política de Privacidad para crear la cuenta.",
+      "RNT_YA_REGISTRADO": "Ya hay un prestador registrado con este RNT.",
+      "correo": {
+        "FORMATO": "Escribe un correo válido, por ejemplo nombre@correo.com."
+      },
+      "correoCorporativo": {
+        "FORMATO": "Escribe un correo válido, por ejemplo contacto@empresa.com."
+      },
+      "contrasena": {
+        "LONGITUD_MAXIMA": "La contraseña es demasiado larga."
+      },
+      "paisOrigen": {
+        "REQUERIDO": "Selecciona tu país de origen.",
+        "FORMATO": "Elige un país de la lista."
+      },
+      "categoriasInteres": {
+        "REQUERIDO": "Elige al menos una categoría de interés."
+      }
+    },
+    "ayudaContrasena": "Mínimo 8 caracteres.",
+    "ayudaCategorias": "Elige al menos una."
   },
   "errores": {
     "CREDENCIALES_INVALIDAS": "Correo o contraseña incorrectos.",
     "CUENTA_BLOQUEADA": "Tu cuenta está bloqueada por 3 intentos fallidos. Podrás intentarlo de nuevo a las {{hora}}.",
     "CUENTA_BLOQUEADA_SIN_HORA": "Tu cuenta está bloqueada temporalmente por intentos fallidos. Inténtalo de nuevo en unos minutos.",
     "CUENTA_INACTIVA": "Tu cuenta no está activa. Comunícate con el administrador de la plataforma.",
+    "CUENTA_PENDIENTE_VALIDACION": "Tu cuenta está en revisión por el administrador. Podrás iniciar sesión cuando sea validada.",
+    "CUENTA_RECHAZADA": "El administrador rechazó la solicitud de tu cuenta. Comunícate con la plataforma para más información.",
     "DATOS_INVALIDOS": "Revisa los datos: escribe un correo electrónico válido y tu contraseña.",
     "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
     "SERVICIO_NO_DISPONIBLE": "El servicio no está disponible por el momento. Inténtalo de nuevo en unos minutos.",

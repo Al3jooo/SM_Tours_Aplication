@@ -2,8 +2,9 @@ package co.edu.unimagdalena.samaria360.auth.domain.model;
 
 /**
  * Estado de validación de un Prestador por parte del Administrador (RF02, RF28).
- * Es independiente de {@link EstadoCuenta}: no interviene en el inicio de sesión;
- * solo habilita el registro de servicios (RF09).
+ * Es independiente de {@link EstadoCuenta}. Decisión D3 (docs/trazabilidad.md), que sustituye a la anterior: solo un
+ * prestador Activo puede iniciar sesión; Pendiente y Rechazado reciben 403 después de verificar la contraseña
+ * (ver {@code PoliticaAcceso}). También habilita el registro de servicios (RF09).
  */
 public enum EstadoValidacion {
     /** "Pendiente de Validación" (RF02). */

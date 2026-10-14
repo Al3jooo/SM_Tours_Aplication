@@ -10,16 +10,25 @@ import co.edu.unimagdalena.samaria360.auth.application.port.out.TokenProviderPor
 import co.edu.unimagdalena.samaria360.auth.application.port.out.UsuarioRepositoryPort;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CredencialesInvalidasException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaBloqueadaException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.InicioSesionException;
+import co.edu.unimagdalena.samaria360.auth.domain.model.Correo;
 import co.edu.unimagdalena.samaria360.auth.domain.model.Usuario;
+import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaAcceso;
 import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaBloqueo;
 
 import java.time.Instant;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Caso de uso Iniciar sesión (RF15). La transacción la abre la infraestructura.
+ * Caso de uso Iniciar sesión (RF15). La transacción la abre la infraestructura. Orden:
+ * <ol>
+ *   <li>cuenta bloqueada por intentos (423): lo único antes de la contraseña;</li>
+ *   <li>contraseña: si no coincide, 401 y suma un intento, sea cual sea el estado de la cuenta;</li>
+ *   <li>con la contraseña correcta, el estado: cuenta no Activa (RF22) o prestador Pendiente o Rechazado (decisión D3),
+ *       403 sin emitir token; el conteo de intentos vuelve a 0 y no se registra un acceso;</li>
+ *   <li>token y acceso registrado.</li>
+ * </ol>
  */
 public class IniciarSesionService implements IniciarSesionUseCase {
 
@@ -35,20 +44,23 @@ public class IniciarSesionService implements IniciarSesionUseCase {
     private final TokenProviderPort tokens;
     private final RelojPort reloj;
     private final PoliticaBloqueo politica;
+    private final PoliticaAcceso politicaAcceso;
 
     public IniciarSesionService(UsuarioRepositoryPort usuarios, PasswordHasherPort hasher,
-                                TokenProviderPort tokens, RelojPort reloj, PoliticaBloqueo politica) {
+                                TokenProviderPort tokens, RelojPort reloj, PoliticaBloqueo politica,
+                                PoliticaAcceso politicaAcceso) {
         this.usuarios = Objects.requireNonNull(usuarios);
         this.hasher = Objects.requireNonNull(hasher);
         this.tokens = Objects.requireNonNull(tokens);
         this.reloj = Objects.requireNonNull(reloj);
         this.politica = Objects.requireNonNull(politica);
+        this.politicaAcceso = Objects.requireNonNull(politicaAcceso);
     }
 
     @Override
     public SesionIniciada iniciarSesion(ComandoInicioSesion comando) {
         Instant ahora = reloj.ahora();
-        String correo = normalizar(comando.correo());
+        String correo = Correo.normalizar(comando.correo());
 
         Optional<Usuario> encontrado = usuarios.buscarPorCorreo(correo);
         if (encontrado.isEmpty()) {
@@ -57,8 +69,8 @@ public class IniciarSesionService implements IniciarSesionUseCase {
         }
         Usuario usuario = encontrado.get();
 
-        // Inactiva o bloqueada: se rechaza sin verificar la contraseña.
-        politica.verificarAcceso(usuario, ahora);
+        // Bloqueada: se rechaza sin verificar la contraseña (riesgo residual aceptado en ADR-006).
+        politica.verificarBloqueo(usuario, ahora);
 
         if (!hasher.coincide(comando.contrasena(), usuario.getContrasenaHash())) {
             politica.registrarIntentoFallido(usuario, ahora);
@@ -69,13 +81,18 @@ public class IniciarSesionService implements IniciarSesionUseCase {
             throw new CredencialesInvalidasException();
         }
 
+        try {
+            politicaAcceso.verificar(usuario, usuarios.buscarEstadoValidacion(usuario.getId()));
+        } catch (InicioSesionException accesoNegado) {
+            // La contraseña era correcta: no es un intento fallido, pero tampoco un acceso.
+            politica.reiniciarIntentos(usuario);
+            usuarios.guardar(usuario);
+            throw accesoNegado;
+        }
+
+        TokenEmitido token = tokens.emitir(usuario, ahora);
         politica.registrarLoginExitoso(usuario);
         usuarios.guardar(usuario);
-        TokenEmitido token = tokens.emitir(usuario, ahora);
         return new SesionIniciada(token.token(), token.expiraEn(), usuario.getId(), usuario.getRol());
-    }
-
-    private static String normalizar(String correo) {
-        return correo.trim().toLowerCase(Locale.ROOT);
     }
 }

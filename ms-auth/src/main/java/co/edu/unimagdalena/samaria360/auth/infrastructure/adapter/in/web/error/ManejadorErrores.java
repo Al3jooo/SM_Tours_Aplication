@@ -3,7 +3,13 @@ package co.edu.unimagdalena.samaria360.auth.infrastructure.adapter.in.web.error;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CredencialesInvalidasException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaBloqueadaException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaInactivaException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaPendienteValidacionException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaRechazadaException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.DatosRegistroInvalidosException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.PoliticasNoAceptadasException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.RntYaRegistradoException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.UsuarioNoEncontradoException;
+import co.edu.unimagdalena.samaria360.auth.domain.model.MotivoInvalido;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -51,6 +57,40 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
         return Problemas.crear(HttpStatus.FORBIDDEN, CodigoError.CUENTA_INACTIVA, ex.getMessage());
     }
 
+    /** Contraseña correcta, prestador Pendiente de Validación (RF02, decisión D3). */
+    @ExceptionHandler(CuentaPendienteValidacionException.class)
+    ProblemDetail cuentaPendienteValidacion(CuentaPendienteValidacionException ex) {
+        return Problemas.crear(HttpStatus.FORBIDDEN, CodigoError.CUENTA_PENDIENTE_VALIDACION, ex.getMessage());
+    }
+
+    /** Contraseña correcta, prestador Rechazado (RF28, decisión D3). El modelo no guarda el motivo: mensaje genérico. */
+    @ExceptionHandler(CuentaRechazadaException.class)
+    ProblemDetail cuentaRechazada(CuentaRechazadaException ex) {
+        return Problemas.crear(HttpStatus.FORBIDDEN, CodigoError.CUENTA_RECHAZADA, ex.getMessage());
+    }
+
+    /** Registro (RF01, RF02): un código por campo, con los nombres JSON de la API. El frontend los traduce (RF03). */
+    @ExceptionHandler(DatosRegistroInvalidosException.class)
+    ProblemDetail datosRegistroInvalidos(DatosRegistroInvalidosException ex) {
+        ProblemDetail problema = Problemas.crear(HttpStatus.BAD_REQUEST, CodigoError.DATOS_INVALIDOS,
+                "Datos de entrada inválidos");
+        Map<String, String> campos = new LinkedHashMap<>();
+        ex.getCampos().forEach((campo, motivo) -> campos.put(campo, motivo.name()));
+        problema.setProperty("campos", campos);
+        return problema;
+    }
+
+    @ExceptionHandler(PoliticasNoAceptadasException.class)
+    ProblemDetail politicasNoAceptadas(PoliticasNoAceptadasException ex) {
+        return Problemas.crear(HttpStatus.BAD_REQUEST, CodigoError.POLITICAS_NO_ACEPTADAS, ex.getMessage());
+    }
+
+    /** El RNT es un registro público: decir que ya existe no revela datos de terceros (ADR-006). */
+    @ExceptionHandler(RntYaRegistradoException.class)
+    ProblemDetail rntYaRegistrado(RntYaRegistradoException ex) {
+        return Problemas.crear(HttpStatus.CONFLICT, CodigoError.RNT_YA_REGISTRADO, ex.getMessage());
+    }
+
     /** Token válido de un usuario que ya no existe. */
     @ExceptionHandler(UsuarioNoEncontradoException.class)
     ProblemDetail usuarioNoEncontrado(UsuarioNoEncontradoException ex) {
@@ -76,11 +116,21 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
                                                                   WebRequest request) {
         Map<String, String> campos = new LinkedHashMap<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            campos.putIfAbsent(error.getField(), error.getDefaultMessage());
+            campos.putIfAbsent(error.getField(), motivo(error).name());
         }
         ProblemDetail problema = Problemas.crear(status, CodigoError.DATOS_INVALIDOS, "Datos de entrada inválidos");
         problema.setProperty("campos", campos);
         return handleExceptionInternal(ex, problema, headers, status, request);
+    }
+
+    /** Bean Validation del login → el mismo vocabulario de códigos que el registro (nunca textos). */
+    private static MotivoInvalido motivo(FieldError error) {
+        String regla = error.getCode() == null ? "" : error.getCode();
+        return switch (regla) {
+            case "NotBlank", "NotNull", "NotEmpty" -> MotivoInvalido.REQUERIDO;
+            case "Size" -> MotivoInvalido.LONGITUD_MAXIMA;
+            default -> MotivoInvalido.FORMATO;
+        };
     }
 
     @Override

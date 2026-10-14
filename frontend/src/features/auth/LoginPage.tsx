@@ -4,20 +4,26 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { IconoCandado, IconoEntrar, IconoRayo, IconoSobre } from '../../shared/components/Iconos'
 import { BotonProximamente } from '../../shared/components/Proximamente'
 import { destinoTrasLogin } from './destinoTrasLogin'
+import { esEstadoTrasRegistro } from './estadoAcceso'
 import { aErrorInicioSesion, textoError, type ErrorInicioSesion } from './mensajesError'
+import { PestanasAcceso } from './PestanasAcceso'
 import { useSesion } from './useSesion'
 import './LoginPage.css'
 
 type Campo = 'correo' | 'contrasena'
 
-/** WF-01: Inicio de sesión (RF15). Registrarse y recuperar contraseña quedan visibles pero deshabilitados. */
+/**
+ * WF-01: Inicio de sesión (RF15). «Registrarse» lleva a /registro (WF-02, WF-03); recuperar la contraseña (RF34) queda
+ * visible pero deshabilitado. Después de registrarse llega con un mensaje y el correo escrito (por el estado del router).
+ */
 export function LoginPage() {
   const { t, i18n } = useTranslation()
   const { sesion, iniciarSesion } = useSesion()
   const ubicacion = useLocation()
+  const trasRegistro = esEstadoTrasRegistro(ubicacion.state) ? ubicacion.state : null
 
   // El estado del formulario vive aquí y cambiar de idioma no desmonta el componente (RNF08).
-  const [correo, setCorreo] = useState('')
+  const [correo, setCorreo] = useState(() => trasRegistro?.correo ?? '')
   const [contrasena, setContrasena] = useState('')
   const [camposVacios, setCamposVacios] = useState<Set<Campo>>(new Set())
   const [error, setError] = useState<ErrorInicioSesion | null>(null)
@@ -66,22 +72,18 @@ export function LoginPage() {
   return (
     // Disposición de WF-01 (v2), sin imagen: subtítulo, pestañas e introducción alineados a la izquierda; debajo, la
     // tarjeta del formulario, centrada. El título «Samaria360» ya no se ve (el logo está en el encabezado reducido): el
-    // h1 queda solo para lectores de pantalla.
+    // h1 queda solo para lectores de pantalla. Las pestañas son enlaces a /login y /registro.
     <div className="login">
       <h1 className="solo-lector">{t('login.titulo')}</h1>
-      <div className="login__encabezado">
-        <p className="login__subtitulo">{t('login.subtitulo')}</p>
+      <PestanasAcceso activa="login" />
 
-        <div className="pestanas" role="tablist" aria-label={t('login.pestanas')}>
-          <button type="button" role="tab" id="pestana-iniciar" aria-selected="true" aria-controls="panel-iniciar">
-            {t('login.pestanaIniciar')}
-          </button>
-          <BotonProximamente className="pestana-deshabilitada">{t('login.pestanaRegistrarse')}</BotonProximamente>
-        </div>
-      </div>
-
-      <div className="login__cuerpo" role="tabpanel" id="panel-iniciar" aria-labelledby="pestana-iniciar">
+      <div className="login__cuerpo">
         <p className="login__introduccion">{t('login.introduccion')}</p>
+        {trasRegistro && (
+          <p className="login__aviso-registro" role="status">
+            {t(`login.trasRegistro.${trasRegistro.registro}`)}
+          </p>
+        )}
 
         <section className="tarjeta" aria-labelledby="titulo-tarjeta">
           <h2 id="titulo-tarjeta" className="tarjeta__titulo">
