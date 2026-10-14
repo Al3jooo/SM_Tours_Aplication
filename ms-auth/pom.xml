@@ -46,9 +46,11 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
+            <!-- Alcance compile (no runtime): RestriccionesUnicas lee el nombre de la restricción violada del campo
+                 estructurado del error (PSQLException.getServerErrorMessage().getConstraint()), no del texto del
+                 mensaje (registro, ADR-006). Misma dependencia; solo cambia el alcance. -->
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <!-- Migraciones versionadas del esquema auth_db (V1__, V2__...) -->

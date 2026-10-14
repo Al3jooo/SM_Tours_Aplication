@@ -1,6 +1,7 @@
 package co.edu.unimagdalena.samaria360.auth.application.fake;
 
 import co.edu.unimagdalena.samaria360.auth.application.port.out.UsuarioRepositoryPort;
+import co.edu.unimagdalena.samaria360.auth.domain.model.EstadoValidacion;
 import co.edu.unimagdalena.samaria360.auth.domain.model.Usuario;
 
 import java.util.HashMap;
@@ -16,6 +17,7 @@ public class UsuarioRepositoryEnMemoria implements UsuarioRepositoryPort {
 
     private final Map<UUID, Usuario> usuarios = new HashMap<>();
     private final Map<UUID, String> nombresVisibles = new HashMap<>();
+    private final Map<UUID, EstadoValidacion> validaciones = new HashMap<>();
     private int llamadasGuardar;
 
     /** Precarga un usuario sin contar como llamada a {@link #guardar}. */
@@ -27,6 +29,17 @@ public class UsuarioRepositoryEnMemoria implements UsuarioRepositoryPort {
     public void agregar(Usuario usuario, String nombreVisible) {
         agregar(usuario);
         nombresVisibles.put(usuario.getId(), nombreVisible);
+    }
+
+    /** Precarga un prestador con su estado de validación (RF02, RF28). */
+    public void agregarPrestador(Usuario usuario, EstadoValidacion validacion) {
+        agregar(usuario);
+        validaciones.put(usuario.getId(), validacion);
+    }
+
+    @Override
+    public Optional<EstadoValidacion> buscarEstadoValidacion(UUID id) {
+        return Optional.ofNullable(validaciones.get(id));
     }
 
     @Override

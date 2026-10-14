@@ -142,11 +142,15 @@ describe('Inicio de sesión (RF15)', () => {
     expect(fetchSimulado).not.toHaveBeenCalled()
   })
 
-  it('Registrarse y ¿Olvidaste tu contraseña? están visibles pero deshabilitados', () => {
+  // CU Registrarse (RF01, RF02): «Registrarse» dejó de estar deshabilitado y lleva a /registro (WF-02, WF-03). La
+  // recuperación de contraseña (RF34) sigue pendiente.
+  it('«Registrarse» lleva al registro y ¿Olvidaste tu contraseña? sigue deshabilitado', () => {
     simularFetch({})
     renderApp('/login')
 
-    expect(screen.getByRole('button', { name: /Registrarse/ })).toHaveAttribute('aria-disabled', 'true')
+    const pestanas = screen.getByRole('navigation', { name: 'Acceso a la cuenta' })
+    expect(within(pestanas).getByRole('link', { name: 'Iniciar sesión' })).toHaveAttribute('aria-current', 'page')
+    expect(within(pestanas).getByRole('link', { name: 'Registrarse' })).toHaveAttribute('href', '/registro')
     expect(screen.getByRole('button', { name: /¿Olvidaste tu contraseña\?/ })).toHaveAttribute('aria-disabled', 'true')
     expect(screen.getByText('3 intentos fallidos bloquearán la cuenta por 15 minutos.')).toBeInTheDocument()
   })
@@ -169,7 +173,8 @@ describe('Inicio de sesión (RF15)', () => {
     const enOrden = [
       titulo,
       screen.getByText('Plataforma de turismo de Santa Marta'),
-      screen.getByRole('tablist'),
+      // Las pestañas pasaron de tablist a enlaces (cambian de página: /login y /registro).
+      screen.getByRole('navigation', { name: 'Acceso a la cuenta' }),
       screen.getByText('Accede con el correo con el que te registraste o crea una cuenta nueva.'),
       screen.getByRole('region', { name: 'Ingresa con tu cuenta' }),
     ]

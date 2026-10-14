@@ -100,7 +100,11 @@ docker compose ps                          # esperar a que todos digan (healthy)
 
 Abrir **http://localhost:8000**. Usuarios de prueba (perfil `dev`, solo para demostración):
 `turista@samaria360.test`, `prestador@samaria360.test`, `gestor@samaria360.test` y `admin@samaria360.test`, todos
-con la contraseña `Samaria360*`.
+con la contraseña `Samaria360*`. El prestador de prueba está validado (migración de semilla V6); un prestador recién
+registrado queda Pendiente de Validación y no puede iniciar sesión hasta que el Administrador lo valide (RF28).
+`prestador2@samaria360.test` tiene la cuenta Inactiva (403 `CUENTA_INACTIVA` con la contraseña correcta).
+
+Para crear cuentas nuevas: **«Registrarse»** en la pantalla de inicio de sesión (`/registro`, RF01 y RF02).
 
 **Cómo queda desplegado**
 - El navegador habla solo con el **frontend** (nginx). nginx sirve la SPA y pasa `/api/` al **api-gateway**, que es

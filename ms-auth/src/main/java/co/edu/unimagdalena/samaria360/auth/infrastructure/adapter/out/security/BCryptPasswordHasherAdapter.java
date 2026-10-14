@@ -20,4 +20,9 @@ public class BCryptPasswordHasherAdapter implements PasswordHasherPort {
     public boolean coincide(String plana, String hash) {
         return encoder.matches(plana, hash);
     }
+
+    @Override
+    public String codificar(String plana) {
+        return encoder.encode(plana);
+    }
 }

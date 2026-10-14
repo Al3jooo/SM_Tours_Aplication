@@ -25,3 +25,45 @@ export function iniciarSesion(correo: string, contrasena: string): Promise<Sesio
 export function consultarUsuarioActual(): Promise<UsuarioActual> {
   return solicitar<UsuarioActual>(`${BASE}/me`)
 }
+
+/** Cuerpo de POST /api/v1/auth/registro/turista (RF01, WF-02). Los nombres son los que usa `campos` en DATOS_INVALIDOS. */
+export interface DatosRegistroTurista {
+  primerNombre: string
+  segundoNombre: string
+  primerApellido: string
+  segundoApellido: string
+  correo: string
+  contrasena: string
+  paisOrigen: string
+  categoriasInteres: string[]
+  aceptoPoliticas: boolean
+}
+
+/** Cuerpo de POST /api/v1/auth/registro/prestador (RF02, WF-03). */
+export interface DatosRegistroPrestador {
+  nombreRepresentanteLegal: string
+  /** Opcional (decisión D2, V5). WF-03 no lo pide, así que el formulario no lo envía. */
+  razonSocial?: string
+  rnt: string
+  correoCorporativo: string
+  telefono: string
+  contrasena: string
+  aceptoPoliticas: boolean
+}
+
+/**
+ * El registro responde siempre 202 con el mismo cuerpo, exista o no el correo (ADR-006): no hay nada que leer de la
+ * respuesta ni se inicia sesión.
+ */
+export async function registrarTurista(datos: DatosRegistroTurista): Promise<void> {
+  await solicitar<unknown>(`${BASE}/registro/turista`, { method: 'POST', cuerpo: datos })
+}
+
+export async function registrarPrestador(datos: DatosRegistroPrestador): Promise<void> {
+  await solicitar<unknown>(`${BASE}/registro/prestador`, { method: 'POST', cuerpo: datos })
+}
+
+/** Códigos ISO 3166-1 alfa-2 (decisión D5): la única lista de países; los nombres los pone el navegador. */
+export function consultarPaises(): Promise<string[]> {
+  return solicitar<string[]>(`${BASE}/paises`)
+}

@@ -14,7 +14,7 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 |---|---|---|---|---|---|---|
 | WF-01 | Subtítulo «Plataforma de turismo de Santa Marta». Sin título visible (v2); el `h1` «Iniciar sesión en Samaria360» queda solo para lectores de pantalla | Iniciar sesión | RF15 | — | `features/auth/LoginPage.tsx` | Implementado |
 | WF-01 | Pestaña «Iniciar sesión» | Iniciar sesión | RF15 | — | `features/auth/LoginPage.tsx` | Implementado |
-| WF-01 | Pestaña «Registrarse» | Registrarse | RF01, RF02 | — | `features/auth/LoginPage.tsx` | Deshabilitado |
+| WF-01 | Pestañas «Iniciar sesión» / «Registrarse»: enlaces a `/login` y `/registro` con `aria-current` (antes, un `tablist` con «Registrarse» deshabilitado) | Registrarse | RF01, RF02 | — | `features/auth/PestanasAcceso.tsx` | Implementado |
 | WF-01 | Texto introductorio | Iniciar sesión | RF15 | — | `features/auth/LoginPage.tsx` | Implementado |
 | WF-01 | Campo «Correo electrónico» | Iniciar sesión | RF15 | `POST /login` | `features/auth/LoginPage.tsx` | Implementado |
 | WF-01 | Campo «Contraseña» | Iniciar sesión | RF15, RNF05 | `POST /login` | `features/auth/LoginPage.tsx` | Implementado |
@@ -23,11 +23,34 @@ Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/ap
 | WF-01 | Botón «Iniciar sesión» | Iniciar sesión | RF15 | `POST /login`, `GET /me` | `features/auth/LoginPage.tsx`, `features/auth/SesionProvider.tsx` | Implementado |
 | WF-01 | Mensaje de credenciales inválidas (401) | Iniciar sesión | RF15 | `POST /login` | `features/auth/mensajesError.ts` | Implementado |
 | WF-01 | Mensaje de cuenta bloqueada con hora de desbloqueo (423) | Iniciar sesión | RF15 | `POST /login` | `features/auth/mensajesError.ts` | Implementado |
-| WF-01 | Mensaje de cuenta inactiva (403) | Iniciar sesión | RF22, RF62 | `POST /login` | `features/auth/mensajesError.ts` | Implementado |
+| WF-01 | Mensaje de cuenta inactiva (403), solo con la contraseña correcta | Iniciar sesión | RF22, RF62 | `POST /login` | `features/auth/mensajesError.ts` | Implementado |
+| WF-01 | Mensajes de prestador sin validar (403, con la contraseña correcta): «Tu cuenta está en revisión por el administrador» (`CUENTA_PENDIENTE_VALIDACION`) y cuenta rechazada (`CUENTA_RECHAZADA`, mensaje genérico: el modelo no guarda el motivo) — decisión D3 | Iniciar sesión | RF02, RF28 | `POST /login` | `features/auth/mensajesError.ts` | Implementado |
+| WF-01 ← WF-02, WF-03 | Mensaje tras el registro, en `role="status"` («Registro recibido. Inicia sesión con tu correo» / «Solicitud recibida; quedará pendiente de validación») y correo prellenado; ambos llegan por el estado del router, nunca por la URL (ADR-006) | Registrarse | RF01, RF02 | — | `features/auth/LoginPage.tsx`, `features/auth/estadoAcceso.ts` | Mejora de diseño |
 | WF-01 | Mensaje de servicio no disponible (502, 503 o 504, o `SERVICIO_NO_DISPONIBLE`): «El servicio no está disponible por el momento…»; un 500 muestra el mensaje genérico | Iniciar sesión | RF15, RNF01 | `POST /login` | `features/auth/mensajesError.ts`, `shared/api/httpClient.ts` | Implementado |
 | WF-01 | Texto legal «Al iniciar sesión aceptas los Términos…» | Iniciar sesión | RF46 | — | `features/auth/LoginPage.tsx` | Implementado (texto; la página legal está pendiente) |
 | WF-01 | Disposición v2: subtítulo, pestañas e introducción alineados a la izquierda; tarjeta centrada; sin imagen | Iniciar sesión | RF15 | — | `features/auth/LoginPage.tsx`, `features/auth/LoginPage.css` | Implementado |
 | WF-01 → WF-04 | Redirección tras el login a la pantalla de inicio WF-04 (o a la ruta privada pedida) | Iniciar sesión | RF15 | `GET /me` | `features/auth/LoginPage.tsx`, `features/catalogo/InicioPage.tsx` | Implementado |
+
+### WF-02 y WF-03 — Registrarse
+
+CU **Registrarse** ↔ **RF01** (turista, WF-02) y **RF02** (prestador, WF-03). Pantalla `/registro` con el diseño de acceso (encabezado y pie reducidos). Decisiones D1 a D6 y ADR-006 más abajo.
+
+| Wireframe | Elemento | RF | Endpoint | Componente frontend | Pruebas | Estado |
+|---|---|---|---|---|---|---|
+| WF-02, WF-03 | Pestaña «Registrarse» activa, «Selecciona el tipo de cuenta…» y radios Turista / Prestador de Servicios | RF01, RF02 | — | `features/auth/registro/RegistroPage.tsx`, `PestanasAcceso.tsx` | `registro.test.tsx` | Implementado |
+| WF-02 | Primer nombre, segundo nombre (opcional), primer apellido, segundo apellido (opcional), correo, crear contraseña (mínimo 8) | RF01, RNF05 | `POST /registro/turista` | `registro/FormularioTurista.tsx` | `RegistroTest`, `ValoresRegistroTest`, `validacionRegistro.test.ts`, `registro.test.tsx` | Implementado |
+| WF-02 | País de origen (lista): códigos ISO 3166-1 alfa-2 del backend, nombres traducidos y ordenados en el idioma activo (D5) | RF01, RF03 | `GET /paises` | `registro/usePaises.ts`, `registro/paises.ts` | `ValoresRegistroTest`, `RegistroApiIntegracionTest`, `validacionRegistro.test.ts`, `registro.test.tsx` | Implementado |
+| WF-02 | Categorías de interés Naturaleza, Cultura, Aventura: al menos una, sin repetir (D1) | RF01, RF53 | `POST /registro/turista` | `registro/FormularioTurista.tsx` | `RegistroTest`, `MigracionesRegistroIntegracionTest` (CHECK V4), `registro.test.tsx` | Implementado |
+| WF-02, WF-03 | Casilla «Acepto la Política de Privacidad y el tratamiento de mis datos» (400 `POLITICAS_NO_ACEPTADAS`, mismo código para los dos roles; D6) | RF01; derivado de E1 §3.2.7.4 | `POST /registro/*` | `CasillaPoliticas` | `RegistroTest`, `RegistroApiIntegracionTest`, `registro.test.tsx` | Implementado |
+| WF-02 | Botón «Crear cuenta de turista»: cuenta Activa; vuelve al login, sin inicio de sesión automático (ADR-006) | RF01 | `POST /registro/turista` (202) | `registro/FormularioTurista.tsx` | `RegistrarServiceTest`, `RegistroApiIntegracionTest`, `registro.test.tsx` | Implementado |
+| WF-03 | Nombre del representante legal, número RNT, correo corporativo (también credencial de acceso, D2), teléfono, contraseña | RF02 | `POST /registro/prestador` | `registro/FormularioPrestador.tsx` | `RegistroTest`, `RegistroApiIntegracionTest`, `registro.test.tsx` | Implementado |
+| WF-03 | Aviso «Tu cuenta quedará pendiente de validación hasta que un administrador la revise», fijo (`role="note"`, sin botón de cerrar: es información obligatoria de RF02) | RF02 | — | `registro/FormularioPrestador.tsx` | `registro.test.tsx` | Implementado |
+| WF-02, WF-03 | Ayudas visibles y conectadas con `aria-describedby`: «Mínimo 8 caracteres.» (contraseña, en los dos formularios) y «Elige al menos una.» (categorías); `autocomplete` (given-name, additional-name, family-name, email, new-password, country, tel, name) | RF01, RF02 | — | `registro/Campo.tsx`, formularios | `registro.test.tsx` | Mejora de diseño |
+| WF-01, WF-02, WF-03 | Subtítulo, pestañas, introducción, opciones y tarjeta en una sola columna centrada, del ancho de la tarjeta, igual en `/login` y `/registro` (la v2 dibuja el encabezado a la izquierda) | RF15, RF01, RF02 | — | `LoginPage.css`, `RegistroPage.css` | capturas | Mejora de diseño |
+| WF-03 | Botón «Registrar prestador»: `estado_validacion = Pendiente`; no puede iniciar sesión hasta que lo validen (D3) | RF02, RF28 | `POST /registro/prestador` (202) | `registro/FormularioPrestador.tsx` | `RegistroApiIntegracionTest`, `IniciarSesionIntegracionTest`, `registro.test.tsx` | Implementado |
+| WF-02, WF-03 | Validación en el cliente con los criterios y códigos del backend; errores por campo (`aria-invalid`, `aria-describedby`), foco en el primero y resumen en `role="alert"`; ES y EN | RF01, RF02, RF03 | — | `registro/validacionRegistro.ts`, `registro/Campo.tsx`, `registro/envioRegistro.ts` | `validacionRegistro.test.ts`, `registro.test.tsx` | Implementado |
+| WF-02, WF-03 | Errores del backend en su campo: `DATOS_INVALIDOS` (códigos `REQUERIDO`, `FORMATO`, `LONGITUD_MINIMA`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`, `DUPLICADO` con las claves JSON), `POLITICAS_NO_ACEPTADAS`, `RNT_YA_REGISTRADO`; 502, 503 o 504, aviso general | RF01, RF02 | `POST /registro/*` | `registro/envioRegistro.ts` | `RegistroApiIntegracionTest`, `registro.test.tsx` | Implementado |
+| WF-03 | Razón social: no está en el formulario (opcional en el modelo desde V5, D2) | RF02 | — | — | `MigracionesRegistroIntegracionTest` | Mejora de diseño (modelo) |
 
 ### WF-04 — Inicio y búsqueda
 
@@ -118,7 +141,10 @@ Pantallas de la plataforma (WF-04 a WF-10) y pantallas de acceso (WF-01 a WF-03)
 
 | Wireframe | Elemento | Caso de uso | RF/RNF | Endpoint | Componente frontend | Estado |
 |---|---|---|---|---|---|---|
-| WF-01 | Inicio de sesión con correo y contraseña; bloqueo de 15 min tras 3 fallos; rechazo de cuentas no activas | Iniciar sesión | RF15, RF22, RF62, RNF05 | `POST /api/v1/auth/login` | `features/auth/authApi.ts` | Implementado |
+| WF-01 | Inicio de sesión con correo y contraseña; bloqueo de 15 min tras 3 fallos. Orden: 423 (lo único antes de la contraseña); contraseña (401 y un intento más, sea cual sea el estado); con la contraseña correcta, 403 `CUENTA_INACTIVA` (RF22) o `CUENTA_PENDIENTE_VALIDACION` / `CUENTA_RECHAZADA` (D3), sin emitir token y con el conteo en 0; token y acceso registrado | Iniciar sesión | RF15, RF22, RF62, RF02, RF28, RNF05 | `POST /api/v1/auth/login` | `features/auth/authApi.ts` | Implementado |
+| WF-02 | Registro de turista: 202 `{"estado":"RECIBIDO"}` siempre igual; 400 `DATOS_INVALIDOS` con un código por campo o `POLITICAS_NO_ACEPTADAS` | Registrarse | RF01, RNF05 | `POST /api/v1/auth/registro/turista` | `features/auth/authApi.ts` | Implementado |
+| WF-03 | Registro de prestador: igual que el de turista, más 409 `RNT_YA_REGISTRADO` | Registrarse | RF02, RNF05 | `POST /api/v1/auth/registro/prestador` | `features/auth/authApi.ts` | Implementado |
+| WF-02 | Países admitidos: códigos ISO 3166-1 alfa-2, públicos, con `Cache-Control: max-age=86400, public` | Registrarse | RF01 | `GET /api/v1/auth/paises` | `features/auth/authApi.ts` | Implementado |
 | Común | Datos del usuario autenticado (`nombreVisible` para el avatar); 403 si la cuenta dejó de estar activa | Iniciar sesión | RF15, RF22, RF62, RNF06 | `GET /api/v1/auth/me` | `features/auth/authApi.ts` | Implementado |
 | — | Clave pública para validar el JWT RS256 en el API Gateway | Iniciar sesión | RNF06 | `GET /api/v1/auth/.well-known/jwks.json` | — (lo consume el API Gateway) | Implementado |
 
@@ -139,8 +165,13 @@ Pantallas de la plataforma (WF-04 a WF-10) y pantallas de acceso (WF-01 a WF-03)
 
 | Elemento | Wireframe | RF | Iteración prevista |
 |---|---|---|---|
-| Pestaña «Registrarse» (registro de turista y de prestador) | WF-01, WF-02, WF-03 | RF01, RF02 | Por definir (fuera del alcance de esta iteración) |
-| «¿Olvidaste tu contraseña?» (recuperación por correo, `Token_Recuperacion`) | WF-01 | RF34 | Por definir |
+| «¿Olvidaste tu contraseña?» (recuperación por correo, `Token_Recuperacion`). Debe responder de forma uniforme exista o no el correo (ADR-006) | WF-01 | RF34 | Por definir |
+| Envío real (SMTP) del aviso «alguien intentó registrarse con tu correo»: hoy `NotificadorCuentaLogAdapter` solo deja un log con el id (ADR-006) | WF-02, WF-03 | RF01, RF02, RF34 | Con RF34 |
+| Límite de tasa en el API Gateway para el login y el registro: mitiga el riesgo residual del 423 (ADR-006) | WF-01, WF-02, WF-03 | RF15 | Construcción |
+| Sin semilla no existe ningún administrador (RF28); falta definir cómo se crea el primero | — | RF28 | Por definir |
+| Contenido de la política de privacidad (requisito derivado D6, Ley 1581). Hoy no hay página: «Política de Privacidad» de la casilla del registro y «Políticas de privacidad» del pie comparten la constante `RUTA_POLITICA_PRIVACIDAD` (`shared/rutasLegales.ts`, sin valor) y se muestran como «Próximamente»; al definirla, los dos pasan a ser enlaces al mismo destino | WF-02, WF-03, Común | RF46, D6 | Por definir |
+| Motivo del rechazo de un prestador (RF28): no hay columna; `CUENTA_RECHAZADA` lleva un mensaje genérico. Guardar la justificación es parte del CU de RF28 | WF-01 | RF28 | Con el CU de RF28 |
+| Actualizar el modelo lógico del Entregable con V4 (CHECK de categorías), V5 (razón social opcional), V8 (`pais_origen` VARCHAR(2) con CHECK), V9 (`prestador.acepto_politicas`) y V10 (catálogo de roles); `docs/sad/diagramas/modelo-logico.dbml` ya está actualizado | — (SAD) | RF01, RF02 | Construcción (siguiente entrega del SAD) |
 | Navegación «Servicios» | Común, WF-05 | RF16 | Iteración actual (vista principal del catálogo, ms-catalog) |
 | **Criterio real de «Destacados esta semana».** Hoy es provisional: `tamano=3&orden=PrecioAscendente`. Que salgan solo servicios depende de la decisión 4 (los resultados sin precio van al final), no de un filtro por tipo; el componente, además, descarta lo que no sea servicio. El equipo debe definir el criterio (p. ej. mejor calificación o una marca de destacado asignada por el gestor); cualquiera de los dos requiere datos que hoy no existen | WF-04 | RF16 | Por definir (equipo) |
 | Banner de avisos del municipio (no existe el modelo de avisos) | WF-04 | RF40 | Por definir |
@@ -195,6 +226,24 @@ Elementos que la v2 quitó y que el prototipo ya no muestra (antes estaban desha
 | 3 | Vocabulario de accesibilidad: RF27 y RF50 definen tres condiciones; WF-08 y WF-09 usan otras | WF-08, WF-09 | Construcción |
 | 4 | Vocabulario de servicios incluidos: WF-08 (WiFi, Desayuno, Piscina, Parqueadero) frente a WF-10 (agrega Aire acondicionado y Baño privado). El prototipo usa hoy la lista de WF-08 como vocabulario cerrado («Más filtros» y validador de MongoDB); la lista definitiva sigue por decidir | WF-08, WF-10 | Construcción |
 | 5 | WF-08 frente a RF10 y al esquema `servicios`: falta «tipo de habitación»; «cobra por» e «incluye impuestos» no existen en el esquema; el RNT es del prestador | WF-08 | Construcción |
+
+## Registrarse — decisiones (RF01, RF02)
+
+Inconsistencias entre el SRS, los wireframes y el modelo, decididas por el equipo antes de implementar el CU Registrarse. La respuesta al correo duplicado está en [ADR-006](sad/adr/ADR-006-registro-sin-enumeracion.md).
+
+| # | Tema | Decisión | Migración |
+|---|---|---|---|
+| D1 | Categorías de interés | RF01 dice «tres categorías de interés» y RF53 «actualizar sus tres categorías», pero WF-02 muestra tres casillas con dos marcadas. **Interpretación:** las tres son el **vocabulario cerrado** (Naturaleza, Cultura, Aventura) y el turista elige **al menos una**, sin repetir; repetidas son un error (400 `DUPLICADO`), no se unifican. Se valida con un enum en el dominio (`CategoriaInteres`) y con un CHECK en la base. | V4 |
+| D2 | Razón social y correo del prestador | RF02 y WF-03 no piden razón social, que el modelo tenía obligatoria: pasa a ser **opcional** y el formulario queda como WF-03. **Un solo correo** en el registro, con dos significados: `usuario.correo` es la **credencial de acceso** (normalizada, única, la usa el login); `prestador.correo_corporativo` es el **contacto público** (RF43). En el registro (RF02) las dos columnas se llenan con el mismo valor normalizado; cambiar el correo de contacto (RF43) **no** cambia el de acceso. El nombre comercial **no** va en `prestador`: según RF09 es del servicio (ms-catalog). Verificado: `nombre_representante_legal` y `telefono` existen en V1 y son obligatorias. | V5 |
+| D3 | Prestador pendiente o rechazado en el login | **Sustituye a la decisión anterior** («un prestador Pendiente puede iniciar sesión; la validación solo afecta el registro de servicios, RF09»), cuya prueba `unPrestadorPendienteDeValidacionPuedeIniciarSesion` se reemplazó a propósito. **Por qué:** RF02 dice que la cuenta queda «Pendiente de Validación hasta que el Administrador verifique sus credenciales», y RF28 habla de cambiar el estado de la cuenta a Activo o Rechazado. Pendiente → 403 `CUENTA_PENDIENTE_VALIDACION`; Rechazado → 403 `CUENTA_RECHAZADA`. Se evalúa **después** de la contraseña: sin ella nadie averigua si un correo es de un prestador pendiente. Contraseña incorrecta: un intento fallido más, como siempre; contraseña correcta con cuenta Pendiente o Rechazada: no es intento fallido, el conteo vuelve a 0 y no se registra un acceso (el acceso solo se registra al emitir el token). `estado_validacion` y `estado_cuenta` (RF22) son estados distintos y no se mezclan: la cuenta Inactiva también se evalúa después de la contraseña (ajuste aprobado), y antes de ella solo queda el bloqueo (423). | V6 (semilla: `prestador@` pasa a validado, porque tiene servicios publicados y según RF09 y RF21 eso exige estar Activo) |
+| D4 | Correo ya registrado | Respuesta **uniforme** (202, mismo cuerpo y encabezados), BCrypt siempre, sin inicio de sesión automático; aviso al dueño por `NotificadorCuentaPort`; RNT duplicado → 409 `RNT_YA_REGISTRADO` (dato público). Ver ADR-006. | — |
+| D5 | País de origen | RF01 «país de origen» se guarda como **código ISO 3166-1 alfa-2** (p. ej. «CO») en `turista.pais_origen VARCHAR(2)` con CHECK de formato. Una sola fuente: el dominio (`CodigoPais`, con `Locale.getISOCountries` del JDK) y `GET /api/v1/auth/paises`; el frontend solo pone los nombres con `Intl.DisplayNames` y no tiene listas de países. | V7 (semilla: «Colombia» → «CO»), V8 |
+| D6 | Aceptación de políticas del prestador | WF-03 tiene la casilla, pero `prestador` no tenía columna. RF02 no lo menciona: es un **requisito derivado** de la restricción normativa de E1 (§3.2.7.4) y de WF-03, sin número de RF. Se agrega `prestador.acepto_politicas` NOT NULL **sin valor por defecto**; las filas de la semilla quedan en false, que es lo cierto. Misma regla y mismo código (`POLITICAS_NO_ACEPTADAS`) para turista y prestador. No interviene en el login. **Fecha de aceptación:** no hay columna propia; la aceptación es obligatoria y se guarda en la misma transacción que crea el usuario, así que `usuario.fecha_registro` registra cuándo se aceptó. Esa columna es DATE: registra el día, no la hora. | V9 |
+
+**Otros hallazgos del CU:**
+- **Catálogo de roles (V10).** Solo lo cargaba la semilla V2; sin semilla la tabla `rol` quedaba vacía y el registro fallaría por `fk_usuario_rol`. V10 inserta los cuatro roles con `ON CONFLICT DO NOTHING` y **los mismos id que V2** (1 Turista, 2 Prestador, 3 Gestor, 4 Administrador). El registro busca el rol **por nombre** (`RolJpaRepository.findByNombre`, nombre único), así que no depende del id.
+- **«Aventura» no tiene equivalente en el catálogo.** Los atractivos usan Naturaleza y Cultura, y los servicios Alojamiento, Gastronomía, Tour y AlquilerEquipo. Importará cuando el chatbot (RF04) o RF51 usen las preferencias del turista para recomendar.
+- **Correo normalizado.** Sin espacios y en minúsculas, igual en el registro y en el login: «Ana@X.com» y «ana@x.com» son la misma cuenta.
 
 ## Buscar oferta turística — decisiones de búsqueda (RF16, RF23, RF33, RF38, RF50, RF61)
 

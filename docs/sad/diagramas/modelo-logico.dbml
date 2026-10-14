@@ -46,7 +46,7 @@ Table Reserva [headercolor: #A8DDB5] {
 
 Table Turista_Categoria_Interes [headercolor: #C5E3A5] {
   id_usuario uuid
-  categoria varchar(50)
+  categoria varchar(50) [note: 'Naturaleza, Cultura o Aventura (CHECK, V4; decisión D1)']
 
   indexes {
     (id_usuario, categoria) [pk]
@@ -59,7 +59,7 @@ Table Turista [headercolor: #A6DFEE] {
   segundo_nombre varchar(50) [null]
   primer_apellido varchar(50) [not null]
   segundo_apellido varchar(50) [null]
-  pais_origen varchar(50) [not null]
+  pais_origen varchar(2) [not null, note: 'ISO 3166-1 alfa-2, p. ej. CO (CHECK ^[A-Z]{2}$, V8; decisión D5)']
   acepto_politicas boolean [not null]
 }
 
@@ -84,12 +84,13 @@ Table Usuario [headercolor: #CDBDF0] {
 
 Table Prestador [headercolor: #A3DDD2] {
   id_usuario uuid [pk]
-  razon_social varchar(150) [not null]
+  razon_social varchar(150) [null, note: 'Opcional desde V5 (decisión D2): RF02 y WF-03 no la piden']
   rnt varchar(50) [unique, not null]
   telefono varchar(20) [not null]
   nombre_representante_legal varchar(150) [not null]
   correo_corporativo varchar(100) [not null]
   estado_validacion varchar(50) [not null]
+  acepto_politicas boolean [not null, note: 'Sin valor por defecto (V9; decisión D6)']
 }
 
 Table Gestor [headercolor: #AFCDEF] {

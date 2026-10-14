@@ -238,6 +238,8 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Carga | `.estado-carga` | `role="status"` y `aria-busy`, con indicador giratorio decorativo. |
 | Botón secundario | `.boton-secundario` (en `estilos.css`, como `.boton-principal`) | Píldora con borde mar-700 sobre superficie: acciones de apoyo (Reintentar, Quitar filtros). |
 | Chip de filtro | `.chip` | mar-900 sobre mar-100, removible; `aria-label` que diga qué filtro quita. |
+| Pestañas de acceso | `PestanasAcceso` (`.pestanas`) | Enlaces «Iniciar sesión» / «Registrarse» entre `/login` y `/registro`, con `aria-current="page"` y barra mar-700; no un `tablist`, porque cambian de página. |
+| Formulario de registro | `features/auth/registro/` (`Campo`, `.registro__*`) | Mismo patrón que el login (`.campo`, `.tarjeta`); errores por campo con `aria-invalid` y `aria-describedby`, foco en el primer error y resumen en `role="alert"`. Los textos de error salen de los códigos de `campos` (`registro.errores.<campo>.<código>` o `registro.errores.<código>`). |
 | Panel desplegable | `.mas-filtros__boton`, `.mas-filtros__panel` | Botón secundario con `aria-expanded` (relleno mar-700 al abrir) y contador superficie sobre atardecer-600; panel con `hidden` cuando está cerrado, foco al primer control al abrir y de vuelta al botón con Escape o «Cerrar». |
 | Aviso de sesión | `.aviso-sesion` | tinta sobre sol-100 con borde sol-400, `role="status"` y botón para cerrarlo. |
 | Tarjeta de oferta | `.tarjeta-oferta` (`features/catalogo/catalogo.css`) | Imagen con `alt=""` y respaldo por categoría, nombre h3, datos en `<dl>`; «—» con texto «sin datos» para lectores. |

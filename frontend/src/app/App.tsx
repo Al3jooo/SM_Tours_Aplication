@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from '../features/auth/LoginPage'
+import { RegistroPage } from '../features/auth/registro/RegistroPage'
 import { SesionProvider } from '../features/auth/SesionProvider'
 import { EstadoCatalogo } from '../features/catalogo/componentes/EstadoCatalogo'
 import { InicioPage } from '../features/catalogo/InicioPage'
@@ -18,8 +19,8 @@ const ExplorarPage = lazy(() => import('../features/catalogo/ExplorarPage').then
 
 /**
  * El router (BrowserRouter o MemoryRouter en pruebas) lo aporta quien monta la App.
- * Inicio (WF-04) y exploración (WF-05) son públicas, con el diseño de la plataforma; el inicio de sesión (WF-01), con
- * el de acceso. Las pantallas privadas futuras (prestador, gestor) irán dentro de <Route element={<RutaProtegida />}>.
+ * Inicio (WF-04) y exploración (WF-05) son públicas, con el diseño de la plataforma; el inicio de sesión (WF-01) y el
+ * registro (WF-02, WF-03), con el de acceso. Las pantallas privadas futuras (prestador, gestor) irán dentro de <Route element={<RutaProtegida />}>.
  */
 export function App() {
   return (
@@ -41,6 +42,7 @@ export function App() {
         </Route>
         <Route element={<DisenoAcceso />}>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/registro" element={<RegistroPage />} />
         </Route>
       </Routes>
     </SesionProvider>

@@ -11,6 +11,9 @@ const CODIGOS_CON_MENSAJE = new Set([
   'CREDENCIALES_INVALIDAS',
   'CUENTA_BLOQUEADA',
   'CUENTA_INACTIVA',
+  // Decisión D3: prestador Pendiente o Rechazado, después de verificar la contraseña.
+  'CUENTA_PENDIENTE_VALIDACION',
+  'CUENTA_RECHAZADA',
   'DATOS_INVALIDOS',
   ERROR_RED,
 ])

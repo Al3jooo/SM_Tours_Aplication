@@ -33,4 +33,12 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, UUID>
             WHERE u.id_usuario = :id
             """, nativeQuery = true)
     Optional<String> buscarNombreVisible(@Param("id") UUID id);
+
+    /** Sin bloqueo: solo para saber si el correo ya tiene cuenta (registro). */
+    @Query("select u.idUsuario from UsuarioEntity u where u.correo = :correo")
+    Optional<UUID> buscarIdPorCorreo(@Param("correo") String correo);
+
+    /** Vacío si el usuario no es prestador. */
+    @Query(value = "SELECT estado_validacion FROM prestador WHERE id_usuario = :id", nativeQuery = true)
+    Optional<String> buscarEstadoValidacion(@Param("id") UUID id);
 }

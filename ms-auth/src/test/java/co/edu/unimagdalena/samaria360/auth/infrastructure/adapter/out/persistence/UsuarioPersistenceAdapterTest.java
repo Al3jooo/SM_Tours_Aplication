@@ -45,7 +45,8 @@ class UsuarioPersistenceAdapterTest {
         // Si ddl-auto=validate fallara, el contexto no habría arrancado.
         assertThat(jdbc.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank", String.class))
-                .containsExactly("1", "2", "3");
+                // V2, V3, V6 y V7 son de la semilla (perfiles dev y test); las demás, del esquema.
+                .containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
     }
 
     @Test

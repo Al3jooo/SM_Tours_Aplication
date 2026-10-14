@@ -120,6 +120,35 @@ class AuthApiIntegracionTest {
         assertThat(JsonPath.<String>read(cuerpo(resultado), "$.codigo")).isEqualTo("CUENTA_INACTIVA");
     }
 
+    /** Ajuste aprobado: sin la contraseña correcta no se revela que la cuenta está inactiva. */
+    @Test
+    void unaCuentaInactivaConContrasenaIncorrectaResponde401YSumaUnIntento() throws Exception {
+        jdbc.update("UPDATE usuario SET estado_cuenta = 'Inactivo' WHERE correo = 'turista@samaria360.test'");
+
+        MvcResult resultado = login(CORREO_TURISTA, "incorrecta");
+
+        assertThat(resultado.getResponse().getStatus()).isEqualTo(401);
+        assertThat(JsonPath.<String>read(cuerpo(resultado), "$.codigo")).isEqualTo("CREDENCIALES_INVALIDAS");
+        assertThat(jdbc.queryForObject("SELECT intentos_fallidos FROM usuario WHERE id_usuario = ?", Integer.class,
+                ID_TURISTA)).isEqualTo(1);
+    }
+
+    @Test
+    void unPrestadorPendienteResponde403ConSuCodigo() throws Exception {
+        jdbc.update("UPDATE prestador SET estado_validacion = 'Pendiente'"
+                + " WHERE id_usuario = '00000000-0000-4000-8000-000000000002'");
+        try {
+            MvcResult resultado = login("prestador@samaria360.test", CONTRASENA_SEMILLA);
+
+            assertThat(resultado.getResponse().getStatus()).isEqualTo(403);
+            assertThat(JsonPath.<String>read(cuerpo(resultado), "$.codigo")).isEqualTo("CUENTA_PENDIENTE_VALIDACION");
+            assertThat(cuerpo(resultado)).doesNotContain("token");
+        } finally {
+            jdbc.update("UPDATE prestador SET estado_validacion = 'Activo'"
+                    + " WHERE id_usuario = '00000000-0000-4000-8000-000000000002'");
+        }
+    }
+
     @Test
     void elPrestadorInactivoDeLaSemillaResponde403SinPrepararDatos() throws Exception {
         MvcResult resultado = login("prestador2@samaria360.test", CONTRASENA_SEMILLA);
@@ -199,7 +228,8 @@ class AuthApiIntegracionTest {
         assertThat(resultado.getResponse().getStatus()).isEqualTo(400);
         String cuerpo = cuerpo(resultado);
         assertThat(JsonPath.<String>read(cuerpo, "$.codigo")).isEqualTo("DATOS_INVALIDOS");
-        assertThat(JsonPath.<String>read(cuerpo, "$.campos.correo")).isNotBlank();
+        // Códigos, no textos: el frontend los traduce (RF03).
+        assertThat(JsonPath.<String>read(cuerpo, "$.campos.correo")).isEqualTo("FORMATO");
     }
 
     @Test

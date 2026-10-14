@@ -5,6 +5,8 @@ import co.edu.unimagdalena.samaria360.auth.application.port.in.IniciarSesionUseC
 import co.edu.unimagdalena.samaria360.auth.application.port.in.SesionIniciada;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CredencialesInvalidasException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaBloqueadaException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaPendienteValidacionException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaRechazadaException;
 import co.edu.unimagdalena.samaria360.auth.domain.model.Rol;
 import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaBloqueo;
 import co.edu.unimagdalena.samaria360.auth.infrastructure.PruebaIntegracion;
@@ -31,6 +33,8 @@ class IniciarSesionIntegracionTest {
     private static final UUID ID_TURISTA = UUID.fromString("00000000-0000-4000-8000-000000000001");
     private static final String CORREO_TURISTA = "turista@samaria360.test";
     private static final String CONTRASENA_SEMILLA = "Samaria360*";
+    private static final UUID ID_PRESTADOR = UUID.fromString("00000000-0000-4000-8000-000000000002");
+    private static final String CORREO_PRESTADOR = "prestador@samaria360.test";
 
     @Autowired
     private IniciarSesionUseCase iniciarSesion;
@@ -45,6 +49,8 @@ class IniciarSesionIntegracionTest {
     void restablecerEstadoDeLogin() {
         jdbc.update("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, estado_cuenta = 'Activo'"
                 + " WHERE correo <> 'prestador2@samaria360.test'"); // prestador2 es Inactivo por semilla (V3)
+        // prestador@ quedó validado con V6; algunas pruebas lo pasan a Pendiente o Rechazado.
+        jdbc.update("UPDATE prestador SET estado_validacion = 'Activo' WHERE id_usuario = ?", ID_PRESTADOR);
     }
 
     @Test
@@ -93,16 +99,55 @@ class IniciarSesionIntegracionTest {
         assertThat(intentosFallidos()).isZero();
     }
 
+    /**
+     * Decisión D3, que sustituye a la anterior («un prestador Pendiente puede iniciar sesión»): reemplaza a propósito la
+     * prueba unPrestadorPendienteDeValidacionPuedeIniciarSesion. Ver docs/trazabilidad.md.
+     */
     @Test
-    void unPrestadorPendienteDeValidacionPuedeIniciarSesion() {
+    void unPrestadorPendienteNoIniciaSesionYSusIntentosVuelvenACero() {
+        jdbc.update("UPDATE prestador SET estado_validacion = 'Pendiente' WHERE id_usuario = ?", ID_PRESTADOR);
+        jdbc.update("UPDATE usuario SET intentos_fallidos = 2 WHERE id_usuario = ?", ID_PRESTADOR);
+
+        assertThatThrownBy(() -> iniciarSesion.iniciarSesion(
+                new ComandoInicioSesion(CORREO_PRESTADOR, CONTRASENA_SEMILLA)))
+                .isInstanceOf(CuentaPendienteValidacionException.class);
+
+        // Se confirmó el reinicio pese a la excepción (noRollbackFor), sin registrar un acceso.
+        assertThat(intentosFallidos(ID_PRESTADOR)).isZero();
+    }
+
+    @Test
+    void unPrestadorPendienteConContrasenaIncorrectaSumaUnIntento() {
+        jdbc.update("UPDATE prestador SET estado_validacion = 'Pendiente' WHERE id_usuario = ?", ID_PRESTADOR);
+
+        assertThatThrownBy(() -> iniciarSesion.iniciarSesion(new ComandoInicioSesion(CORREO_PRESTADOR, "incorrecta")))
+                .isInstanceOf(CredencialesInvalidasException.class);
+
+        assertThat(intentosFallidos(ID_PRESTADOR)).isEqualTo(1);
+    }
+
+    @Test
+    void unPrestadorRechazadoNoIniciaSesion() {
+        jdbc.update("UPDATE prestador SET estado_validacion = 'Rechazado' WHERE id_usuario = ?", ID_PRESTADOR);
+
+        assertThatThrownBy(() -> iniciarSesion.iniciarSesion(
+                new ComandoInicioSesion(CORREO_PRESTADOR, CONTRASENA_SEMILLA)))
+                .isInstanceOf(CuentaRechazadaException.class);
+    }
+
+    @Test
+    void elPrestadorDeLaSemillaEstaValidadoEIniciaSesion() {
         SesionIniciada sesion = iniciarSesion.iniciarSesion(
-                new ComandoInicioSesion("prestador@samaria360.test", CONTRASENA_SEMILLA));
+                new ComandoInicioSesion(CORREO_PRESTADOR, CONTRASENA_SEMILLA));
 
         assertThat(sesion.rol()).isEqualTo(Rol.Prestador);
     }
 
     private int intentosFallidos() {
-        return jdbc.queryForObject(
-                "SELECT intentos_fallidos FROM usuario WHERE id_usuario = ?", Integer.class, ID_TURISTA);
+        return intentosFallidos(ID_TURISTA);
+    }
+
+    private int intentosFallidos(UUID id) {
+        return jdbc.queryForObject("SELECT intentos_fallidos FROM usuario WHERE id_usuario = ?", Integer.class, id);
     }
 }

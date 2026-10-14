@@ -11,8 +11,8 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 
 - Metodología **RUP**, fase de **Elaboración**. Este código es el **prototipo arquitectónico ejecutable** que valida la línea base de la arquitectura; no es un producto completo.
 - Usar solo terminología RUP: fases, iteraciones, casos de uso, requisitos funcionales (RF), requisitos no funcionales (RNF). No usar terminología de métodos ágiles.
-- **Alcance de esta iteración:** inicio de sesión (`ms-auth`) y vista principal del catálogo (`ms-catalog`).
-- **Fuera de alcance:** registro de usuarios, reservas, chatbot real, notificaciones, analítica. No implementarlos aunque parezcan fáciles.
+- **Alcance de esta iteración:** inicio de sesión y registro de turistas y prestadores (`ms-auth`: RF15, RF01, RF02) y vista principal del catálogo (`ms-catalog`).
+- **Fuera de alcance:** reservas, chatbot real, notificaciones (el aviso por correo del registro llega con RF34), analítica. No implementarlos aunque parezcan fáciles.
 - Si una regla de negocio no está definida en el SRS (`docs/srs/`), **preguntar**; no inventarla.
 - Fuente única de requisitos: `docs/srs/especificacion de requisitos.pdf`. Modelo de datos: `docs/sad/diagramas/modelo-logico.dbml`. Ignorar las carpetas `Documentos extras/`, `DocumentosEntregable1/` y `Diagramas de casos de uso/`, que contienen versiones anteriores.
 - Las pantallas del frontend y los datos que exponen los endpoints deben corresponder a los wireframes de `docs/wireframes/`. Si un elemento del wireframe queda fuera del alcance del prototipo, se muestra deshabilitado y se lista como pendiente.
@@ -32,16 +32,25 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 
 ## ms-auth (Java 17, Spring Boot 3.5.16, PostgreSQL `auth_db`)
 
-- Esquema con **Flyway** en `src/main/resources/db/migration` (`V1__...sql`). `spring.jpa.hibernate.ddl-auto=validate`; nunca `update` ni `create`.
+- Esquema con **Flyway**. `spring.jpa.hibernate.ddl-auto=validate`; nunca `update` ni `create`.
+- **Migraciones:**
+  - **nunca se edita una migración ya aplicada**: rompe el checksum de Flyway en las bases de los compañeros; cada cambio va en una migración nueva (una por cambio);
+  - la numeración es compartida entre las dos carpetas;
+  - el esquema y los **datos de referencia** (p. ej. V10, catálogo de roles) van en `src/main/resources/db/migration`;
+  - la **semilla** (datos de prueba, solo perfiles dev y test) va en `src/main/resources/db/semilla`.
 - Tablas de `auth_db` (modelo lógico del SAD): `Rol`, `Usuario`, `Turista`, `Turista_Categoria_Interes`, `Prestador`, `Gestor`, `Administrador`, `Token_Recuperacion`. Las tablas de reservas pertenecen a `reservas_db` y **no** van en ms-auth.
 - Identificadores de usuario: tipo nativo PostgreSQL `uuid` ↔ `java.util.UUID`.
 - `estado_cuenta` es un enum de PostgreSQL (`CREATE TYPE`). Mapear con `@Enumerated(EnumType.STRING)` + `@JdbcTypeCode(SqlTypes.NAMED_ENUM)`.
 - Fechas con hora: `timestamptz` ↔ `Instant`. Obtener la hora actual siempre a través de un `RelojPort`, para poder probar el bloqueo sin esperar 15 minutos.
-- **RF15 (login):** 3 intentos fallidos consecutivos → `bloqueado_hasta = ahora + 15 min`; un login exitoso reinicia `intentos_fallidos`. Una cuenta con `estado_cuenta` distinto de Activo no puede iniciar sesión (RF22, RF62).
-- Respuestas: credenciales inválidas → 401 con el **mismo mensaje** para correo inexistente o contraseña incorrecta; cuenta bloqueada → 423; cuenta inactiva → 403.
+- **RF15 (login):** 3 intentos fallidos consecutivos → `bloqueado_hasta = ahora + 15 min`. Orden (decisión D3, `docs/trazabilidad.md`):
+  1. **solo el 423** (cuenta bloqueada) va antes de verificar la contraseña;
+  2. contraseña incorrecta → 401 con el **mismo mensaje** que un correo inexistente, y suma un intento, sea cual sea el estado de la cuenta;
+  3. con la contraseña correcta: 403 `CUENTA_INACTIVA` si `estado_cuenta` no es Activo (RF22, RF62); 403 `CUENTA_PENDIENTE_VALIDACION` o `CUENTA_RECHAZADA` si es un prestador sin validar (RF02, RF28). En esos 403 no se emite token y el conteo vuelve a 0;
+  4. el acceso solo se registra al emitir el token.
 - **RNF05:** contraseñas con BCrypt (`spring-security-crypto`), detrás de `PasswordHasherPort`.
 - **JWT RS256** con `NimbusJwtEncoder`. Claims: `sub` = id_usuario, `rol`, `exp`. La clave pública se publica en `GET /api/v1/auth/.well-known/jwks.json`. Las llaves se leen de las rutas en `JWT_LLAVE_PRIVADA` / `JWT_LLAVE_PUBLICA` (ver `.env.example`).
-- Endpoints del prototipo: `POST /api/v1/auth/login`, `GET /api/v1/auth/me`.
+- Endpoints del prototipo: `POST /api/v1/auth/login`, `GET /api/v1/auth/me`, `POST /api/v1/auth/registro/turista`, `POST /api/v1/auth/registro/prestador` y `GET /api/v1/auth/paises` (los tres últimos, públicos).
+- **Registro (RF01, RF02):** respuesta uniforme `202 {"estado":"RECIBIDO"}`, exista o no el correo, con BCrypt siempre y sin inicio de sesión automático ([ADR-006](docs/sad/adr/ADR-006-registro-sin-enumeracion.md)). `DATOS_INVALIDOS` lleva en `campos` un código por campo, con los nombres JSON (nunca textos). Decisiones D1 a D6 en `docs/trazabilidad.md`.
 - `Token_Recuperacion` guarda solo `token_hash` (SHA-256), nunca el token en claro.
 
 ## ms-catalog (MongoDB `catalog_db`)
@@ -108,6 +117,7 @@ Los wireframes (`docs/wireframes/`) son una guía de **estructura**, no de esté
 - No subir `.env` ni nada de `infra/keys/` (salvo su README).
 - No modificar `docs/` (SRS, SAD, diagramas) sin pedir confirmación.
 - No agregar dependencias al `pom.xml` sin justificarlas.
+- Nunca ejecutar `docker compose down -v` sin permiso explícito: borra los volúmenes con los datos.
 
 ## Modelo de datos (leer antes de tocar bases de datos)
 - El modelo conceptual y el modelo lógico (`docs/sad/diagramas/modelo-logico.dbml`) están **unificados en un solo diagrama por petición del profesor**. Esa unificación es un requisito académico: no representa una base única. No propongas separarlos ni simplificarlos.

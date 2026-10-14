@@ -1,6 +1,7 @@
 package co.edu.unimagdalena.samaria360.auth.infrastructure.adapter.out.persistence;
 
 import co.edu.unimagdalena.samaria360.auth.application.port.out.UsuarioRepositoryPort;
+import co.edu.unimagdalena.samaria360.auth.domain.model.EstadoValidacion;
 import co.edu.unimagdalena.samaria360.auth.domain.model.Usuario;
 import co.edu.unimagdalena.samaria360.auth.infrastructure.adapter.out.persistence.entity.UsuarioEntity;
 import co.edu.unimagdalena.samaria360.auth.infrastructure.adapter.out.persistence.mapper.UsuarioPersistenceMapper;
@@ -40,6 +41,11 @@ public class UsuarioPersistenceAdapter implements UsuarioRepositoryPort {
     @Override
     public Optional<String> buscarNombreVisible(UUID id) {
         return repositorio.buscarNombreVisible(id);
+    }
+
+    @Override
+    public Optional<EstadoValidacion> buscarEstadoValidacion(UUID id) {
+        return repositorio.buscarEstadoValidacion(id).map(EstadoValidacion::desdeTexto);
     }
 
     /** Dentro de la transacción, findById devuelve la entidad ya cargada sin otro SELECT. */

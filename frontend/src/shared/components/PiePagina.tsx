@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { RUTA_POLITICA_PRIVACIDAD } from '../rutasLegales'
 import { Ola } from './Ilustraciones'
 import { LogoSamaria } from './LogoSamaria'
 
@@ -24,8 +25,19 @@ const COLUMNAS: { titulo: string; enlaces: EnlacePie[] }[] = [
   { titulo: 'pie.prestadores', enlaces: [{ texto: 'pie.registrarServicio' }, { texto: 'pie.panelGestor' }] },
   {
     titulo: 'pie.legal',
-    enlaces: [{ texto: 'pie.terminos' }, { texto: 'pie.privacidad' }, { texto: 'pie.preguntasFrecuentes' }],
+    enlaces: [
+      { texto: 'pie.terminos' },
+      { texto: 'pie.privacidad', destino: RUTA_POLITICA_PRIVACIDAD ?? undefined },
+      { texto: 'pie.preguntasFrecuentes' },
+    ],
   },
+]
+
+/** Pie reducido: «Políticas de privacidad» usa la misma ruta que la casilla del registro (RUTA_POLITICA_PRIVACIDAD). */
+const ENLACES_ACCESO: EnlacePie[] = [
+  { texto: 'pie.terminos' },
+  { texto: 'pie.privacidad', destino: RUTA_POLITICA_PRIVACIDAD ?? undefined },
+  { texto: 'pie.ayuda' },
 ]
 
 /** Enlace sin destino en esta iteración: texto deshabilitado, con «Próximamente» para lectores de pantalla. */
@@ -88,9 +100,9 @@ export function PieAcceso() {
       <div className="pie__fila">
         <p>{t('pie.derechosAcceso')}</p>
         <ul aria-label={t('pie.enlacesAcceso')}>
-          {['pie.terminos', 'pie.privacidad', 'pie.ayuda'].map((texto) => (
-            <li key={texto}>
-              <Pendiente texto={texto} />
+          {ENLACES_ACCESO.map((enlace) => (
+            <li key={enlace.texto}>
+              {enlace.destino ? <Link to={enlace.destino}>{t(enlace.texto)}</Link> : <Pendiente texto={enlace.texto} />}
             </li>
           ))}
         </ul>

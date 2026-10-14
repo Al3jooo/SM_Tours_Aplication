@@ -1,15 +1,14 @@
 /* WF-01 con la identidad «Santa Marta». Solo usa los tokens de src/app/estilos.css. */
 
-/* Disposición de WF-01 (v2), sin imagen: subtítulo, pestañas e introducción alineados a la izquierda, con el ancho de
-   la línea de las pestañas; la tarjeta, centrada y de ancho cómodo. En celular, todo a lo ancho. */
+/* Acceso (WF-01, WF-02, WF-03): subtítulo, pestañas, introducción, opciones y tarjeta en una sola columna centrada, del
+   ancho de la tarjeta, igual en /login y /registro para que las dos pestañas se vean iguales (Mejora de diseño: la v2
+   dibuja el encabezado a la izquierda). En celular, todo a lo ancho. */
 .login {
   display: grid;
-  animation: subir 320ms ease-out;
-}
-
-.login__encabezado {
   width: 100%;
-  max-width: 44rem;
+  max-width: 34rem;
+  margin-inline: auto;
+  animation: subir 320ms ease-out;
 }
 
 .login__subtitulo {
@@ -21,28 +20,32 @@
   letter-spacing: -0.01em;
 }
 
-/* Pestañas */
+/* Pestañas «Iniciar sesión» / «Registrarse»: enlaces entre /login y /registro (WF-01, WF-02, WF-03). La activa lleva
+   aria-current="page" y una barra mar-700. */
 .pestanas {
   display: flex;
   gap: var(--espacio-5);
   border-bottom: 1px solid var(--color-borde);
 }
 
-.pestanas > button {
+.pestanas > a {
   position: relative;
   padding: var(--espacio-3) 0;
-  border: 0;
-  background: none;
   color: var(--color-tinta-suave);
   font-weight: 600;
-  cursor: pointer;
+  text-decoration: none;
+  transition: color var(--transicion);
 }
 
-.pestanas > button[aria-selected='true'] {
+.pestanas > a:hover {
   color: var(--color-mar-700);
 }
 
-.pestanas > button[aria-selected='true']::after {
+.pestanas > a[aria-current='page'] {
+  color: var(--color-mar-700);
+}
+
+.pestanas > a[aria-current='page']::after {
   content: '';
   position: absolute;
   right: 0;
@@ -53,11 +56,6 @@
   background: var(--color-mar-700);
 }
 
-.pestanas > .pestana-deshabilitada {
-  color: var(--color-deshabilitado);
-  cursor: not-allowed;
-}
-
 .login__cuerpo {
   display: grid;
   width: 100%;
@@ -65,15 +63,12 @@
 }
 
 .login__introduccion {
-  max-width: 44rem;
   margin: 0 0 var(--espacio-6);
   color: var(--color-tinta-suave);
 }
 
 .login__cuerpo > .tarjeta {
   width: 100%;
-  max-width: 34rem;
-  justify-self: center;
 }
 
 /* Tarjeta «Ingresa con tu cuenta» */
@@ -229,4 +224,15 @@
   color: var(--color-tinta-suave);
   font-size: var(--texto-xs);
   line-height: 1.6;
+}
+
+/* Mensaje tras el registro (estado del router): «Registro recibido…» o «Solicitud recibida…». */
+.login__aviso-registro {
+  margin: calc(var(--espacio-4) * -1) 0 var(--espacio-5);
+  padding: var(--espacio-3) var(--espacio-4);
+  border-left: 4px solid var(--color-mar-700);
+  border-radius: var(--radio-sm);
+  background: var(--color-mar-100);
+  color: var(--color-mar-900);
+  font-weight: 500;
 }

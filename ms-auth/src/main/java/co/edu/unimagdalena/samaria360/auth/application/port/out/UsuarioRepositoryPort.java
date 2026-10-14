@@ -1,5 +1,6 @@
 package co.edu.unimagdalena.samaria360.auth.application.port.out;
 
+import co.edu.unimagdalena.samaria360.auth.domain.model.EstadoValidacion;
 import co.edu.unimagdalena.samaria360.auth.domain.model.Usuario;
 
 import java.util.Optional;
@@ -17,6 +18,9 @@ public interface UsuarioRepositoryPort {
      * Prestador → representante legal. Vacío si el subtipo no tiene nombre (Gestor, Administrador).
      */
     Optional<String> buscarNombreVisible(UUID id);
+
+    /** Estado de validación si el usuario es prestador (RF02, RF28); vacío para los demás roles. */
+    Optional<EstadoValidacion> buscarEstadoValidacion(UUID id);
 
     /** Persiste {@code intentos_fallidos} y {@code bloqueado_hasta}. */
     void guardar(Usuario usuario);

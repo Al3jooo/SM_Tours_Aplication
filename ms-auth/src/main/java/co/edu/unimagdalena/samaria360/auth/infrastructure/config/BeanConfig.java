@@ -1,16 +1,26 @@
 package co.edu.unimagdalena.samaria360.auth.infrastructure.config;
 
 import co.edu.unimagdalena.samaria360.auth.application.port.in.IniciarSesionUseCase;
+import co.edu.unimagdalena.samaria360.auth.application.port.in.RegistrarPrestadorUseCase;
+import co.edu.unimagdalena.samaria360.auth.application.port.in.RegistrarTuristaUseCase;
+import co.edu.unimagdalena.samaria360.auth.application.port.out.NotificadorCuentaPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.PasswordHasherPort;
+import co.edu.unimagdalena.samaria360.auth.application.port.out.RegistroRepositoryPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.RelojPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.TokenProviderPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.UsuarioRepositoryPort;
+import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarPaisesService;
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarUsuarioActualService;
 import co.edu.unimagdalena.samaria360.auth.application.service.IniciarSesionService;
+import co.edu.unimagdalena.samaria360.auth.application.service.RegistrarPrestadorService;
+import co.edu.unimagdalena.samaria360.auth.application.service.RegistrarTuristaService;
+import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaAcceso;
 import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaBloqueo;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /** Registra como beans las clases de domain y application, que no llevan anotaciones de Spring. */
 @Configuration
@@ -22,10 +32,15 @@ public class BeanConfig {
     }
 
     @Bean
+    public PoliticaAcceso politicaAcceso() {
+        return new PoliticaAcceso();
+    }
+
+    @Bean
     public IniciarSesionService iniciarSesionService(UsuarioRepositoryPort usuarios, PasswordHasherPort hasher,
                                                      TokenProviderPort tokens, RelojPort reloj,
-                                                     PoliticaBloqueo politica) {
-        return new IniciarSesionService(usuarios, hasher, tokens, reloj, politica);
+                                                     PoliticaBloqueo politica, PoliticaAcceso politicaAcceso) {
+        return new IniciarSesionService(usuarios, hasher, tokens, reloj, politica, politicaAcceso);
     }
 
     /** El que reciben los adaptadores de entrada: el servicio puro envuelto en la transacción. */
@@ -38,5 +53,38 @@ public class BeanConfig {
     @Bean
     public ConsultarUsuarioActualService consultarUsuarioActualService(UsuarioRepositoryPort usuarios) {
         return new ConsultarUsuarioActualService(usuarios);
+    }
+
+    @Bean
+    public RegistrarTuristaService registrarTuristaService(RegistroRepositoryPort registros, PasswordHasherPort hasher,
+                                                           NotificadorCuentaPort notificador, RelojPort reloj) {
+        return new RegistrarTuristaService(registros, hasher, notificador, reloj);
+    }
+
+    @Bean
+    public RegistrarPrestadorService registrarPrestadorService(RegistroRepositoryPort registros,
+                                                               PasswordHasherPort hasher,
+                                                               NotificadorCuentaPort notificador, RelojPort reloj) {
+        return new RegistrarPrestadorService(registros, hasher, notificador, reloj);
+    }
+
+    /** Los que reciben los adaptadores de entrada: cada servicio envuelto en su transacción (con reintento por carrera). */
+    @Bean
+    @Primary
+    public RegistrarTuristaUseCase registrarTuristaUseCase(RegistrarTuristaService servicio,
+                                                           PlatformTransactionManager transacciones) {
+        return new RegistrarTuristaTransaccional(servicio, new TransactionTemplate(transacciones));
+    }
+
+    @Bean
+    @Primary
+    public RegistrarPrestadorUseCase registrarPrestadorUseCase(RegistrarPrestadorService servicio,
+                                                               PlatformTransactionManager transacciones) {
+        return new RegistrarPrestadorTransaccional(servicio, new TransactionTemplate(transacciones));
+    }
+
+    @Bean
+    public ConsultarPaisesService consultarPaisesService() {
+        return new ConsultarPaisesService();
     }
 }
