@@ -40,7 +40,11 @@ class MasFiltrosApiIntegracionTest {
             "categoria=Alojamiento&serviciosIncluidos=Piscina                                | Ecocabañas Cañaveral",
             "categoria=Alojamiento&serviciosIncluidos=WiFi&serviciosIncluidos=desayuno       | Hotel Casa Tayrona;Cabañas El Roble",
             "categoria=Alojamiento&serviciosIncluidos=Parqueadero                            | Cabañas El Roble",
-            "categoria=Alojamiento&huespedes=4                                               | Cabañas El Roble;Hostal Bahía Taganga",
+            "categoria=Alojamiento&huespedes=4                                               | Hotel Casa Tayrona;Cabañas El Roble;Hostal Bahía Taganga",
+            "categoria=Alojamiento&huespedes=4&precioMax=200000                              | Cabañas El Roble;Hostal Bahía Taganga",
+            "categoria=Alojamiento&huespedes=4&precioMax=260000                              | Hotel Casa Tayrona;Cabañas El Roble;Hostal Bahía Taganga",
+            "categoria=Alojamiento&tipoHabitacion=suite                                      | Hotel Casa Tayrona",
+            "categoria=Alojamiento&tipoHabitacion=Suite&precioMax=200000                     | ",
             "categoria=Alojamiento&huespedes=7                                               | ",
             "categoria=Alojamiento&tipoHabitacion=Cabaña                                     | Cabañas El Roble",
             "categoria=Alojamiento&tipoHabitacion=cabaña                                     | Cabañas El Roble",
@@ -166,7 +170,7 @@ class MasFiltrosApiIntegracionTest {
         assertThat((List<String>) JsonPath.read(json, "$.serviciosIncluidos"))
                 .containsExactly("WiFi", "Desayuno", "Piscina", "Parqueadero");
         assertThat((List<String>) JsonPath.read(json, "$.tiposHabitacion"))
-                .containsExactly("Cabaña", "Compartida", "Doble", "Ecohabitación");
+                .containsExactly("Cabaña", "Compartida", "Doble", "Ecohabitación", "Suite");
         assertThat((Integer) JsonPath.read(json, "$.huespedes.minimo")).isEqualTo(2);
         assertThat((Integer) JsonPath.read(json, "$.huespedes.maximo")).isEqualTo(6);
         assertThat(claves(json)).containsExactlyInAnyOrder("categoria", "serviciosIncluidos", "tiposHabitacion",

@@ -1,5 +1,6 @@
 package co.edu.unimagdalena.samaria360.catalog.domain.model;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public record FiltrosGastronomia(boolean soloVegetariano, String tipoCocina) imp
     }
 
     @Override
-    public boolean cumple(DetalleCategoria detalle) {
+    public boolean cumple(DetalleCategoria detalle, BigDecimal precioMaximo) {
         return detalle instanceof DetalleGastronomia gastronomia
                 && (!soloVegetariano || Boolean.TRUE.equals(gastronomia.menuVegetariano()))
                 && TextoFiltro.coincide(tipoCocina, gastronomia.tipoCocina());

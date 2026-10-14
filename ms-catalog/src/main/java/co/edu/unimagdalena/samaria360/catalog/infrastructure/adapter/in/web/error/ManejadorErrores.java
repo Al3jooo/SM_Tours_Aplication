@@ -1,6 +1,7 @@
 package co.edu.unimagdalena.samaria360.catalog.infrastructure.adapter.in.web.error;
 
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.CriteriosBusquedaInvalidosException;
+import co.edu.unimagdalena.samaria360.catalog.domain.exception.OfertaNoDisponibleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
@@ -26,6 +27,13 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
     @ExceptionHandler(CriteriosBusquedaInvalidosException.class)
     ProblemDetail criteriosInvalidos(CriteriosBusquedaInvalidosException ex) {
         return Problemas.crear(HttpStatus.BAD_REQUEST, CodigoError.CRITERIOS_INVALIDOS, ex.getMessage());
+    }
+
+    /** El mismo 404 para un id inválido, inexistente o no visible: no se revela cuál (RF16, RF22). */
+    @ExceptionHandler(OfertaNoDisponibleException.class)
+    ProblemDetail ofertaNoDisponible(OfertaNoDisponibleException ex) {
+        return Problemas.crear(HttpStatus.NOT_FOUND, CodigoError.OFERTA_NO_DISPONIBLE,
+                "El servicio no existe o no está disponible");
     }
 
     /** Las de Spring Security las resuelven su entry point y su access denied handler, no este advice. */

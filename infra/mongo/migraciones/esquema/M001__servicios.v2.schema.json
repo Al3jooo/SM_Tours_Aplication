@@ -1,0 +1,169 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "required": [
+      "prestadorId",
+      "nombreComercial",
+      "categoria",
+      "coordenadas",
+      "estadoPublicacion",
+      "prestadorActivo"
+    ],
+    "properties": {
+      "_id": { "bsonType": "objectId" },
+      "prestadorId": {
+        "bsonType": "string",
+        "description": "UUID — referencia a Auth Service, sin FK física"
+      },
+      "nombreComercial": { "bsonType": "string", "maxLength": 150 },
+      "categoria": {
+        "enum": ["Alojamiento", "Gastronomia", "Tour", "AlquilerEquipo"]
+      },
+      "descripcion": { "bsonType": "string" },
+      "coordenadas": {
+        "bsonType": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": { "enum": ["Point"] },
+          "coordinates": {
+            "bsonType": "array",
+            "description": "¡ALERTA GEOJSON! El orden exacto debe ser [longitud, latitud]. Rango válido: longitud (-180 a 180), latitud (-90 a 90).",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": { "bsonType": "double" }
+          }
+        }
+      },
+      "contacto": {
+        "bsonType": "object",
+        "properties": {
+          "telefono": { "bsonType": "string" },
+          "correo": { "bsonType": "string" }
+        }
+      },
+      "estadoPublicacion": {
+        "enum": ["Pendiente", "Publicado", "Rechazado"]
+      },
+      "prestadorActivo": {
+        "bsonType": "bool",
+        "description": "Campo denormalizado desde Auth. Si es false (Inactivo), se filtra de las búsquedas (RF22)."
+      },
+      "condicionesAccesibilidad": {
+        "bsonType": "array",
+        "items": { "bsonType": "string" }
+      },
+      "horarioAtencion": { "bsonType": "string" },
+      "precioBase": {
+        "bsonType": "decimal",
+        "description": "Precio «desde» en COP (RF37). En Alojamiento es el menor precioNoche de sus unidades; lo exige $expr."
+      },
+      "imagenes": {
+        "bsonType": "array",
+        "items": { "bsonType": "string" }
+      }
+    },
+    "oneOf": [
+      {
+        "properties": {
+          "categoria": { "enum": ["Alojamiento"] },
+          "detalleCategoria": {
+            "bsonType": "object",
+            "required": ["unidades"],
+            "additionalProperties": false,
+            "properties": {
+              "unidades": {
+                "bsonType": "array",
+                "description": "Unidades reservables (tipos de habitación): al menos una; idUnidad única (lo exige $expr).",
+                "minItems": 1,
+                "items": {
+                  "bsonType": "object",
+                  "required": ["idUnidad", "nombre", "tipoHabitacion", "numHabitaciones", "capacidadMaxHuespedes", "precioNoche"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "idUnidad": { "bsonType": "objectId", "description": "Estable: no cambia si se renombra la unidad" },
+                    "nombre": { "bsonType": "string", "minLength": 1, "maxLength": 100 },
+                    "tipoHabitacion": { "bsonType": "string", "minLength": 1 },
+                    "numHabitaciones": { "bsonType": "int", "minimum": 1 },
+                    "capacidadMaxHuespedes": { "bsonType": "int", "minimum": 1 },
+                    "precioNoche": { "bsonType": "decimal", "minimum": 0, "exclusiveMinimum": true }
+                  }
+                }
+              },
+              "serviciosIncluidos": {
+                "bsonType": "array",
+                "items": { "bsonType": "string", "enum": ["WiFi", "Desayuno", "Piscina", "Parqueadero"] }
+              }
+            }
+          }
+        },
+        "required": ["detalleCategoria", "precioBase"]
+      },
+      {
+        "properties": {
+          "categoria": { "enum": ["Gastronomia"] },
+          "detalleCategoria": {
+            "bsonType": "object",
+            "required": ["tipoCocina", "aforoMaxTurno", "rangoPrecioPlato"],
+            "additionalProperties": false,
+            "properties": {
+              "tipoCocina": { "bsonType": "string" },
+              "aforoMaxTurno": { "bsonType": "int" },
+              "menuVegetariano": { "bsonType": "bool" },
+              "rangoPrecioPlato": { "bsonType": "string" }
+            }
+          }
+        },
+        "required": ["detalleCategoria"]
+      },
+      {
+        "properties": {
+          "categoria": { "enum": ["Tour"] },
+          "detalleCategoria": {
+            "bsonType": "object",
+            "required": ["puntoEncuentro", "duracionHoras", "aforoMaxGrupo"],
+            "additionalProperties": false,
+            "properties": {
+              "puntoEncuentro": { "bsonType": "string" },
+              "duracionHoras": { "bsonType": "decimal" },
+              "nivelDificultad": { "bsonType": "string" },
+              "aforoMaxGrupo": { "bsonType": "int" }
+            }
+          }
+        },
+        "required": ["detalleCategoria"]
+      },
+      {
+        "properties": {
+          "categoria": { "enum": ["AlquilerEquipo"] },
+          "detalleCategoria": {
+            "bsonType": "object",
+            "required": ["tipoVehiculoEquipo", "unidadesDisponibles"],
+            "additionalProperties": false,
+            "properties": {
+              "tipoVehiculoEquipo": { "bsonType": "string" },
+              "unidadesDisponibles": { "bsonType": "int" },
+              "condicionesAlquiler": { "bsonType": "string" }
+            }
+          }
+        },
+        "required": ["detalleCategoria"]
+      }
+    ]
+  },
+  "$expr": {
+    "$or": [
+      { "$ne": ["$categoria", "Alojamiento"] },
+      {
+        "$and": [
+          { "$eq": ["$precioBase", { "$min": "$detalleCategoria.unidades.precioNoche" }] },
+          {
+            "$eq": [
+              { "$size": { "$setUnion": [{ "$ifNull": ["$detalleCategoria.unidades.idUnidad", []] }, []] } },
+              { "$size": { "$ifNull": ["$detalleCategoria.unidades", []] } }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

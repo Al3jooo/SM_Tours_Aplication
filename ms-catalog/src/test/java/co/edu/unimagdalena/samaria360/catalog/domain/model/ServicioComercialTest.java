@@ -16,7 +16,8 @@ class ServicioComercialTest {
 
     private static final UUID PRESTADOR = UUID.fromString("00000000-0000-4000-8000-000000000002");
     private static final Coordenada CENTRO = new Coordenada(-74.2125, 11.2425);
-    private static final DetalleAlojamiento ALOJAMIENTO = new DetalleAlojamiento("Doble", 12, 2, List.of("WiFi"));
+    private static final DetalleAlojamiento ALOJAMIENTO = Unidades.alojamiento("Doble", 12, 2, "150000", List.of("WiFi"));
+    private static final DetalleTour TOUR = new DetalleTour("Muelle", new BigDecimal("3"), "Media", 10);
 
     @Test
     void creaUnServicioValido() {
@@ -54,9 +55,36 @@ class ServicioComercialTest {
 
     @Test
     void rechazaUnPrecioNegativo() {
-        assertThatThrownBy(() -> servicio("Hotel", Categoria.Alojamiento, ALOJAMIENTO, EstadoPublicacion.Publicado,
+        assertThatThrownBy(() -> servicio("Tour", Categoria.Tour, TOUR, EstadoPublicacion.Publicado,
                 true, new BigDecimal("-1")))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void elPrecioDeUnTourEsOpcional() {
+        assertThat(servicio("Tour", Categoria.Tour, TOUR, EstadoPublicacion.Publicado, true, null).getPrecioBase())
+                .isEmpty();
+    }
+
+    @Test
+    void elPrecioDeUnAlojamientoEsElMenorDeSusUnidades() {
+        DetalleAlojamiento hotel = new DetalleAlojamiento(List.of(
+                Unidades.unidad("Suite familiar", "Suite", 3, 4, "260000"),
+                Unidades.unidad("Doble", 12, 2, "150000")), List.of());
+
+        assertThat(servicio("Hotel", Categoria.Alojamiento, hotel, EstadoPublicacion.Publicado, true, null)
+                .getPrecioBase()).hasValueSatisfying(precio -> assertThat(precio).isEqualByComparingTo("150000"));
+        assertThat(servicio("Hotel", Categoria.Alojamiento, hotel, EstadoPublicacion.Publicado, true,
+                new BigDecimal("150000.00")).getPrecioBase())
+                .hasValueSatisfying(precio -> assertThat(precio).isEqualByComparingTo("150000"));
+    }
+
+    @Test
+    void rechazaUnPrecioDeAlojamientoQueContradiceASusUnidades() {
+        assertThatThrownBy(() -> servicio("Hotel", Categoria.Alojamiento, ALOJAMIENTO, EstadoPublicacion.Publicado,
+                true, new BigDecimal("260000")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("menor precioNoche");
     }
 
     @ParameterizedTest

@@ -37,7 +37,7 @@ public record FiltrosTour(String nivelDificultad, BigDecimal duracionMaxHoras) i
     }
 
     @Override
-    public boolean cumple(DetalleCategoria detalle) {
+    public boolean cumple(DetalleCategoria detalle, BigDecimal precioMaximo) {
         return detalle instanceof DetalleTour tour
                 && TextoFiltro.coincide(nivelDificultad, tour.nivelDificultad())
                 && (duracionMaxHoras == null || tour.duracionHoras().compareTo(duracionMaxHoras) <= 0);

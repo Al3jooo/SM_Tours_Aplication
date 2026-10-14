@@ -1,0 +1,43 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "required": ["gestorId", "nombre", "coordenadas", "limiteCapacidadCarga"],
+    "properties": {
+      "_id": { "bsonType": "objectId" },
+      "gestorId": {
+        "bsonType": "string",
+        "description": "UUID — referencia a Auth Service, sin FK física"
+      },
+      "nombre": { "bsonType": "string" },
+      "coordenadas": {
+        "bsonType": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": { "enum": ["Point"] },
+          "coordinates": {
+            "bsonType": "array",
+            "description": "¡ALERTA GEOJSON! El orden exacto debe ser [longitud, latitud]. Rango válido: longitud (-180 a 180), latitud (-90 a 90).",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": { "bsonType": "double" }
+          }
+        }
+      },
+      "descripcion": { "bsonType": "string" },
+      "categoria": { "bsonType": "string" },
+      "imagenes": {
+        "bsonType": "array",
+        "items": { "bsonType": "string" }
+      },
+      "limiteCapacidadCarga": { "bsonType": "int", "minimum": 1 },
+      "estadoOperativo": {
+        "enum": ["Abierto", "Cerrado_temporalmente", "En_mantenimiento"]
+      },
+      "normasAmbientales": { "bsonType": "string" },
+      "condicionesAccesibilidad": {
+        "bsonType": "array",
+        "items": { "bsonType": "string" }
+      }
+    }
+  }
+}

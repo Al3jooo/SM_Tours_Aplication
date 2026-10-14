@@ -6,7 +6,6 @@ import co.edu.unimagdalena.samaria360.catalog.domain.model.Categoria;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.CondicionAccesibilidad;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.Coordenada;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.CriteriosBusqueda;
-import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleAlojamiento;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleCategoria;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleTour;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.EstadoOperativo;
@@ -19,6 +18,7 @@ import co.edu.unimagdalena.samaria360.catalog.domain.model.ResultadoOferta;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioComercial;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioIncluido;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.TipoOferta;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.Unidades;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -41,11 +41,11 @@ class BuscarOfertaServiceTest {
     private static final Coordenada MINCA = new Coordenada(-74.1185, 11.1430);
     private static final Set<CondicionAccesibilidad> ACCESIBLE = Set.of(CondicionAccesibilidad.MovilidadReducida);
 
-    private final ServicioComercial hotel = servicio("s1", "Hotel Casa Tayrona", alojamiento(), "150000", CENTRO,
+    private final ServicioComercial hotel = servicio("s1", "Hotel Casa Tayrona", alojamiento("150000"), "150000", CENTRO,
             EstadoPublicacion.Publicado, true, ACCESIBLE);
     private final ServicioComercial tourCafe = servicio("s2", "Tour de Café en Minca", tour(), "80000", MINCA,
             EstadoPublicacion.Publicado, true, Set.of());
-    private final ServicioComercial cabanas = servicio("s3", "Cabañas El Roble", alojamiento(), "180000", MINCA,
+    private final ServicioComercial cabanas = servicio("s3", "Cabañas El Roble", alojamiento("180000"), "180000", MINCA,
             EstadoPublicacion.Publicado, true, Set.of());
     private final ServicioComercial pendiente = servicio("s4", "Alquiler de kayaks", tour(), "40000", CENTRO,
             EstadoPublicacion.Pendiente, true, Set.of());
@@ -86,7 +86,7 @@ class BuscarOfertaServiceTest {
     @Test
     void masFiltrosDejaSoloLosServiciosDeLaCategoriaQueCumplenSuDetalle() {
         ServicioComercial cabanaWifi = servicio("s6", "Cabaña con WiFi",
-                new DetalleAlojamiento("Cabaña", 3, 4, List.of("WiFi", "Desayuno")), "200000", MINCA,
+                Unidades.alojamiento("Cabaña", 3, 4, "200000", List.of("WiFi", "Desayuno")), "200000", MINCA,
                 EstadoPublicacion.Publicado, true, Set.of());
         OfertaRepositoryEnMemoria conCabana = new OfertaRepositoryEnMemoria()
                 .con(hotel, cabanas, tourCafe, cabanaWifi)
@@ -202,8 +202,9 @@ class BuscarOfertaServiceTest {
         return pagina.elementos().stream().map(ResultadoOferta::id).toList();
     }
 
-    private static DetalleCategoria alojamiento() {
-        return new DetalleAlojamiento("Doble", 10, 2, List.of());
+    /** Una sola unidad: el precio por noche es el precio «desde» del servicio. */
+    private static DetalleCategoria alojamiento(String precioNoche) {
+        return Unidades.alojamiento("Doble", 10, 2, precioNoche, List.of());
     }
 
     private static DetalleCategoria tour() {

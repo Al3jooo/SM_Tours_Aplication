@@ -47,7 +47,8 @@ public final class PoliticaBusqueda {
         if (criterios.categoria() != null && servicio.getCategoria() != criterios.categoria()) {
             return Optional.empty();
         }
-        if (criterios.filtrosCategoria() != null && !criterios.filtrosCategoria().cumple(servicio.getDetalle())) {
+        if (criterios.filtrosCategoria() != null
+                && !criterios.filtrosCategoria().cumple(servicio.getDetalle(), criterios.precioMaximo())) {
             return Optional.empty();
         }
         if (criterios.precioMaximo() != null) {

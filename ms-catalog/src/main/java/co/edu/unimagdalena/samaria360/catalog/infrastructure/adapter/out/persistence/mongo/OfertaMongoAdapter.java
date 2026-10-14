@@ -1,7 +1,6 @@
 package co.edu.unimagdalena.samaria360.catalog.infrastructure.adapter.out.persistence.mongo;
 
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.OfertaRepositoryPort;
-import co.edu.unimagdalena.samaria360.catalog.domain.model.CondicionAccesibilidad;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.Coordenada;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.CriteriosBusqueda;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.EstadoOperativo;
@@ -24,13 +23,12 @@ import org.springframework.data.mongodb.core.aggregation.AggregationOptions;
 import org.springframework.data.mongodb.core.query.Collation;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Búsqueda combinada de servicios y atractivos en una sola agregación (ADR-004, alternativa A):
@@ -124,22 +122,21 @@ public class OfertaMongoAdapter implements OfertaRepositoryPort {
             filtro.append("precioBase", new Document("$lte", new Decimal128(criterios.precioMaximo())));
         }
         if (criterios.filtrosCategoria() != null) {
-            filtrosDetalle(filtro, criterios.filtrosCategoria());
+            filtrosDetalle(filtro, criterios.filtrosCategoria(), criterios.precioMaximo());
         }
         return filtrosComunes(filtro, criterios, "nombreComercial");
     }
 
     /** «Más filtros» (RF10) sobre detalleCategoria, con las mismas reglas que {@link FiltrosCategoria#cumple}. */
-    private static void filtrosDetalle(Document filtro, FiltrosCategoria filtros) {
+    private static void filtrosDetalle(Document filtro, FiltrosCategoria filtros, BigDecimal precioMaximo) {
         if (filtros instanceof FiltrosAlojamiento alojamiento) {
             if (!alojamiento.serviciosIncluidos().isEmpty()) {
                 filtro.append(DETALLE + "serviciosIncluidos",
                         new Document("$all", alojamiento.nombresServiciosIncluidos()));
             }
-            if (alojamiento.huespedes() != null) {
-                filtro.append(DETALLE + "capacidadMaxHuespedes", new Document("$gte", alojamiento.huespedes()));
+            if (alojamiento.filtraUnidades()) {
+                filtro.append(DETALLE + "unidades", new Document("$elemMatch", filtroUnidad(alojamiento, precioMaximo)));
             }
-            textoExacto(filtro, "tipoHabitacion", alojamiento.tipoHabitacion());
         } else if (filtros instanceof FiltrosGastronomia gastronomia) {
             if (gastronomia.soloVegetariano()) {
                 filtro.append(DETALLE + "menuVegetariano", true);
@@ -156,15 +153,36 @@ public class OfertaMongoAdapter implements OfertaRepositoryPort {
     }
 
     /**
+     * D1: una misma unidad debe cumplir los filtros de unidad y el precio máximo ($elemMatch). Con solo el precio
+     * máximo basta precioBase, que es el menor precioNoche: «alguna unidad cuesta hasta el máximo».
+     */
+    private static Document filtroUnidad(FiltrosAlojamiento alojamiento, BigDecimal precioMaximo) {
+        Document unidad = new Document();
+        if (alojamiento.huespedes() != null) {
+            unidad.append("capacidadMaxHuespedes", new Document("$gte", alojamiento.huespedes()));
+        }
+        if (alojamiento.tipoHabitacion() != null) {
+            unidad.append("tipoHabitacion", regexExacta(alojamiento.tipoHabitacion()));
+        }
+        if (precioMaximo != null) {
+            unidad.append("precioNoche", new Document("$lte", new Decimal128(precioMaximo)));
+        }
+        return unidad;
+    }
+
+    /**
      * Valor completo sin distinguir mayúsculas (sí tildes): regex anclada ({@code \z}, no {@code $}, que también
      * aceptaría un salto de línea final), escapada y con la opción {@code i}. No se usa la colación «es» porque la
      * agregación solo la lleva al ordenar por nombre, y con ella cambiaría la regla.
      */
     private static void textoExacto(Document filtro, String campo, String valor) {
         if (valor != null) {
-            filtro.append(DETALLE + campo,
-                    new Document("$regex", "^" + escaparRegex(valor) + "\\z").append("$options", "i"));
+            filtro.append(DETALLE + campo, regexExacta(valor));
         }
+    }
+
+    private static Document regexExacta(String valor) {
+        return new Document("$regex", "^" + escaparRegex(valor) + "\\z").append("$options", "i");
     }
 
     /** Decisión 5: los atractivos no se filtran por estado operativo. */
@@ -233,18 +251,8 @@ public class OfertaMongoAdapter implements OfertaRepositoryPort {
         TipoOferta tipo = TipoOferta.valueOf(documento.tipo());
         return new ResultadoOferta(tipo, documento.id(), documento.nombre(), documento.categoria(),
                 documento.descripcion(), tipo == TipoOferta.Servicio ? documento.precio() : null, documento.imagen(),
-                coordenada, distanciaKm, accesibilidad(documento.condicionesAccesibilidad()),
+                coordenada, distanciaKm, ServicioDocumentoMapper.accesibilidad(documento.condicionesAccesibilidad()),
                 tipo == TipoOferta.Atractivo && documento.estadoOperativo() != null
                         ? EstadoOperativo.valueOf(documento.estadoOperativo()) : null);
-    }
-
-    /** El esquema admite texto libre (pendiente para el SAD): los valores que no son del SRS se ignoran. */
-    private static Set<CondicionAccesibilidad> accesibilidad(List<String> valores) {
-        if (valores == null) {
-            return Set.of();
-        }
-        Set<String> conocidas = Set.of("MovilidadReducida", "Visual", "Auditiva");
-        return valores.stream().filter(conocidas::contains).map(CondicionAccesibilidad::desdeTexto)
-                .collect(Collectors.toUnmodifiableSet());
     }
 }

@@ -21,7 +21,9 @@ import co.edu.unimagdalena.samaria360.catalog.domain.model.OrdenBusqueda;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ResultadoOferta;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioComercial;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioIncluido;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.Unidades;
 import co.edu.unimagdalena.samaria360.catalog.domain.service.PoliticaBusqueda;
+import co.edu.unimagdalena.samaria360.catalog.infrastructure.mongo.MongoDePrueba;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import org.bson.Document;
@@ -34,14 +36,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.testcontainers.containers.Container.ExecResult;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.MountableFile;
 
 import java.math.BigDecimal;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -53,7 +52,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * «Más filtros»: la agregación de {@link OfertaMongoAdapter} devuelve lo mismo que {@link PoliticaBusqueda} en
  * memoria, con datos propios (sin la semilla) que incluyen tildes: «Cabaña», «Ecohabitación», «Típica» y «Fácil»,
- * junto a «Tipica» y «Facil» sin tilde. Regla común: mayúsculas no, tildes sí.
+ * junto a «Tipica» y «Facil» sin tilde. Regla común: mayúsculas no, tildes sí. «Hotel de dos unidades» prueba la
+ * regla de D1: una misma unidad debe cumplir los filtros de unidad y el precio máximo.
  */
 @Testcontainers
 class MasFiltrosEquivalenciaTest {
@@ -63,8 +63,7 @@ class MasFiltrosEquivalenciaTest {
     private static final Set<CondicionAccesibilidad> ACCESIBLE = Set.of(CondicionAccesibilidad.MovilidadReducida);
 
     @Container
-    static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7.0")
-            .withCopyFileToContainer(MountableFile.forHostPath(Path.of("../infra/mongo/init")), "/scripts");
+    static final MongoDBContainer MONGO = MongoDePrueba.contenedor();
 
     private static final List<ServicioComercial> SERVICIOS = new ArrayList<>();
     private static MongoClient cliente;
@@ -74,22 +73,25 @@ class MasFiltrosEquivalenciaTest {
 
     @BeforeAll
     static void cargarDatos() throws Exception {
-        // Solo validadores e índices: los documentos de prueba deben pasar el mismo $jsonSchema que la semilla.
-        for (String script : List.of("01-validadores.js", "02-indices.js")) {
-            ExecResult resultado = MONGO.execInContainer("mongosh", "--quiet", "/scripts/" + script);
-            assertThat(resultado.getExitCode()).as(resultado.getStderr()).isZero();
-        }
+        // Validadores, índices y migraciones, sin semillas: los documentos de prueba deben pasar el mismo $jsonSchema
+        // (v2) que los datos reales.
+        MongoDePrueba.ejecutarScripts(MONGO, List.of("01-validadores.js", "02-indices.js"));
+        MongoDePrueba.exigirExito("aplicar.js", MongoDePrueba.migrar(MONGO, false));
         cliente = MongoClients.create(MONGO.getConnectionString());
         MongoTemplate mongo = new MongoTemplate(cliente, "catalog_db");
         ofertas = new OfertaMongoAdapter(mongo);
         opciones = new OpcionesFiltroMongoAdapter(mongo);
 
-        agregar("Cabañas del río", new DetalleAlojamiento("Cabaña", 3, 4, List.of("WiFi", "Desayuno")), "180000",
-                EstadoPublicacion.Publicado, true, ACCESIBLE);
-        agregar("Ecolodge", new DetalleAlojamiento("Ecohabitación", 5, 3, List.of("Desayuno", "Piscina")), "420000",
-                EstadoPublicacion.Publicado, true, Set.of());
-        agregar("Hotel pendiente", new DetalleAlojamiento("Doble", 8, 2, List.of("Parqueadero")), "150000",
+        agregar("Cabañas del río", Unidades.alojamiento("Cabaña", 3, 4, "180000", List.of("WiFi", "Desayuno")),
+                "180000", EstadoPublicacion.Publicado, true, ACCESIBLE);
+        agregar("Ecolodge", Unidades.alojamiento("Ecohabitación", 5, 3, "420000", List.of("Desayuno", "Piscina")),
+                "420000", EstadoPublicacion.Publicado, true, Set.of());
+        agregar("Hotel pendiente", Unidades.alojamiento("Doble", 8, 2, "150000", List.of("Parqueadero")), "150000",
                 EstadoPublicacion.Pendiente, true, Set.of());
+        agregar("Hotel de dos unidades", new DetalleAlojamiento(List.of(
+                        Unidades.unidad("Doble", 12, 2, "150000"),
+                        Unidades.unidad("Suite familiar", "Suite", 3, 6, "260000")), List.of("WiFi")),
+                "150000", EstadoPublicacion.Publicado, true, Set.of());
         agregar("Fonda típica", new DetalleGastronomia("Típica", 30, true, "$20.000"), "20000",
                 EstadoPublicacion.Publicado, true, ACCESIBLE);
         agregar("Fonda sin tilde", new DetalleGastronomia("Tipica", 30, null, "$20.000"), "25000",
@@ -126,13 +128,17 @@ class MasFiltrosEquivalenciaTest {
                 caso(alojamiento(null, null, "Caba")),
                 caso(alojamiento(null, null, "ecohabitación"), "Ecolodge"),
                 caso(alojamiento(null, null, "Ecohabitacion")),
+                caso(alojamiento(null, null, "suite"), "Hotel de dos unidades"),
+                caso(alojamiento(null, null, "Doble"), "Hotel de dos unidades"),
                 caso(alojamiento(Set.of(ServicioIncluido.Desayuno), null, null), "Cabañas del río", "Ecolodge"),
                 caso(alojamiento(Set.of(ServicioIncluido.WiFi, ServicioIncluido.Desayuno), null, null),
                         "Cabañas del río"),
                 caso(alojamiento(Set.of(ServicioIncluido.Parqueadero), null, null)),
-                caso(alojamiento(null, 3, null), "Cabañas del río", "Ecolodge"),
-                caso(alojamiento(null, 4, null), "Cabañas del río"),
-                caso(alojamiento(null, 5, null)),
+                caso(alojamiento(null, 3, null), "Cabañas del río", "Ecolodge", "Hotel de dos unidades"),
+                caso(alojamiento(null, 4, null), "Cabañas del río", "Hotel de dos unidades"),
+                caso(alojamiento(null, 5, null), "Hotel de dos unidades"),
+                caso(alojamiento(null, 7, null)),
+                caso(alojamiento(null, 6, "Doble")),
                 caso(new FiltrosGastronomia(true, null), "Fonda típica"),
                 caso(new FiltrosGastronomia(false, "Típica"), "Fonda típica"),
                 caso(new FiltrosGastronomia(false, "típica"), "Fonda típica"),
@@ -166,6 +172,30 @@ class MasFiltrosEquivalenciaTest {
         }
     }
 
+    static Stream<Arguments> casosConPrecio() {
+        return Stream.of(
+                casoConPrecio(alojamiento(null, 5, null), "300000", "Hotel de dos unidades"),
+                casoConPrecio(alojamiento(null, 5, null), "200000"),
+                casoConPrecio(alojamiento(null, 2, null), "200000", "Cabañas del río", "Hotel de dos unidades"),
+                casoConPrecio(alojamiento(null, null, "Suite"), "259999"),
+                casoConPrecio(alojamiento(null, null, "Suite"), "260000", "Hotel de dos unidades"),
+                casoConPrecio(alojamiento(Set.of(ServicioIncluido.WiFi), null, null), "160000", "Hotel de dos unidades"));
+    }
+
+    /** D1: la misma unidad debe cumplir los filtros de unidad y el precio máximo, en MongoDB y en memoria. */
+    @ParameterizedTest(name = "{0} hasta {1} → {2}")
+    @MethodSource("casosConPrecio")
+    void conPrecioMaximoUnaMismaUnidadDebeCumplirTodo(FiltrosCategoria filtros, BigDecimal precioMaximo,
+                                                       List<String> esperados) {
+        CriteriosBusqueda criterios = new CriteriosBusqueda(null, filtros.categoria(), filtros, precioMaximo, null,
+                null, Set.of(), OrdenBusqueda.PrecioAscendente, 0, CriteriosBusqueda.TAMANO_PAGINA_MAXIMO);
+
+        List<String> enMongo = nombres(ofertas.buscar(criterios).elementos());
+
+        assertThat(enMongo).isEqualTo(nombres(politica.buscar(SERVICIOS, List.of(), criterios).elementos()));
+        assertThat(enMongo).containsExactlyInAnyOrderElementsOf(esperados);
+    }
+
     @Test
     void combinaMasFiltrosConAccesibilidadYPrecio() {
         CriteriosBusqueda criterios = new CriteriosBusqueda(null, Categoria.Gastronomia,
@@ -190,11 +220,12 @@ class MasFiltrosEquivalenciaTest {
         OpcionesFiltro tour = opciones.opciones(Categoria.Tour);
         OpcionesFiltro alquiler = opciones.opciones(Categoria.AlquilerEquipo);
 
-        // «Hotel pendiente» (Doble, Parqueadero, 2 huéspedes) no está publicado.
+        // «Hotel pendiente» (Doble, Parqueadero) no está publicado.
         assertThat(alojamiento.serviciosIncluidos())
                 .containsExactly(ServicioIncluido.WiFi, ServicioIncluido.Desayuno, ServicioIncluido.Piscina);
-        assertThat(alojamiento.tiposHabitacion()).containsExactly("Cabaña", "Ecohabitación");
-        assertThat(alojamiento.huespedes()).isEqualTo(new Rango<>(3, 4));
+        // Los tipos y los huéspedes salen de todas las unidades (D1).
+        assertThat(alojamiento.tiposHabitacion()).containsExactly("Cabaña", "Doble", "Ecohabitación", "Suite");
+        assertThat(alojamiento.huespedes()).isEqualTo(new Rango<>(2, 6));
         assertThat(alojamiento.tiposCocina()).isNull();
 
         assertThat(gastronomia.opcionVegetariana()).isTrue();
@@ -237,6 +268,10 @@ class MasFiltrosEquivalenciaTest {
         return Arguments.of(filtros, List.of(esperados));
     }
 
+    private static Arguments casoConPrecio(FiltrosCategoria filtros, String precioMaximo, String... esperados) {
+        return Arguments.of(filtros, new BigDecimal(precioMaximo), List.of(esperados));
+    }
+
     private static FiltrosAlojamiento alojamiento(Set<ServicioIncluido> servicios, Integer huespedes, String tipo) {
         return new FiltrosAlojamiento(servicios, huespedes, tipo);
     }
@@ -269,10 +304,15 @@ class MasFiltrosEquivalenciaTest {
     private static Document detalle(DetalleCategoria detalle) {
         Document documento = new Document();
         if (detalle instanceof DetalleAlojamiento alojamiento) {
-            documento.append("tipoHabitacion", alojamiento.tipoHabitacion())
-                    .append("numHabitaciones", alojamiento.numHabitaciones())
-                    .append("capacidadMaxHuespedes", alojamiento.capacidadMaxHuespedes())
-                    .append("serviciosIncluidos", alojamiento.serviciosIncluidos());
+            documento.append("serviciosIncluidos", alojamiento.serviciosIncluidos())
+                    .append("unidades", alojamiento.unidades().stream()
+                            .map(unidad -> new Document("idUnidad", new ObjectId(unidad.idUnidad()))
+                                    .append("nombre", unidad.nombre())
+                                    .append("tipoHabitacion", unidad.tipoHabitacion())
+                                    .append("numHabitaciones", unidad.numHabitaciones())
+                                    .append("capacidadMaxHuespedes", unidad.capacidadMaxHuespedes())
+                                    .append("precioNoche", new Decimal128(unidad.precioNoche())))
+                            .toList());
         } else if (detalle instanceof DetalleGastronomia gastronomia) {
             documento.append("tipoCocina", gastronomia.tipoCocina())
                     .append("aforoMaxTurno", gastronomia.aforoMaxTurno())

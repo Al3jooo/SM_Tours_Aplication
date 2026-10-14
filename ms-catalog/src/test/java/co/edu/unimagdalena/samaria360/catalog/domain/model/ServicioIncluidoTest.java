@@ -51,14 +51,14 @@ class ServicioIncluidoTest {
 
     @Test
     void elDetalleDeAlojamientoGuardaLosNombresCanonicosSinRepetidos() {
-        DetalleAlojamiento detalle = new DetalleAlojamiento("Doble", 1, 2, List.of("wifi", "DESAYUNO", "WiFi"));
+        DetalleAlojamiento detalle = Unidades.alojamiento("Doble", 1, 2, "100000", List.of("wifi", "DESAYUNO", "WiFi"));
 
         assertThat(detalle.serviciosIncluidos()).containsExactly("WiFi", "Desayuno");
     }
 
     @Test
     void elDetalleDeAlojamientoRechazaUnServicioFueraDelVocabulario() {
-        assertThatThrownBy(() -> new DetalleAlojamiento("Doble", 1, 2, List.of("Jacuzzi")))
+        assertThatThrownBy(() -> Unidades.alojamiento("Doble", 1, 2, "100000", List.of("Jacuzzi")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Jacuzzi");
     }
