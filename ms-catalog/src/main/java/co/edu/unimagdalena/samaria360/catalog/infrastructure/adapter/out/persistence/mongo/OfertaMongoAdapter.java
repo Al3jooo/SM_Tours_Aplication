@@ -61,7 +61,7 @@ public class OfertaMongoAdapter implements OfertaRepositoryPort {
 
         List<AggregationOperation> etapas = new ArrayList<>();
         etapas.add(seleccion(criterios, filtroServicios(criterios)));
-        etapas.add(etapa("$project", proyeccionServicio()));
+        etapas.add(etapa("$project", proyeccionServicio(criterios)));
         if (politica.incluyeAtractivos(criterios)) {
             etapas.add(etapa("$unionWith", new Document("coll", ATRACTIVOS).append("pipeline", List.of(
                     seleccion(criterios, filtroAtractivos(criterios)).toDocument(Aggregation.DEFAULT_CONTEXT),
@@ -135,7 +135,10 @@ public class OfertaMongoAdapter implements OfertaRepositoryPort {
                         new Document("$all", alojamiento.nombresServiciosIncluidos()));
             }
             if (alojamiento.filtraUnidades()) {
-                filtro.append(DETALLE + "unidades", new Document("$elemMatch", filtroUnidad(alojamiento, precioMaximo)));
+                // D1: una misma unidad debe cumplir los filtros de unidad y el precio máximo. Con solo el precio
+                // máximo basta precioBase, que es el menor precioNoche: «alguna unidad cuesta hasta el máximo».
+                filtro.append(DETALLE + "unidades",
+                        new Document("$elemMatch", CondicionesUnidad.de(alojamiento, precioMaximo).consulta()));
             }
         } else if (filtros instanceof FiltrosGastronomia gastronomia) {
             if (gastronomia.soloVegetariano()) {
@@ -150,24 +153,6 @@ public class OfertaMongoAdapter implements OfertaRepositoryPort {
         } else if (filtros instanceof FiltrosAlquilerEquipo alquiler) {
             textoExacto(filtro, "tipoVehiculoEquipo", alquiler.tipoVehiculoEquipo());
         }
-    }
-
-    /**
-     * D1: una misma unidad debe cumplir los filtros de unidad y el precio máximo ($elemMatch). Con solo el precio
-     * máximo basta precioBase, que es el menor precioNoche: «alguna unidad cuesta hasta el máximo».
-     */
-    private static Document filtroUnidad(FiltrosAlojamiento alojamiento, BigDecimal precioMaximo) {
-        Document unidad = new Document();
-        if (alojamiento.huespedes() != null) {
-            unidad.append("capacidadMaxHuespedes", new Document("$gte", alojamiento.huespedes()));
-        }
-        if (alojamiento.tipoHabitacion() != null) {
-            unidad.append("tipoHabitacion", regexExacta(alojamiento.tipoHabitacion()));
-        }
-        if (precioMaximo != null) {
-            unidad.append("precioNoche", new Document("$lte", new Decimal128(precioMaximo)));
-        }
-        return unidad;
     }
 
     /**
@@ -208,9 +193,21 @@ public class OfertaMongoAdapter implements OfertaRepositoryPort {
         return METACARACTERES_REGEX.matcher(texto).replaceAll("\\\\$0");
     }
 
-    private static Document proyeccionServicio() {
-        return proyeccionComun("Servicio", "$nombreComercial")
-                .append("precio", "$precioBase");
+    /**
+     * El precio de la tarjeta es «desde»: con filtros de unidad (D1), el menor precioNoche de las unidades que los
+     * cumplen, con las mismas condiciones del $elemMatch; sin ellos, precioBase. El $sort ordena por este mismo
+     * campo, así que el orden por precio usa el valor que se muestra.
+     */
+    private static Document proyeccionServicio(CriteriosBusqueda criterios) {
+        Object precio = "$precioBase";
+        if (criterios.filtrosCategoria() instanceof FiltrosAlojamiento alojamiento && alojamiento.filtraUnidades()) {
+            Document cumplen = new Document("$filter", new Document("input", "$detalleCategoria.unidades")
+                    .append("as", "u")
+                    .append("cond", CondicionesUnidad.de(alojamiento, criterios.precioMaximo()).expresion("u")));
+            precio = new Document("$min", new Document("$map", new Document("input", cumplen)
+                    .append("as", "u").append("in", "$$u.precioNoche")));
+        }
+        return proyeccionComun("Servicio", "$nombreComercial").append("precio", precio);
     }
 
     private static Document proyeccionAtractivo() {

@@ -12,11 +12,12 @@ import java.lang.annotation.Target;
 
 /**
  * Prueba de integración contra PostgreSQL (Testcontainers) y el catálogo simulado, en el perfil test. Todas las clases
- * usan exactamente esta configuración para compartir un solo contexto.
+ * usan exactamente esta configuración para compartir un solo contexto. El programador de RF52 está apagado: las
+ * pruebas llaman al caso de uso cuando lo necesitan, con el reloj que quieren.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@SpringBootTest
+@SpringBootTest(properties = "samaria360.completar-reservas.habilitado=false")
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(InfraestructuraTestConfig.class)

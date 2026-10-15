@@ -10,6 +10,7 @@ import co.edu.unimagdalena.samaria360.booking.domain.model.HorarioReservas;
 import co.edu.unimagdalena.samaria360.booking.domain.model.IdentificadorObjeto;
 import co.edu.unimagdalena.samaria360.booking.domain.model.MotivoInvalido;
 import co.edu.unimagdalena.samaria360.booking.domain.model.RangoFechas;
+import co.edu.unimagdalena.samaria360.booking.domain.model.Reserva;
 import co.edu.unimagdalena.samaria360.booking.domain.model.ValidadorCampos;
 
 import java.util.LinkedHashSet;
@@ -27,10 +28,12 @@ public class DisponibilidadService implements ConsultarDisponibilidadUseCase, Re
 
     private final InventarioPort inventario;
     private final RelojPort reloj;
+    private final HorarioReservas horario;
 
-    public DisponibilidadService(InventarioPort inventario, RelojPort reloj) {
+    public DisponibilidadService(InventarioPort inventario, RelojPort reloj, HorarioReservas horario) {
         this.inventario = Objects.requireNonNull(inventario);
         this.reloj = Objects.requireNonNull(reloj);
+        this.horario = Objects.requireNonNull(horario);
     }
 
     @Override
@@ -41,7 +44,8 @@ public class DisponibilidadService implements ConsultarDisponibilidadUseCase, Re
         RangoFechas rango = RangoFechas.validar(desde, hasta, HorarioReservas.hoy(reloj.ahora()),
                 DIAS_POR_DEFECTO_CONSULTA, validador);
         validador.lanzarSiHayErrores();
-        return new DisponibilidadServicio(servicio, rango, inventario.consultar(servicio, unidad, rango));
+        return new DisponibilidadServicio(servicio, rango, inventario.consultar(servicio, unidad, rango), horario,
+                Reserva.PLAZO_CANCELACION);
     }
 
     @Override

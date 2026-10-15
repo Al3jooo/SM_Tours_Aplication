@@ -70,6 +70,18 @@ class FiltrosCategoriaTest {
     }
 
     @Test
+    void elPrecioDesdeEsElDeLasUnidadesQueCumplen() {
+        // HOTEL: Doble (2 huéspedes, 150.000) y Suite familiar (6 huéspedes, 260.000).
+        assertThat(alojamiento(null, 3, null).precioDesde(HOTEL, null)).isEqualByComparingTo("260000");
+        assertThat(alojamiento(null, 2, null).precioDesde(HOTEL, null)).isEqualByComparingTo("150000");
+        assertThat(alojamiento(null, null, "Suite").precioDesde(HOTEL, null)).isEqualByComparingTo("260000");
+        assertThat(alojamiento(null, 3, null).precioDesde(HOTEL, new BigDecimal("200000"))).isNull();
+        // Sin filtros de unidad, el precio «desde» del alojamiento.
+        assertThat(alojamiento(Set.of(ServicioIncluido.WiFi), null, null).precioDesde(HOTEL, null))
+                .isEqualByComparingTo("150000");
+    }
+
+    @Test
     void sinFiltrosDeUnidadNoSeMiranLasUnidades() {
         FiltrosAlojamiento soloServicios = alojamiento(Set.of(ServicioIncluido.WiFi), null, null);
 

@@ -1,6 +1,7 @@
 package co.edu.unimagdalena.samaria360.booking.application.port.out;
 
 import co.edu.unimagdalena.samaria360.booking.domain.model.CupoDescontado;
+import co.edu.unimagdalena.samaria360.booking.domain.model.FiltroReservas;
 import co.edu.unimagdalena.samaria360.booking.domain.model.PaginaReservas;
 import co.edu.unimagdalena.samaria360.booking.domain.model.Reserva;
 
@@ -20,11 +21,18 @@ public interface ReservaRepositoryPort {
     /** Vacío si no existe <b>o es de otro turista</b>. */
     Optional<Reserva> buscarDeTurista(UUID idReserva, UUID idTurista);
 
-    /** Por fecha de creación, de la más reciente a la más antigua. */
-    PaginaReservas listarDeTurista(UUID idTurista, int pagina, int tamano);
+    /** Las que cumplen el filtro, por fecha de inicio de la actividad descendente (desempate por id). */
+    PaginaReservas listarDeTurista(UUID idTurista, FiltroReservas filtro, int pagina, int tamano);
 
     /** UPDATE condicional (solo si sigue Confirmada). @return false si otra cancelación ganó o ya no está Confirmada */
     boolean cancelarSiConfirmada(UUID idReserva, UUID idTurista, Instant ahora);
+
+    /**
+     * RF52: UPDATE condicional {@code estado = 'Confirmada' AND fecha_fin <= ahora} → Completada. Idempotente.
+     *
+     * @return cuántas reservas cambiaron
+     */
+    int completarTerminadas(Instant ahora);
 
     void registrarDescuentos(UUID idReserva, List<CupoDescontado> descuentos);
 

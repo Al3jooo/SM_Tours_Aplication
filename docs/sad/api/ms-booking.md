@@ -31,6 +31,7 @@ Contrato del CU «Reservar servicio» (RF11, RF18, RF20, RF32, RF37, RF44) para 
 - **Alojamiento:** cobra `precioNoche` de la unidad × noches × habitaciones. `personas` ≤ habitaciones × `capacidadMaxHuespedes` de la unidad. Check-in 15:00 y check-out 12:00; con entrada hoy, se puede reservar hasta las 15:00.
 - **Tour:** cobra `precioBase` × personas. `personas` ≤ `aforoMaxGrupo`. No se reserva un horario que ya pasó.
 - La confirmación es automática (RF20): los cupos se descuentan en el momento.
+- **`precioTotalEsperado` se compara por valor, no por escala:** `160001` y `160001.00` son el mismo total. Solo un valor distinto responde `PRECIO_CAMBIADO`.
 
 **Respuesta `201 Created`**, con `Location: /api/v1/reservas/{idReserva}`:
 
@@ -50,6 +51,8 @@ Contrato del CU «Reservar servicio» (RF11, RF18, RF20, RF32, RF37, RF44) para 
 
 El nombre del servicio, el de la unidad y los precios quedan **congelados** (RF32): no cambian aunque cambie el catálogo.
 
+**`cancelableHasta`** lo calcula ms-booking: `fechaInicio` menos el plazo de RF44 (24 h). Viaja en todas las respuestas de una reserva (reservar, `/mias`, `/{id}` y cancelar). El cliente no recalcula el plazo: lo usa para mostrar si todavía se puede cancelar, y el servidor decide igual al cancelar.
+
 **Idempotencia.**
 - Reenviar con la misma clave y el mismo pedido responde **`201` con la misma reserva** y la cabecera `Idempotent-Replayed: true`, sin descontar otra vez.
 - La misma clave con otro pedido (incluida otra unidad) responde `422 IDEMPOTENCIA_CONFLICTO`.
@@ -58,8 +61,14 @@ El nombre del servicio, el de la unidad y los precios quedan **congelados** (RF3
 
 ## Mis reservas
 
-- `GET /api/v1/reservas/mias?pagina=0` · rol Turista → `{elementos, pagina, tamano: 20, totalElementos, totalPaginas}`, de la más reciente a la más antigua. Sin filtros (RF12 está fuera de alcance).
-- `GET /api/v1/reservas/{idReserva}` · rol Turista → la reserva. La de otro turista responde 404, igual que una que no existe.
+`GET /api/v1/reservas/mias?desde=&hasta=&estado=&pagina=0` · rol Turista → `{elementos, pagina, tamano: 20, totalElementos, totalPaginas}`. RF12, del lado del turista.
+
+- **`desde` y `hasta`** (opcionales): fechas de Santa Marta (`aaaa-mm-dd`), inclusivas, sobre la fecha de la **actividad**. Una reserva aparece si `fechaInicio < (hasta + 1 día) 00:00` y `fechaFin > desde 00:00`, en `America/Bogota`: una estadía del 30 de noviembre al 2 de diciembre aparece al filtrar diciembre, y una actividad que termina exactamente a las 00:00 de `desde`, no. Con uno solo, el rango queda abierto del otro lado.
+- **`estado`** (opcional): uno o varios de `Confirmada`, `Cancelada` y `Completada`, separados por coma.
+- **Orden:** `fechaInicio` descendente, con `idReserva` como desempate (la paginación es estable).
+- **Errores (`DATOS_INVALIDOS`):** `hasta` anterior a `desde` → `hasta: RANGO_INVALIDO`; más de 366 días contando los dos extremos → `hasta: MAXIMO_DIAS`; una fecha mal escrita → `FORMATO`; un estado desconocido → `estado: NO_PERMITIDO`.
+
+`GET /api/v1/reservas/{idReserva}` · rol Turista → la reserva. La de otro turista responde 404, igual que una que no existe.
 
 ## Cancelar
 
@@ -67,6 +76,7 @@ El nombre del servicio, el de la unidad y los precios quedan **congelados** (RF3
 
 - **RF44:** se puede cancelar si faltan **24 horas o más** para el inicio (`cancelableHasta`, límite incluido). Si no, `409 CANCELACION_FUERA_DE_PLAZO`.
 - Cancelar una reserva ya Cancelada responde `200` con ella y no devuelve cupos otra vez.
+- Una reserva Completada no se cancela: `409 RESERVA_NO_CANCELABLE`. También si RF52 la completa mientras se procesa la cancelación: gana uno de los dos y los cupos no cambian.
 - Los cupos se devuelven a las mismas noches o al mismo horario que se descontaron.
 
 ## Disponibilidad (pública)
@@ -81,15 +91,22 @@ El nombre del servicio, el de la unidad y los precios quedan **congelados** (RF3
   "unidades": [
     { "idUnidad": "6b2c…", "noches": [ { "fecha": "2030-03-30", "cuposTotales": 3, "cuposDisponibles": 1 } ] }
   ],
-  "horarios": []
+  "horarios": [],
+  "horaCheckIn": "15:00:00", "horaCheckOut": "12:00:00", "plazoCancelacionHoras": 24
 }
 ```
+
+`horaCheckIn` y `horaCheckOut` son el horario de los alojamientos y `plazoCancelacionHoras`, el plazo de RF44. Salen de la configuración de ms-booking (`samaria360.reservas.hora-check-in` y `hora-check-out`) y van siempre, aunque no haya inventario en el rango: la pantalla los muestra tal cual, sin escribirlos por su cuenta.
 
 En un tour, `unidades` va vacío y `horarios` trae `{fecha, hora, cuposTotales, cuposDisponibles}`. Sin inventario en el rango, `categoria` es `null` y las dos listas van vacías. **No trae nombres ni precios:** el cliente los toma del detalle de ms-catalog (`GET /api/v1/catalogo/servicios/{id}`).
 
 `GET /api/v1/reservas/disponibilidad/resumen?servicios=id1,id2&desde=&hasta=` → `{"id1": "CON_CUPOS", "id2": "SIN_INVENTARIO"}`, en el orden pedido.
 - Hasta 10 ids, cada uno un ObjectId; por defecto, hoy y los 7 días siguientes.
 - `CON_CUPOS`: alguna unidad u horario tiene cupos en algún día del rango; `AGOTADO`: hay inventario, pero todo en 0; `SIN_INVENTARIO`: no hay filas.
+
+## Completar reservas (RF52)
+
+Una tarea de ms-booking pasa de `Confirmada` a `Completada` las reservas cuya `fechaFin` ya pasó, con un UPDATE condicional idempotente. Corre al arrancar y después cada 15 minutos (`samaria360.completar-reservas.cada`): una reserva queda Completada a más tardar 15 minutos después de terminar. No tiene endpoint.
 
 ## Códigos de error
 
@@ -106,7 +123,7 @@ En un tour, `unidades` va vacío y `horarios` trae `{fecha, hora, cuposTotales, 
 | `CUPO_AGOTADO` | 409 | Hay inventario, pero no alcanza (RF11); no se descuenta nada |
 | `PRECIO_CAMBIADO` | 409 | Lleva `precioTotal`, `precioUnitario` y `moneda` vigentes (RF37) |
 | `CANCELACION_FUERA_DE_PLAZO` | 409 | Faltan menos de 24 horas (RF44) |
-| `RESERVA_NO_CANCELABLE` | 409 | La reserva está Completada |
+| `RESERVA_NO_CANCELABLE` | 409 | La reserva está Completada (también si RF52 la completó mientras se cancelaba) |
 | `IDEMPOTENCIA_CONFLICTO` | 422 | La misma clave con otro pedido |
 | `SERVICIO_NO_DISPONIBLE` | 503 | ms-catalog no responde (`servicio: ms-catalog`) o, desde el gateway, ms-booking caído (`servicio: ms-booking`) |
 | `ERROR_INTERNO` | 500 | Cualquier otro error |

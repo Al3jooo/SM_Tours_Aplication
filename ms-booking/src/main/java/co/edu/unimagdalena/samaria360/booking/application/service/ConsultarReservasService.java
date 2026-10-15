@@ -4,6 +4,7 @@ import co.edu.unimagdalena.samaria360.booking.application.port.in.ConsultarMisRe
 import co.edu.unimagdalena.samaria360.booking.application.port.in.ConsultarReservaUseCase;
 import co.edu.unimagdalena.samaria360.booking.application.port.out.ReservaRepositoryPort;
 import co.edu.unimagdalena.samaria360.booking.domain.exception.ReservaNoEncontradaException;
+import co.edu.unimagdalena.samaria360.booking.domain.model.FiltroReservas;
 import co.edu.unimagdalena.samaria360.booking.domain.model.MotivoInvalido;
 import co.edu.unimagdalena.samaria360.booking.domain.model.PaginaReservas;
 import co.edu.unimagdalena.samaria360.booking.domain.model.Reserva;
@@ -22,13 +23,14 @@ public class ConsultarReservasService implements ConsultarMisReservasUseCase, Co
     }
 
     @Override
-    public PaginaReservas consultar(UUID idTurista, int pagina) {
+    public PaginaReservas consultar(UUID idTurista, String desde, String hasta, String estados, int pagina) {
+        ValidadorCampos validador = new ValidadorCampos();
+        FiltroReservas filtro = FiltroReservas.validar(desde, hasta, estados, validador);
         if (pagina < 0) {
-            ValidadorCampos validador = new ValidadorCampos();
             validador.error("pagina", MotivoInvalido.VALOR_MINIMO);
-            validador.lanzarSiHayErrores();
         }
-        return reservas.listarDeTurista(idTurista, pagina, TAMANO_PAGINA);
+        validador.lanzarSiHayErrores();
+        return reservas.listarDeTurista(idTurista, filtro, pagina, TAMANO_PAGINA);
     }
 
     @Override

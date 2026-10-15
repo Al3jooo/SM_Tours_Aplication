@@ -69,10 +69,17 @@ public class ReservaController {
         return respuesta.body(RespuestaReserva.de(resultado.reserva()));
     }
 
+    /**
+     * RF12 (del lado del turista): {@code desde} y {@code hasta} filtran por la fecha de la actividad; {@code estado}
+     * admite uno o varios valores separados por coma.
+     */
     @GetMapping("/mias")
     public RespuestaPaginaReservas mias(@AuthenticationPrincipal Jwt jwt,
+                                        @RequestParam(required = false) String desde,
+                                        @RequestParam(required = false) String hasta,
+                                        @RequestParam(required = false) String estado,
                                         @RequestParam(defaultValue = "0") int pagina) {
-        return RespuestaPaginaReservas.de(misReservas.consultar(turista(jwt), pagina));
+        return RespuestaPaginaReservas.de(misReservas.consultar(turista(jwt), desde, hasta, estado, pagina));
     }
 
     /** 404 si no existe o si es de otro turista: no se revela cuál. */

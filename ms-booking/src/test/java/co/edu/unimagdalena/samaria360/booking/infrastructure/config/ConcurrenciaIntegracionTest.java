@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.IntFunction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -233,7 +234,7 @@ class ConcurrenciaIntegracionTest {
     // ------------------------------------------------------------------ auxiliares
 
     /** Lanza {@code n} tareas que arrancan a la vez; devuelve el resultado o la excepción de cada una. */
-    private static List<Object> aLaVez(int n, java.util.function.IntFunction<Callable<?>> tarea) throws Exception {
+    static List<Object> aLaVez(int n, IntFunction<Callable<?>> tarea) throws Exception {
         ExecutorService hilos = Executors.newFixedThreadPool(n);
         CountDownLatch salida = new CountDownLatch(1);
         try {

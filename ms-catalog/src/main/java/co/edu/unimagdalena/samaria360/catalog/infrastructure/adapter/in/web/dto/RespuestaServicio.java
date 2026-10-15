@@ -14,11 +14,14 @@ import java.util.List;
  * Detalle público de un servicio (WF-06, WF-10 y la consulta de ms-booking, ADR-007). Solo datos públicos: nada del
  * estado interno de publicación.
  *
+ * @param descripcion      texto público del servicio (WF-06); puede ser null
+ * @param imagenes         rutas de las imágenes; la primera es la portada (RF48)
  * @param precioBase       precio «desde» (RF37); en un alojamiento, el menor precio por noche de sus unidades
  * @param detalleCategoria la forma depende de la categoría; en Alojamiento trae las unidades (D1)
  */
 public record RespuestaServicio(String id, String idPrestador, String nombreComercial, String categoria,
-                                BigDecimal precioBase, String moneda, Object detalleCategoria) {
+                                String descripcion, List<String> imagenes, BigDecimal precioBase, String moneda,
+                                Object detalleCategoria) {
 
     /** Los precios del prototipo están en pesos colombianos. */
     public static final String MONEDA = "COP";
@@ -42,8 +45,8 @@ public record RespuestaServicio(String id, String idPrestador, String nombreCome
 
     public static RespuestaServicio de(ServicioComercial servicio) {
         return new RespuestaServicio(servicio.getId().orElseThrow(), servicio.getPrestadorId().toString(),
-                servicio.getNombreComercial(), servicio.getCategoria().name(), servicio.getPrecioBase().orElse(null),
-                MONEDA, detalle(servicio.getDetalle()));
+                servicio.getNombreComercial(), servicio.getCategoria().name(), servicio.getDescripcion().orElse(null),
+                servicio.getImagenes(), servicio.getPrecioBase().orElse(null), MONEDA, detalle(servicio.getDetalle()));
     }
 
     private static Object detalle(DetalleCategoria detalle) {

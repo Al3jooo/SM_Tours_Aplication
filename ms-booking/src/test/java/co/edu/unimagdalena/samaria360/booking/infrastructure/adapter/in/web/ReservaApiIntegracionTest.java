@@ -378,6 +378,30 @@ class ReservaApiIntegracionTest {
     }
 
     @Test
+    void laDisponibilidadTraeElHorarioDeLosAlojamientosYElPlazoDeCancelacion() throws Exception {
+        String respuesta = cuerpo(mvc.perform(get("/api/v1/reservas/disponibilidad").param("servicio", hotel)
+                .param("desde", ENTRADA.toString())).andReturn());
+
+        assertThat((String) JsonPath.read(respuesta, "$.horaCheckIn")).isEqualTo("15:00:00");
+        assertThat((String) JsonPath.read(respuesta, "$.horaCheckOut")).isEqualTo("12:00:00");
+        assertThat((Integer) JsonPath.read(respuesta, "$.plazoCancelacionHoras")).isEqualTo(24);
+    }
+
+    /** Ajuste 1: el precio se compara por valor (compareTo), no por escala: 160001 frente a 80000.50 × 2 es 201. */
+    @Test
+    void unTotalSinDecimalesContraUnPrecioConDosDecimalesNoEsPrecioCambiado() throws Exception {
+        String tourConCentavos = catalogo.publicarTour("Tour con centavos", 12, "80000.50");
+        inventario.horario(tourConCentavos, ENTRADA, OCHO, 12, 12);
+        Map<String, Object> cuerpo = cuerpoTour(2, "160001");
+        cuerpo.put("idServicio", tourConCentavos);
+
+        MvcResult resultado = reservar(ana, UUID.randomUUID(), cuerpo);
+
+        assertThat(resultado.getResponse().getStatus()).as(cuerpo(resultado)).isEqualTo(201);
+        assertThat(decimal(JsonPath.read(cuerpo(resultado), "$.precioTotal"))).isEqualByComparingTo("160001");
+    }
+
+    @Test
     void elResumenDeLasTarjetasEsPublicoYDiceConCuposMientrasQuedeAlgunaUnidad() throws Exception {
         reservar(ana, UUID.randomUUID(), cuerpoAlojamiento(suite, 3, 3, 4, "2340000"));
         String sinInventario = CatalogoSimulado.nuevoId();

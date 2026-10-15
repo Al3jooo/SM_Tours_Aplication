@@ -4,6 +4,7 @@ import co.edu.unimagdalena.samaria360.booking.application.port.out.ClaveIdempote
 import co.edu.unimagdalena.samaria360.booking.application.port.out.ReservaRepositoryPort;
 import co.edu.unimagdalena.samaria360.booking.domain.model.CupoDescontado;
 import co.edu.unimagdalena.samaria360.booking.domain.model.EstadoReserva;
+import co.edu.unimagdalena.samaria360.booking.domain.model.FiltroReservas;
 import co.edu.unimagdalena.samaria360.booking.domain.model.PaginaReservas;
 import co.edu.unimagdalena.samaria360.booking.domain.model.Reserva;
 
@@ -22,9 +23,16 @@ public class ReservaRepositoryEnMemoria implements ReservaRepositoryPort {
     private final Map<UUID, Reserva> reservas = new LinkedHashMap<>();
     private final Map<UUID, List<CupoDescontado>> descuentos = new LinkedHashMap<>();
     private final Eventos eventos;
+    private Runnable antesDeCancelar = () -> {
+    };
 
     public ReservaRepositoryEnMemoria(Eventos eventos) {
         this.eventos = eventos;
+    }
+
+    /** Simula otra transacción que confirma entre la lectura de la reserva y su UPDATE condicional. */
+    public void alCancelar(Runnable accion) {
+        this.antesDeCancelar = accion;
     }
 
     public int cantidad() {
@@ -59,9 +67,11 @@ public class ReservaRepositoryEnMemoria implements ReservaRepositoryPort {
     }
 
     @Override
-    public PaginaReservas listarDeTurista(UUID idTurista, int pagina, int tamano) {
-        List<Reserva> propias = reservas.values().stream().filter(r -> r.idTurista().equals(idTurista))
-                .sorted(Comparator.comparing(Reserva::fechaCreacion).reversed()).toList();
+    public PaginaReservas listarDeTurista(UUID idTurista, FiltroReservas filtro, int pagina, int tamano) {
+        List<Reserva> propias = reservas.values().stream()
+                .filter(r -> r.idTurista().equals(idTurista) && filtro.incluye(r))
+                .sorted(Comparator.comparing(Reserva::fechaInicio).thenComparing(Reserva::idReserva).reversed())
+                .toList();
         int desde = Math.min(pagina * tamano, propias.size());
         return new PaginaReservas(propias.subList(desde, Math.min(desde + tamano, propias.size())), pagina, tamano,
                 propias.size());
@@ -69,12 +79,34 @@ public class ReservaRepositoryEnMemoria implements ReservaRepositoryPort {
 
     @Override
     public boolean cancelarSiConfirmada(UUID idReserva, UUID idTurista, Instant ahora) {
+        antesDeCancelar.run();
         Reserva reserva = reservas.get(idReserva);
         if (reserva == null || !reserva.idTurista().equals(idTurista) || reserva.estado() != EstadoReserva.Confirmada) {
             return false;
         }
         reservas.put(idReserva, reserva.cancelada(ahora));
         return true;
+    }
+
+    @Override
+    public int completarTerminadas(Instant ahora) {
+        int cambiadas = 0;
+        for (Reserva r : List.copyOf(reservas.values())) {
+            if (r.estado() == EstadoReserva.Confirmada && !r.fechaFin().isAfter(ahora)) {
+                reservas.put(r.idReserva(), completada(r));
+                cambiadas++;
+            }
+        }
+        return cambiadas;
+    }
+
+    /** Lo que hace el UPDATE de RF52 sobre una fila. */
+    public static Reserva completada(Reserva r) {
+        return new Reserva(r.idReserva(), r.idTurista(), r.idPrestador(), r.idServicio(), r.nombreServicio(),
+                r.categoria(), r.idUnidad(), r.nombreUnidad(), EstadoReserva.Completada, r.cantidad(), r.personas(),
+                r.precioUnitario(), r.unidadCobro(), r.montoTotal(), r.moneda(), r.fechaEntrada(), r.fechaSalida(),
+                r.horaInicio(), r.fechaInicio(), r.fechaFin(), r.fechaCreacion(), null, r.claveIdempotencia(),
+                r.hashSolicitud());
     }
 
     @Override

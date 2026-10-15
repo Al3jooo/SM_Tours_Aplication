@@ -196,6 +196,46 @@ class MasFiltrosEquivalenciaTest {
         assertThat(enMongo).containsExactlyInAnyOrderElementsOf(esperados);
     }
 
+    /**
+     * El precio «desde» con filtros de unidad es el de las unidades que cumplen, igual en MongoDB ($filter) y en
+     * memoria, y el orden por precio usa ese mismo valor.
+     */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("casosPrecioDesde")
+    void conFiltrosDeUnidadElPrecioYElOrdenSonLosDeLasUnidadesQueCumplen(FiltrosCategoria filtros,
+                                                                        BigDecimal precioMaximo) {
+        for (OrdenBusqueda orden : List.of(OrdenBusqueda.PrecioAscendente, OrdenBusqueda.PrecioDescendente,
+                OrdenBusqueda.Nombre)) {
+            CriteriosBusqueda criterios = new CriteriosBusqueda(null, filtros.categoria(), filtros, precioMaximo, null,
+                    null, Set.of(), orden, 0, CriteriosBusqueda.TAMANO_PAGINA_MAXIMO);
+
+            assertThat(preciosPorNombre(ofertas.buscar(criterios).elementos())).as("orden %s", orden)
+                    .isEqualTo(preciosPorNombre(politica.buscar(SERVICIOS, List.of(), criterios).elementos()));
+        }
+    }
+
+    static Stream<Arguments> casosPrecioDesde() {
+        return Stream.of(
+                Arguments.of(alojamiento(null, 3, null), null),
+                Arguments.of(alojamiento(null, 5, null), null),
+                Arguments.of(alojamiento(null, null, "doble"), null),
+                Arguments.of(alojamiento(null, 2, null), new BigDecimal("200000")),
+                Arguments.of(alojamiento(Set.of(ServicioIncluido.WiFi), 3, null), new BigDecimal("300000")));
+    }
+
+    @Test
+    void conTresHuespedesElHotelDeDosUnidadesMuestraElPrecioDeLaSuiteYCambiaDePuesto() {
+        CriteriosBusqueda sinFiltro = new CriteriosBusqueda(null, Categoria.Alojamiento, alojamiento(null, null, null),
+                null, null, null, Set.of(), OrdenBusqueda.PrecioAscendente, 0, 10);
+        CriteriosBusqueda tresHuespedes = new CriteriosBusqueda(null, Categoria.Alojamiento,
+                alojamiento(null, 3, null), null, null, null, Set.of(), OrdenBusqueda.PrecioAscendente, 0, 10);
+
+        assertThat(preciosPorNombre(ofertas.buscar(sinFiltro).elementos())).containsExactly(
+                "Hotel de dos unidades=150000", "Cabañas del río=180000", "Ecolodge=420000");
+        assertThat(preciosPorNombre(ofertas.buscar(tresHuespedes).elementos())).containsExactly(
+                "Cabañas del río=180000", "Hotel de dos unidades=260000", "Ecolodge=420000");
+    }
+
     @Test
     void combinaMasFiltrosConAccesibilidadYPrecio() {
         CriteriosBusqueda criterios = new CriteriosBusqueda(null, Categoria.Gastronomia,
@@ -274,6 +314,12 @@ class MasFiltrosEquivalenciaTest {
 
     private static FiltrosAlojamiento alojamiento(Set<ServicioIncluido> servicios, Integer huespedes, String tipo) {
         return new FiltrosAlojamiento(servicios, huespedes, tipo);
+    }
+
+    private static List<String> preciosPorNombre(List<ResultadoOferta> resultados) {
+        return resultados.stream()
+                .map(r -> r.nombre() + "=" + (r.precio() == null ? null : r.precio().stripTrailingZeros().toPlainString()))
+                .toList();
     }
 
     private static List<String> nombres(List<ResultadoOferta> resultados) {
