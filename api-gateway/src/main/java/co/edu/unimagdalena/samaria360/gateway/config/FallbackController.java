@@ -18,13 +18,14 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
 
 /**
  * Respuesta cuando un servicio está caído, lento o con el circuito abierto: ProblemDetail 503 con el mismo formato
- * de errores que ms-auth y ms-catalog ({@code codigo} estable para el frontend).
+ * de errores que ms-auth, ms-catalog y ms-booking ({@code codigo} estable para el frontend).
  */
 @RestController
 public class FallbackController {
 
     private static final Logger LOG = LoggerFactory.getLogger(FallbackController.class);
-    private static final Map<String, String> SERVICIOS = Map.of("auth", "ms-auth", "catalogo", "ms-catalog");
+    private static final Map<String, String> SERVICIOS = Map.of("auth", "ms-auth", "catalogo", "ms-catalog",
+            "reservas", "ms-booking");
 
     @RequestMapping("/fallback/{ruta}")
     public ResponseEntity<ProblemDetail> servicioNoDisponible(@PathVariable String ruta, ServerWebExchange exchange) {

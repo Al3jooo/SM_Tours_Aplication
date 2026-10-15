@@ -9,10 +9,10 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 
 ## Contexto de proceso
 
-- Metodología **RUP**, fase de **Elaboración**. Este código es el **prototipo arquitectónico ejecutable** que valida la línea base de la arquitectura; no es un producto completo.
+- Metodología **RUP**, fase de **Construcción**. Este código es el **prototipo arquitectónico ejecutable** que valida la línea base de la arquitectura; no es un producto completo.
 - Usar solo terminología RUP: fases, iteraciones, casos de uso, requisitos funcionales (RF), requisitos no funcionales (RNF). No usar terminología de métodos ágiles.
-- **Alcance de esta iteración:** inicio de sesión y registro de turistas y prestadores (`ms-auth`: RF15, RF01, RF02) y vista principal del catálogo (`ms-catalog`).
-- **Fuera de alcance:** reservas, chatbot real, notificaciones (el aviso por correo del registro llega con RF34), analítica. No implementarlos aunque parezcan fáciles.
+- **Alcance de esta iteración:** inicio de sesión y registro de turistas y prestadores (`ms-auth`: RF15, RF01, RF02), vista principal del catálogo (`ms-catalog`) y el CU «Reservar servicio» en el backend (`ms-booking`: RF11, RF18, RF20, RF32, RF37, RF44; la pantalla WF-10 llega en la iteración siguiente).
+- **Fuera de alcance:** chatbot real, notificaciones (el aviso por correo del registro llega con RF34; RF13, RF30 y RF63, con ms-notificaciones), analítica, y en reservas RF12, RF19 y RF52. No implementarlos aunque parezcan fáciles.
 - Si una regla de negocio no está definida en el SRS (`docs/srs/`), **preguntar**; no inventarla.
 - Fuente única de requisitos: `docs/srs/especificacion de requisitos.pdf`. Modelo de datos: `docs/sad/diagramas/modelo-logico.dbml`. Ignorar las carpetas `Documentos extras/`, `DocumentosEntregable1/` y `Diagramas de casos de uso/`, que contienen versiones anteriores.
 - Las pantallas del frontend y los datos que exponen los endpoints deben corresponder a los wireframes de `docs/wireframes/`. Si un elemento del wireframe queda fuera del alcance del prototipo, se muestra deshabilitado y se lista como pendiente.
@@ -71,12 +71,22 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
   - `docs/sad/modelo-nosql/*.schema.json` describe la última versión; `MigracionesMongoTest` lo verifica;
   - el `oneOf` de `detalleCategoria` discrimina por `categoria` en el nivel superior.
 
+## ms-booking (Java 17, Spring Boot 3.5.16, PostgreSQL `reservas_db`)
+
+- Misma estructura hexagonal, ArchUnit y ProblemDetail que ms-auth; además, `io.github.resilience4j..` solo en `infrastructure`. Decisiones D1 a D10 en `docs/trazabilidad.md` («Reservar servicio»), [ADR-007](docs/sad/adr/ADR-007-reservas-y-catalogo.md) y el contrato en `docs/sad/api/ms-booking.md`.
+- Flyway y `ddl-auto=validate`, con las mismas reglas de migraciones que ms-auth. La reserva es una entidad JPA que se inserta con `EntityManager.persist` + `flush` (el uuid lo asigna el dominio; nunca `save()`); el inventario usa SQL nativo (`JdbcTemplate`), sin entidades.
+- **Concurrencia (D3):** UPDATE condicional + CHECK, un día por sentencia, en orden de fecha y hora, dentro de una transacción. Nunca cargar filas de inventario para modificarlas en memoria.
+- **Catálogo (D4):** llamada al detalle público de ms-catalog **antes** de abrir la transacción (`ReservarServicioTransaccional`); timeouts de 500 ms y 1,5 s, un reintento solo ante red o 5xx, circuit breaker `catalogo`. Consultar, cancelar y la disponibilidad no llaman al catálogo.
+- **Idempotencia (D6):** `Idempotency-Key` obligatoria en `POST /api/v1/reservas`; el reenvío responde 201 con `Idempotent-Replayed: true`.
+- Fechas en `America/Bogota`; la hora actual sale de `RelojPort`. RF44: cancelar hasta 24 h antes del inicio, límite incluido.
+- El generador de inventario demo (D5) solo corre con `INVENTARIO_DEMO_HABILITADO=true` (Docker Compose). Es un sustituto temporal de RF19.
+
 ## API Gateway (Spring Cloud Gateway 4.3, WebFlux)
 
 - Único punto de entrada (diagrama de despliegue del SAD). Spring Cloud 2025.0.3 sobre el mismo parent de Boot; starter `spring-cloud-starter-gateway-server-webflux` y propiedades con el prefijo `spring.cloud.gateway.server.webflux.*`.
-- Prefijos de rutas: `/api/v1/auth/**`, `/api/v1/catalogo/**`, `/api/v1/reservas/**`, `/api/v1/chatbot/**`, `/api/v1/analytics/**`. Implementados: auth (`AUTH_URI`) y catálogo (`CATALOG_URI`); las rutas llegan sin reescribir.
+- Prefijos de rutas: `/api/v1/auth/**`, `/api/v1/catalogo/**`, `/api/v1/reservas/**`, `/api/v1/chatbot/**`, `/api/v1/analytics/**`. Implementados: auth (`AUTH_URI`), catálogo (`CATALOG_URI`) y reservas (`BOOKING_URI`); las rutas llegan sin reescribir. CORS permite `Idempotency-Key` y expone `Idempotent-Replayed` y `Location`.
 - **No valida el JWT**: reenvía `Authorization` sin cambios y cada servicio lo valida con el JWKS de ms-auth (ADR-005). No agregar Spring Security al gateway.
-- Resiliencia: 2 s de conexión, 5 s de respuesta, circuit breaker por ruta (Resilience4j, solo 502/503/504 lo abren) con fallback ProblemDetail 503 `codigo: SERVICIO_NO_DISPONIBLE` y `servicio`.
+- Resiliencia: 2 s de conexión, 5 s de respuesta, circuit breaker por ruta (Resilience4j, solo 502/503/504 lo abren; en reservas, solo 502/504, para que el 503 propio de ms-booking con `servicio: ms-catalog` llegue tal cual) con fallback ProblemDetail 503 `codigo: SERVICIO_NO_DISPONIBLE` y `servicio`.
 - Transversal: CORS global (`CORS_ORIGENES`) y `X-Correlation-Id` (se genera si falta o no es válido, se reenvía y se devuelve).
 - **No tiene dominio: no aplica la estructura hexagonal ni ArchUnit.** Paquete `co.edu.unimagdalena.samaria360.gateway` con `config/`.
 - Pruebas: `@SpringBootTest` + `WebTestClient` con servicios simulados sobre Reactor Netty `HttpServer` (ya incluido; sin librerías extra).
@@ -89,6 +99,7 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 | api-gateway | 8080 | Único punto de entrada a los servicios; publicado en el host |
 | ms-auth | 8081 | En Compose no se publica: solo red interna (`http://ms-auth:8081`) |
 | ms-catalog | 8082 | En Compose no se publica: solo red interna (`http://ms-catalog:8082`) |
+| ms-booking | 8083 | En Compose no se publica: solo red interna (`http://ms-booking:8083`) |
 | frontend (Vite, desarrollo) | 5173 | Proxy `/api` → 8080 |
 | PostgreSQL / MongoDB | `POSTGRES_PORT` / `MONGO_PORT` | Definidos en `.env`; publicados solo en 127.0.0.1 |
 
@@ -108,6 +119,7 @@ docker compose up -d postgres-bases mongo-migraciones   # solo las bases (y sus 
 cd ms-auth && ./mvnw test       # pruebas
 cd ms-auth && ./mvnw spring-boot:run
 cd ms-catalog && ./mvnw spring-boot:run
+cd ms-booking && ./mvnw spring-boot:run
 cd api-gateway && ./mvnw spring-boot:run   # http://localhost:8080
 cd frontend && npm run dev                 # http://localhost:5173
 ```
@@ -135,11 +147,11 @@ Los wireframes (`docs/wireframes/`) son una guía de **estructura**, no de esté
 - El modelo conceptual y el modelo lógico (`docs/sad/diagramas/modelo-logico.dbml`) están **unificados en un solo diagrama por petición del profesor**. Esa unificación es un requisito académico: no representa una base única. No propongas separarlos ni simplificarlos.
 - En la arquitectura son **dos microservicios con dos bases PostgreSQL distintas**:
   - **ms-auth → `auth_db`**: `rol`, `usuario`, `turista`, `prestador`, `gestor`, `administrador`, `token_recuperacion`, `turista_categoria_interes`.
-  - **ms-booking (planificado) → `reservas_db`**: `reserva`, `inventario_cupo`, `reserva_cupo_dia`.
+  - **ms-booking → `reservas_db`**: `reserva`, `inventario_cupo`, `reserva_cupo_dia`.
 - Ningún servicio lee ni escribe la base de otro. No crees tablas de reservas en `auth_db` ni tablas de autenticación en `reservas_db`.
 - El servicio de un solo uso `postgres-bases` (Compose) crea en cada arranque las bases que falten (`infra/postgres/asegurar-bases.sql`), también en volúmenes creados antes; `infra/postgres/init/` solo corre con el volumen vacío.
 - Las relaciones del diagrama que cruzan bases son **referencias lógicas sin llave foránea física**, y la integridad la valida la aplicación:
   - `Reserva.id_turista` → `usuario.id_usuario` de `auth_db` (`uuid`, tomado del claim `sub` del JWT);
   - `id_servicio_mongo` → `_id` del documento en `catalog_db` (MongoDB).
 - El catálogo vive en MongoDB (`catalog_db`, ms-catalog), con los esquemas de `docs/sad/modelo-nosql/`.
-- Pendiente conocido, que no se corrige sin un pedido explícito: ms-auth y ms-catalog se conectan con las credenciales de superusuario de PostgreSQL y `root` de MongoDB.
+- Pendiente conocido, que no se corrige sin un pedido explícito: ms-auth y ms-booking se conectan con el superusuario de PostgreSQL, y ms-catalog con `root` de MongoDB.

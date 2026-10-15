@@ -1,0 +1,73 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: ms-booking
+  config:
+    # .env de la raíz del monorepo (ms-booking se ejecuta desde su propia carpeta)
+    import: optional:file:../.env[.properties]
+  profiles:
+    default: dev
+  datasource:
+    # POSTGRES_HOST: localhost con ./mvnw; "postgres" dentro de Docker Compose.
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/reservas_db
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration
+  cloud:
+    circuitbreaker:
+      resilience4j:
+        # Los límites de tiempo son los timeouts HTTP (samaria360.catalogo) y la llamada corre en el mismo hilo:
+        # sin TimeLimiter ni pool de hilos (que además entregarían los errores envueltos en ExecutionException).
+        disable-time-limiter: true
+        disable-thread-pool: true
+      bulkhead:
+        resilience4j:
+          enabled: false
+
+samaria360:
+  seguridad:
+    # JWKS de ms-auth para validar los JWT (ADR-005).
+    jwk-set-uri: ${AUTH_JWKS_URI:http://localhost:8081/api/v1/auth/.well-known/jwks.json}
+    emisor: samaria360-auth
+  catalogo:
+    # Llamada directa a ms-catalog antes de reservar (D4, ADR-007). En Docker Compose: http://ms-catalog:8082
+    url: ${MS_CATALOG_URL:http://localhost:8082}
+    timeout-conexion: 500ms
+    timeout-lectura: 1500ms
+  reservas:
+    hora-check-in: "15:00"
+    hora-check-out: "12:00"
+  inventario-demo:
+    # Generador de inventario de demostración (D5), sustituto temporal de RF19. Docker Compose lo habilita.
+    habilitado: ${INVENTARIO_DEMO_HABILITADO:false}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+# Swagger solo en dev (ver documento de perfil dev más abajo)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

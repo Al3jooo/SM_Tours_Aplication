@@ -1,6 +1,6 @@
 # Matriz de trazabilidad del prototipo arquitectónico
 
-Fase de Elaboración (RUP). Relaciona cada elemento de los wireframes (`docs/wireframes/`, **versión 2 del 12/10/2026**) con su caso de uso, sus requisitos (`docs/srs/`), el endpoint que lo atiende y el componente que lo implementa. Cada caso de uso nuevo agrega sus filas a esta matriz. Lo que cambió al pasar de la v1 a la v2 está en «Cambios de los wireframes v2».
+Fase de Construcción (RUP). Relaciona cada elemento de los wireframes (`docs/wireframes/`, **versión 2 del 12/10/2026**) con su caso de uso, sus requisitos (`docs/srs/`), el endpoint que lo atiende y el componente que lo implementa. Cada caso de uso nuevo agrega sus filas a esta matriz. Lo que cambió al pasar de la v1 a la v2 está en «Cambios de los wireframes v2».
 
 **Estados:** **Implementado** (funciona de punta a punta) · **Deshabilitado** (visible en pantalla, sin funcionalidad, con la marca «Próximamente») · **Pendiente** (aún no aparece en el prototipo).
 
@@ -156,11 +156,23 @@ Pantallas de la plataforma (WF-04 a WF-10) y pantallas de acceso (WF-01 a WF-03)
 | WF-05 | Opciones de «Más filtros» de una categoría (servicios publicados de prestadores activos), pública; sin categoría o con una inválida, 400 `CRITERIOS_INVALIDOS`. En Alojamiento, los tipos de habitación y el rango de huéspedes salen de todas las unidades | Buscar oferta turística | RF10, RF16, RF22 | `GET /api/v1/catalogo/filtros?categoria=` | `features/catalogo/opcionesFiltroApi.ts` | Implementado |
 | WF-06, WF-10 | Detalle público de un servicio: `id`, `idPrestador`, `nombreComercial`, `categoria`, `precioBase` («desde»), `moneda` (COP) y `detalleCategoria`; en Alojamiento, `serviciosIncluidos` y `unidades` (`idUnidad`, `nombre`, `tipoHabitacion`, `numHabitaciones`, `capacidadMaxHuespedes`, `precioNoche`). Solo servicios Publicados de prestadores activos: si no, o con un id que no es un ObjectId, 404 `OFERTA_NO_DISPONIBLE`. Es el endpoint que consultará ms-booking antes de reservar | Consultar detalle de oferta, Reservar servicio | RF10, RF16, RF22, RF37 | `GET /api/v1/catalogo/servicios/{id}` | — (lo usarán WF-06 y WF-10) | Implementado (backend) |
 
+### Endpoints de ms-booking
+
+Bajo `/api/v1/reservas`. Contrato completo en [`sad/api/ms-booking.md`](sad/api/ms-booking.md); decisiones en «Reservar servicio — decisiones». WF-10 se construye en la iteración siguiente: hoy no hay pantalla.
+
+| Wireframe | Elemento | Caso de uso | RF/RNF | Endpoint | Componente frontend | Estado |
+|---|---|---|---|---|---|---|
+| WF-10 | Reservar: confirmación automática con descuento inmediato de cupos; una unidad por reserva (D1); precio calculado en el servidor y congelado (RF32), 409 `PRECIO_CAMBIADO` si no coincide con `precioTotalEsperado` (RF37); `Idempotency-Key` obligatoria (D6). Pruebas: `ReservaApiIntegracionTest`, `ConcurrenciaIntegracionTest`, `PoliticaReservaTest` | Reservar servicio | RF11, RF20, RF32, RF37 | `POST /api/v1/reservas` | — (WF-10, iteración siguiente) | Implementado (backend) |
+| WF-10 | Mis reservas (20 por página, de la más reciente) y una reserva propia (la ajena es 404); responden con lo guardado, sin consultar el catálogo | Reservar servicio | RF20, RF32 | `GET /api/v1/reservas/mias`, `GET /api/v1/reservas/{id}` | — (iteración siguiente) | Implementado (backend) |
+| WF-10 | Cancelar hasta 24 h antes del inicio (límite incluido); idempotente; devuelve los cupos a las mismas noches u horario. Pruebas: `ReservaTest`, `CancelarReservaServiceTest`, `ConcurrenciaIntegracionTest` | Reservar servicio | RF18, RF44 | `POST /api/v1/reservas/{id}/cancelacion` | — (iteración siguiente) | Implementado (backend) |
+| WF-10 | Disponibilidad pública por unidad y noche (alojamiento) o por horario (tour), hasta 60 días | Reservar servicio | RF11 | `GET /api/v1/reservas/disponibilidad` | — (WF-10, iteración siguiente) | Implementado (backend) |
+| WF-04, WF-05 | Resumen para las tarjetas («Disponibilidad»): `CON_CUPOS`, `AGOTADO` o `SIN_INVENTARIO`, hasta 10 servicios | Buscar oferta turística | RF11, RF16 | `GET /api/v1/reservas/disponibilidad/resumen` | — (tarjetas, iteración siguiente) | Implementado (backend) |
+
 ### API Gateway
 
 | Wireframe | Elemento | Caso de uso | RF/RNF | Endpoint | Componente frontend | Estado |
 |---|---|---|---|---|---|---|
-| Todas | Único punto de entrada (`:8080`): enrutamiento de `/api/v1/auth/**` y `/api/v1/catalogo/**`; timeouts y circuit breaker por ruta con fallback 503 `SERVICIO_NO_DISPONIBLE`; CORS global; `X-Correlation-Id`. El JWT lo validan los servicios ([ADR-005](sad/adr/ADR-005-api-gateway.md)) | Transversal (todos) | RNF01, RNF02, RNF03 | `/api/v1/**` en `:8080` | `frontend/vite.config.ts` (proxy `/api` → 8080) | Implementado |
+| Todas | Único punto de entrada (`:8080`): enrutamiento de `/api/v1/auth/**`, `/api/v1/catalogo/**` y `/api/v1/reservas/**`; timeouts y circuit breaker por ruta con fallback 503 `SERVICIO_NO_DISPONIBLE` (`servicio`: ms-auth, ms-catalog o ms-booking; en reservas el circuito solo cuenta 502 y 504, así que el 503 de ms-booking con `servicio: ms-catalog` llega tal cual); CORS global (también `Idempotency-Key`, y expone `Idempotent-Replayed` y `Location`); `X-Correlation-Id`. El JWT lo validan los servicios ([ADR-005](sad/adr/ADR-005-api-gateway.md)) | Transversal (todos) | RNF01, RNF02, RNF03 | `/api/v1/**` en `:8080` | `frontend/vite.config.ts` (proxy `/api` → 8080) | Implementado |
 
 ## Pendientes
 
@@ -177,7 +189,15 @@ Pantallas de la plataforma (WF-04 a WF-10) y pantallas de acceso (WF-01 a WF-03)
 | **Criterio real de «Destacados esta semana».** Hoy es provisional: `tamano=3&orden=PrecioAscendente`. Que salgan solo servicios depende de la decisión 4 (los resultados sin precio van al final), no de un filtro por tipo; el componente, además, descarta lo que no sea servicio. El equipo debe definir el criterio (p. ej. mejor calificación o una marca de destacado asignada por el gestor); cualquiera de los dos requiere datos que hoy no existen | WF-04 | RF16 | Por definir (equipo) |
 | Banner de avisos del municipio (no existe el modelo de avisos) | WF-04 | RF40 | Por definir |
 | Calificación, afluencia, disponibilidad, «Menor afluencia» y orden por calificación (datos aún no modelados) | WF-04, WF-05 | RF17, RF39, RF51, RF61 | Por definir |
-| «Ver detalle» (WF-06); la reserva (WF-10) se hará desde el detalle. El endpoint de detalle ya existe (`GET /api/v1/catalogo/servicios/{id}`); faltan las pantallas | WF-04, WF-05 | RF37, RF20 | Iteración siguiente (detalle) / Por definir (reservas) |
+| «Ver detalle» (WF-06) y la reserva (WF-10), que se hará desde el detalle. Los endpoints ya existen (`GET /api/v1/catalogo/servicios/{id}` y ms-booking); faltan las pantallas | WF-04, WF-05, WF-06, WF-10 | RF37, RF20 | Iteración siguiente |
+| Con filtros de unidad activos, el precio «desde» de la tarjeta debe ser el mínimo de las unidades que cumplen; se resuelve con WF-10 | WF-04, WF-05, WF-10 | RF16, RF37 | Con WF-10 |
+| «Disponibilidad» en las tarjetas: el resumen de ms-booking ya existe (`/api/v1/reservas/disponibilidad/resumen`); falta pedirlo una vez por página y mostrar «Disponible / Agotado / —» (con ms-booking caído, «—») | WF-04, WF-05 | RF11 | Iteración siguiente |
+| **Generador de inventario demo (D5), sustituto temporal de RF19.** Cuando el prestador pueda modificar sus cupos (RF19), hay que definir antes: qué pasa si baja los cupos por debajo de lo ya reservado (hoy el CHECK lo impide) y qué pasa con las reservas futuras de una unidad que elimina del catálogo (hoy sus filas quedan huérfanas y no se pueden reservar) | WF-08 | RF19 | Con RF19 |
+| RF13, RF30 y RF63 los resuelve ms-notificaciones; ms-booking no publica eventos en esta iteración | — | RF13, RF30, RF63 | Con ms-notificaciones |
+| `prestadorActivo` de catalog_db: hoy solo lo mantiene la semilla. Su sincronización desde ms-auth, cuando una cuenta pasa a Inactiva, depende de RF22 y no tiene mecanismo definido | — | RF22 | Por definir |
+| Historial de reservas con filtros (RF12) y paso automático a Completada (RF52): el estado existe en el modelo, pero nada lo asigna | WF-10 | RF12, RF52 | Por definir |
+| El esquema `servicios` no define la unidad del precio («cobra por», diferencia 5 de la v2): el prototipo cobra el alojamiento por noche y habitación, y el tour por persona, como dicen las tarjetas de WF-05 | WF-08 | RF37 | Construcción |
+| ms-booking se conecta a `reservas_db` con el superusuario de PostgreSQL, como ms-auth (pendiente conocido); rol propio previsto: `booking_app`, con privilegios solo sobre `reservas_db` | — | RNF06 | Por definir |
 | Editor de unidades del alojamiento en el registro de servicios: WF-08 pide hoy un solo número de habitaciones y una capacidad; con D1 debe permitir agregar varias unidades (nombre, tipo, habitaciones, capacidad y precio por noche). Rótulo «desde» en las tarjetas cuando el alojamiento tiene varias unidades | WF-08, WF-04, WF-05 | RF09, RF10, RF37 | Por definir (frontend) |
 | Texto alternativo y dimensiones por imagen en catalog_db (cambio de $jsonSchema), cuando se implemente el registro de fotos del prestador | WF-04, WF-05 | RF23 | Por definir |
 | Navegación «Asistente IA» | Común, WF-07 | RF04 | Por definir (chatbot real fuera de alcance) |
@@ -223,7 +243,7 @@ Elementos que la v2 quitó y que el prototipo ya no muestra (antes estaban desha
 
 | # | Diferencia | Pantallas | Iteración prevista |
 |---|---|---|---|
-| 1 | WF-10 muestra varias unidades por servicio; el modelo tenía un solo `tipoHabitacion` por servicio y `Inventario_Cupo` por servicio y fecha | WF-10 | **Resuelta a favor del wireframe** (D1 de «Reservar servicio»): catalog_db ya tiene unidades (M001); el inventario por unidad llega con ms-booking. Sigue abierta una parte: WF-10 muestra etiquetas de servicios **por unidad**, y en el modelo los servicios incluidos son del alojamiento |
+| 1 | WF-10 muestra varias unidades por servicio; el modelo tenía un solo `tipoHabitacion` por servicio y `Inventario_Cupo` por servicio y fecha | WF-10 | **Resuelta a favor del wireframe** (D1 de «Reservar servicio»): catalog_db tiene unidades (M001) y `inventario_cupo` de ms-booking lleva cupos por unidad y noche. Sigue abierta una parte: WF-10 muestra etiquetas de servicios **por unidad**, y en el modelo los servicios incluidos son del alojamiento |
 | 2 | Pagos (tarjeta, PSE, Nequi) y «Notificarme si se libera» no tienen requisito en el SRS ni componente en la arquitectura | WF-10 | Construcción |
 | 3 | Vocabulario de accesibilidad: RF27 y RF50 definen tres condiciones; WF-08 y WF-09 usan otras | WF-08, WF-09 | Construcción |
 | 4 | Vocabulario de servicios incluidos: WF-08 (WiFi, Desayuno, Piscina, Parqueadero) frente a WF-10 (agrega Aire acondicionado y Baño privado). El prototipo usa hoy la lista de WF-08 como vocabulario cerrado («Más filtros» y validador de MongoDB); la lista definitiva sigue por decidir | WF-08, WF-10 | Construcción |
@@ -249,13 +269,45 @@ Inconsistencias entre el SRS, los wireframes y el modelo, decididas por el equip
 
 ## Reservar servicio — decisiones (RF11, RF18, RF20, RF32, RF37, RF44)
 
-Decisiones del equipo para el CU «Reservar servicio». Aquí está la que cambia catalog_db; las de ms-booking (inventario, concurrencia, idempotencia, cancelación) se registran al implementarlo.
+Decisiones del equipo para el CU «Reservar servicio» (ms-booking, `reservas_db`; arquitectura en [ADR-007](sad/adr/ADR-007-reservas-y-catalogo.md); contrato en [`sad/api/ms-booking.md`](sad/api/ms-booking.md)).
 
 | # | Tema | Decisión | Cambio |
 |---|---|---|---|
 | D1 | Unidades de un alojamiento | **Un alojamiento tiene una o más unidades** (tipos de habitación), cada una con `idUnidad` (ObjectId, estable aunque se renombre), `nombre`, `tipoHabitacion`, `numHabitaciones`, `capacidadMaxHuespedes` y `precioNoche`. Los servicios incluidos siguen siendo del alojamiento. **Una reserva es de una sola unidad**: para dos tipos de habitación, dos reservas. **Precio «desde» (RF37):** `precioBase` de un alojamiento es el menor `precioNoche` de sus unidades; se calcula al guardar (el dominio lo deriva y el validador lo exige con `$expr`), así que la búsqueda, el orden por precio y las tarjetas no cambian. **Filtros:** huéspedes, tipo de habitación y precio máximo los debe cumplir una misma unidad (`$elemMatch`), porque se reserva una sola. **Motivo del cambio:** la primera propuesta era una unidad por servicio (manda RF10), pero obligaba a simplificar WF-10 y a partir un hotel real en varios servicios; el equipo decidió seguir el wireframe. | Esquema v2 de `servicios` (migración M001); semilla de la «Suite familiar» (M002) |
+| D2 | Categorías reservables | **Tour y Alojamiento.** Alojamiento: rango semiabierto [entrada, salida), máximo 14 noches, `cantidad` = habitaciones de la unidad, personas ≤ habitaciones × capacidad de la unidad. Tour: un horario, personas ≤ `aforoMaxGrupo`. Gastronomía y alquiler de equipos: `CATEGORIA_NO_RESERVABLE`. | `inventario_cupo` con clave (servicio, unidad, fecha, hora) `UNIQUE NULLS NOT DISTINCT` y CHECK de forma por categoría |
+| D3 | Concurrencia | **UPDATE condicional + CHECK**, un día por sentencia, en orden de fecha y hora, en una transacción. Antes se comprueba que existan todas las filas (`FECHA_NO_DISPONIBLE`); si alguna no alcanza, `CUPO_AGOTADO` y no se descuenta nada. La cancelación también es un UPDATE condicional (solo si sigue Confirmada): dos cancelaciones a la vez liberan una sola vez. | V1 (`ck_inventario_cupo_disponibles`) |
+| D4 | Datos del catálogo | Llamada síncrona directa al detalle público de ms-catalog, con circuit breaker, **antes** de abrir la transacción; el precio lo calcula el servidor (ADR-007). | — |
+| D5 | Inventario | **Generador de inventario demo** (`samaria360.inventario-demo.habilitado`, activo en Docker Compose): 60 días, tours a las 08:00 y 14:00, una fila por unidad y noche; solo `ON CONFLICT DO NOTHING`. Sustituto temporal de RF19 (ver «Pendientes»). | — |
+| D6 | Idempotencia | `Idempotency-Key` obligatoria (UUID), única por turista, con el hash SHA-256 del pedido normalizado. El reenvío responde **201** con la misma reserva e `Idempotent-Replayed: true`; la misma clave con otro pedido, 422. Solo se guardan los intentos confirmados. Si dos pedidos con la misma clave compiten, el segundo lee la reserva ganadora (nunca un 500). | V1 (`uq_reserva_turista_clave`) |
+| D7 | Mensajería | **Ninguna en esta iteración:** ms-booking no publica eventos (ver «Pendientes»). | — |
+| D8 | Estados y errores | Confirmada, Cancelada y Completada (sin «Pendiente»: RF20 confirma automáticamente). Códigos en `sad/api/ms-booking.md`; `OFERTA_NO_DISPONIBLE` es 409 al reservar (404 en el detalle del catálogo) y `UNIDAD_NO_DISPONIBLE`, 409. | V1 (`ck_reserva_estado`) |
+| D9 | Fechas, horas y precio | Hora de Santa Marta (`America/Bogota`). Check-in 15:00 y check-out 12:00 (configurables). **RF44:** se puede cancelar si faltan 24 h o más (límite incluido); en alojamiento, la fecha programada es el check-in. Precio: alojamiento por noche y habitación de la unidad; tour por persona; COP. La reserva guarda `nombre_servicio`, `nombre_unidad`, `id_unidad` e `id_prestador` (RF32; consultar nunca llama al catálogo); su id es un uuid generado en el dominio. | V1 |
+| D10 | Alcance | Solo backend, con el contrato (`sad/api/ms-booking.md`) y una demo reproducible (`docs/demo/reservas/`). WF-10 llega en la iteración siguiente. | — |
 
 **Solicitud de cambio al SRS.** «RF10 (Alojamiento) debe admitir varias unidades, cada una con tipo, cantidad, capacidad y precio.» Hoy RF10 describe un solo tipo de habitación, número de habitaciones y capacidad por alojamiento.
+
+**Fuente de verdad de la capacidad.**
+
+| Dato | Base | Dueño | Significado |
+|---|---|---|---|
+| `unidades[].numHabitaciones`, `unidades[].capacidadMaxHuespedes` y `aforoMaxGrupo` | catalog_db | ms-catalog (RF10) | Capacidad configurada y límite por reserva |
+| `unidades[].precioNoche` y `precioBase` (tour) | catalog_db | ms-catalog | Precio vigente; la reserva lo congela (RF32) |
+| `inventario_cupo.cupos_totales` | reservas_db | ms-booking | Capacidad operativa de cada noche y unidad, o de cada horario; la crea el generador y la modificará RF19 |
+| `inventario_cupo.cupos_disponibles` | reservas_db | ms-booking | Lo que queda: solo cambia al reservar o cancelar |
+
+**Fuera de alcance de este CU:** RF12 (historial con filtros), RF52 (paso a Completada), RF19 (el prestador modifica los cupos), RF13, RF30 y RF63 (auditoría y notificaciones). Los pagos y «Notificarme si se libera» de WF-10 no tienen requisito (diferencia 2 de la v2).
+
+**Erratas del SRS** (referencias cruzadas a otro requisito):
+
+| Requisito | Cita | Debería citar |
+|---|---|---|
+| RF21 | «RF08» | RF09 |
+| RF29 | «RF16» | RF17 |
+| RF29 | «RF12» | RF13 |
+| RF30 | «RF19» | RF20 |
+| RF44 | «RF17» | RF18 |
+| RF52 | «RF16» | RF17 |
+| RF61 | «RF15» | RF16 |
 
 **Migraciones de catalog_db.** Hasta ahora catalog_db solo tenía los scripts de `infra/mongo/init`, que corren con el volumen vacío. Desde este cambio, esos scripts son la **línea base congelada** (formato v1) y el servicio de un solo uso `mongo-migraciones` aplica `infra/mongo/migraciones` (registradas en la colección `migraciones`), igual en un volumen nuevo que en uno existente. Cada migración lleva su propia copia del validador y es idempotente. M001 se detiene sin tocar nada si encuentra un alojamiento sin `precioBase` (no inventa precios).
 
