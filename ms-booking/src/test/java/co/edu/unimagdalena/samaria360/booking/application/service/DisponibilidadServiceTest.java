@@ -7,6 +7,7 @@ import co.edu.unimagdalena.samaria360.booking.domain.exception.DatosReservaInval
 import co.edu.unimagdalena.samaria360.booking.domain.model.CategoriaReservable;
 import co.edu.unimagdalena.samaria360.booking.domain.model.DiaInventario;
 import co.edu.unimagdalena.samaria360.booking.domain.model.EstadoDisponibilidad;
+import co.edu.unimagdalena.samaria360.booking.domain.model.HorarioReservas;
 import co.edu.unimagdalena.samaria360.booking.domain.model.MotivoInvalido;
 import co.edu.unimagdalena.samaria360.booking.domain.model.Ofertas;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,8 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 class DisponibilidadServiceTest {
 
     private final InventarioEnMemoria inventario = new InventarioEnMemoria(new Eventos());
-    private final DisponibilidadService servicio = new DisponibilidadService(inventario, new RelojFijo(Ofertas.AHORA));
+    private final DisponibilidadService servicio = new DisponibilidadService(inventario, new RelojFijo(Ofertas.AHORA),
+            HorarioReservas.POR_DEFECTO);
 
     @Test
     void elResumenDiceConCuposMientrasAlgunaUnidadTengaCupos() {
@@ -58,6 +60,14 @@ class DisponibilidadServiceTest {
                 Map.entry("servicio", MotivoInvalido.REQUERIDO),
                 Map.entry("unidad", MotivoInvalido.FORMATO),
                 Map.entry("hasta", MotivoInvalido.MAXIMO_DIAS));
+    }
+
+    @Test
+    void laConsultaLlevaElHorarioDeLosAlojamientosYElPlazoDeCancelacion() {
+        var disponibilidad = servicio.consultar(Ofertas.HOTEL, null, null, null);
+
+        assertThat(disponibilidad.horario()).isEqualTo(HorarioReservas.POR_DEFECTO);
+        assertThat(disponibilidad.plazoCancelacion()).hasHours(24);
     }
 
     @Test

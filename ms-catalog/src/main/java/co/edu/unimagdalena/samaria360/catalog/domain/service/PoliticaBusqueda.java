@@ -3,6 +3,8 @@ package co.edu.unimagdalena.samaria360.catalog.domain.service;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.AtractivoPublico;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.Coordenada;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.CriteriosBusqueda;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleAlojamiento;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.FiltrosAlojamiento;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.OrdenBusqueda;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.PaginaResultados;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ResultadoOferta;
@@ -62,7 +64,21 @@ public final class PoliticaBusqueda {
             return Optional.empty();
         }
         Cercania cercania = cercania(criterios, servicio.getCoordenada());
-        return cercania.dentro() ? Optional.of(ResultadoOferta.deServicio(servicio, cercania.km())) : Optional.empty();
+        return cercania.dentro()
+                ? Optional.of(ResultadoOferta.deServicio(servicio, cercania.km(), precioMostrado(servicio, criterios)))
+                : Optional.empty();
+    }
+
+    /**
+     * Precio «desde» de la tarjeta (D1): con filtros de unidad, el menor de las unidades que los cumplen (el mismo que
+     * calcula el $filter del adaptador); si no, el del servicio. El orden por precio usa este valor.
+     */
+    private static BigDecimal precioMostrado(ServicioComercial servicio, CriteriosBusqueda criterios) {
+        if (criterios.filtrosCategoria() instanceof FiltrosAlojamiento filtros && filtros.filtraUnidades()
+                && servicio.getDetalle() instanceof DetalleAlojamiento alojamiento) {
+            return filtros.precioDesde(alojamiento, criterios.precioMaximo());
+        }
+        return servicio.getPrecioBase().orElse(null);
     }
 
     /** Decisiones 1, 5 y 6: un atractivo aparece sin importar su estado operativo. */

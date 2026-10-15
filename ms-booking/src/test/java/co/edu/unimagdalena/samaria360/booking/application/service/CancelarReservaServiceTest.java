@@ -7,6 +7,7 @@ import co.edu.unimagdalena.samaria360.booking.application.fake.RelojFijo;
 import co.edu.unimagdalena.samaria360.booking.application.fake.ReservaRepositoryEnMemoria;
 import co.edu.unimagdalena.samaria360.booking.application.port.in.ComandoReserva;
 import co.edu.unimagdalena.samaria360.booking.domain.exception.CancelacionFueraDePlazoException;
+import co.edu.unimagdalena.samaria360.booking.domain.exception.ReservaNoCancelableException;
 import co.edu.unimagdalena.samaria360.booking.domain.exception.ReservaNoEncontradaException;
 import co.edu.unimagdalena.samaria360.booking.domain.model.CategoriaReservable;
 import co.edu.unimagdalena.samaria360.booking.domain.model.DiaInventario;
@@ -86,6 +87,24 @@ class CancelarReservaServiceTest {
         reloj.fijar(reserva.cancelableHasta());
 
         assertThat(cancelar.cancelar(reserva.idReserva(), TURISTA).estado()).isEqualTo(EstadoReserva.Cancelada);
+    }
+
+    @Test
+    void siRf52LaCompletaAntesDelUpdateLaCancelacionRespondeNoCancelableYNoLibera() {
+        reservas.alCancelar(() -> reservas.guardar(ReservaRepositoryEnMemoria.completada(reserva)));
+
+        assertThatThrownBy(() -> cancelar.cancelar(reserva.idReserva(), TURISTA))
+                .isInstanceOf(ReservaNoCancelableException.class);
+        assertThat(inventario.disponibles(OCHO)).isEqualTo(9);
+    }
+
+    @Test
+    void unaReservaCompletadaNoSeCancela() {
+        reservas.guardar(ReservaRepositoryEnMemoria.completada(reserva));
+
+        assertThatThrownBy(() -> cancelar.cancelar(reserva.idReserva(), TURISTA))
+                .isInstanceOf(ReservaNoCancelableException.class);
+        assertThat(inventario.disponibles(OCHO)).isEqualTo(9);
     }
 
     @Test

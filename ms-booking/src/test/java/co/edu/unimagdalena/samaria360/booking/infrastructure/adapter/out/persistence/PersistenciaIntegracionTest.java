@@ -138,6 +138,14 @@ class PersistenciaIntegracionTest {
                 .isEqualTo("Tour de prueba");
     }
 
+    @Test
+    void v2YV3CreanLosIndicesDeMisReservasYDeRf52() {
+        assertThat(jdbc.queryForObject("SELECT indexdef FROM pg_indexes WHERE indexname = 'ix_reserva_turista_inicio'",
+                String.class)).contains("(id_turista, fecha_inicio DESC, id_reserva DESC)");
+        assertThat(jdbc.queryForObject("SELECT indexdef FROM pg_indexes WHERE indexname = 'ix_reserva_confirmada_fin'",
+                String.class)).contains("(fecha_fin)").contains("WHERE ((estado)::text = 'Confirmada'::text)");
+    }
+
     // ------------------------------------------------------------------ auxiliares
 
     private void noche(String servicio, String unidad, LocalDate fecha, int totales, int disponibles) {

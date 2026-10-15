@@ -35,9 +35,14 @@ public record ResultadoOferta(TipoOferta tipo, String id, String nombre, String 
     }
 
     public static ResultadoOferta deServicio(ServicioComercial servicio, Double distanciaKm) {
+        return deServicio(servicio, distanciaKm, servicio.getPrecioBase().orElse(null));
+    }
+
+    /** @param precio el precio «desde» que se muestra (con filtros de unidad, el de las unidades que cumplen) */
+    public static ResultadoOferta deServicio(ServicioComercial servicio, Double distanciaKm, BigDecimal precio) {
         return new ResultadoOferta(TipoOferta.Servicio, servicio.getId().orElseThrow(), servicio.getNombreComercial(),
                 servicio.getCategoria().name(), servicio.getDescripcion().orElse(null),
-                servicio.getPrecioBase().orElse(null), servicio.getImagenes().stream().findFirst().orElse(null),
+                precio, servicio.getImagenes().stream().findFirst().orElse(null),
                 servicio.getCoordenada(), distanciaKm, servicio.getCondicionesAccesibilidad(), null);
     }
 

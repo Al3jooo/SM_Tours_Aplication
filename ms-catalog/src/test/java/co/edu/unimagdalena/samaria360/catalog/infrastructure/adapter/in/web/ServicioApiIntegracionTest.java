@@ -45,8 +45,11 @@ class ServicioApiIntegracionTest {
 
         assertThat(resultado.getResponse().getStatus()).isEqualTo(200);
         String json = cuerpo(resultado);
-        assertThat(claves(json)).containsExactly("id", "idPrestador", "nombreComercial", "categoria", "precioBase",
-                "moneda", "detalleCategoria");
+        assertThat(claves(json)).containsExactly("id", "idPrestador", "nombreComercial", "categoria", "descripcion",
+                "imagenes", "precioBase", "moneda", "detalleCategoria");
+        assertThat((String) JsonPath.read(json, "$.descripcion")).contains("Parque de los Novios");
+        assertThat((List<String>) JsonPath.read(json, "$.imagenes")).isNotEmpty()
+                .allSatisfy(imagen -> assertThat(imagen).startsWith("/"));
         assertThat((String) JsonPath.read(json, "$.id")).isEqualTo(id);
         assertThat((String) JsonPath.read(json, "$.idPrestador")).isEqualTo("00000000-0000-4000-8000-000000000002");
         assertThat((String) JsonPath.read(json, "$.categoria")).isEqualTo("Alojamiento");

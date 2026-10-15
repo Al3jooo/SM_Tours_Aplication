@@ -47,6 +47,10 @@ samaria360:
   inventario-demo:
     # Generador de inventario de demostración (D5), sustituto temporal de RF19. Docker Compose lo habilita.
     habilitado: ${INVENTARIO_DEMO_HABILITADO:false}
+  completar-reservas:
+    # RF52: Confirmada → Completada cuando fecha_fin ya pasó. Corre al arrancar y después cada 15 minutos.
+    habilitado: true
+    cada: PT15M
 
 management:
   endpoints:

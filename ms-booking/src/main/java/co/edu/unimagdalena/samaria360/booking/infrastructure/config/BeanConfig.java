@@ -8,6 +8,7 @@ import co.edu.unimagdalena.samaria360.booking.application.port.out.RelojPort;
 import co.edu.unimagdalena.samaria360.booking.application.port.out.ReservaRepositoryPort;
 import co.edu.unimagdalena.samaria360.booking.application.service.AsegurarInventarioDemoService;
 import co.edu.unimagdalena.samaria360.booking.application.service.CancelarReservaService;
+import co.edu.unimagdalena.samaria360.booking.application.service.CompletarReservasService;
 import co.edu.unimagdalena.samaria360.booking.application.service.ConsultarReservasService;
 import co.edu.unimagdalena.samaria360.booking.application.service.DisponibilidadService;
 import co.edu.unimagdalena.samaria360.booking.application.service.ReservarServicioService;
@@ -23,9 +24,15 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Configuration
 public class BeanConfig {
 
+    /** Check-in y check-out de los alojamientos: los usan las reglas y la respuesta de la disponibilidad. */
     @Bean
-    public PoliticaReserva politicaReserva(ReservasPropiedades propiedades) {
-        return new PoliticaReserva(new HorarioReservas(propiedades.horaCheckIn(), propiedades.horaCheckOut()));
+    public HorarioReservas horarioReservas(ReservasPropiedades propiedades) {
+        return new HorarioReservas(propiedades.horaCheckIn(), propiedades.horaCheckOut());
+    }
+
+    @Bean
+    public PoliticaReserva politicaReserva(HorarioReservas horario) {
+        return new PoliticaReserva(horario);
     }
 
     @Bean
@@ -62,8 +69,15 @@ public class BeanConfig {
     }
 
     @Bean
-    public DisponibilidadService disponibilidadService(InventarioPort inventario, RelojPort reloj) {
-        return new DisponibilidadService(inventario, reloj);
+    public DisponibilidadService disponibilidadService(InventarioPort inventario, RelojPort reloj,
+                                                       HorarioReservas horario) {
+        return new DisponibilidadService(inventario, reloj, horario);
+    }
+
+    /** RF52: un único UPDATE condicional; la transacción la abre el repositorio. */
+    @Bean
+    public CompletarReservasService completarReservasService(ReservaRepositoryPort reservas, RelojPort reloj) {
+        return new CompletarReservasService(reservas, reloj);
     }
 
     @Bean

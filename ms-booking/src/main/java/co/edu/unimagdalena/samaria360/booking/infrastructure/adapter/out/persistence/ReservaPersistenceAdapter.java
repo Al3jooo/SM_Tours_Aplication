@@ -4,19 +4,23 @@ import co.edu.unimagdalena.samaria360.booking.application.port.out.ClaveIdempote
 import co.edu.unimagdalena.samaria360.booking.application.port.out.ReservaRepositoryPort;
 import co.edu.unimagdalena.samaria360.booking.domain.model.CupoDescontado;
 import co.edu.unimagdalena.samaria360.booking.domain.model.EstadoReserva;
+import co.edu.unimagdalena.samaria360.booking.domain.model.FiltroReservas;
 import co.edu.unimagdalena.samaria360.booking.domain.model.PaginaReservas;
 import co.edu.unimagdalena.samaria360.booking.domain.model.Reserva;
 import co.edu.unimagdalena.samaria360.booking.infrastructure.adapter.out.persistence.entity.ReservaEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.sql.Time;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,13 +71,36 @@ public class ReservaPersistenceAdapter implements ReservaRepositoryPort {
         return repositorio.findByIdReservaAndIdTurista(idReserva, idTurista).map(ReservaPersistenceAdapter::aDominio);
     }
 
+    /**
+     * La regla del cruce de {@link FiltroReservas}: {@code fecha_fin > desde 00:00} y {@code fecha_inicio < (hasta + 1)
+     * 00:00}, en Santa Marta. Orden por inicio descendente con desempate por id: la paginación es estable aunque dos
+     * reservas empiecen a la misma hora (índice de V2).
+     */
     @Override
-    public PaginaReservas listarDeTurista(UUID idTurista, int pagina, int tamano) {
-        // Desempate por id: el orden es estable entre páginas aunque dos reservas tengan la misma fecha.
-        Sort orden = Sort.by(Sort.Order.desc("fechaCreacion"), Sort.Order.desc("idReserva"));
-        Page<ReservaEntity> resultado = repositorio.findByIdTurista(idTurista, PageRequest.of(pagina, tamano, orden));
+    public PaginaReservas listarDeTurista(UUID idTurista, FiltroReservas filtro, int pagina, int tamano) {
+        Specification<ReservaEntity> condiciones = (raiz, consulta, cb) -> {
+            List<Predicate> partes = new ArrayList<>();
+            partes.add(cb.equal(raiz.get("idTurista"), idTurista));
+            if (filtro.terminaDespuesDe() != null) {
+                partes.add(cb.greaterThan(raiz.get("fechaFin"), filtro.terminaDespuesDe()));
+            }
+            if (filtro.empiezaAntesDe() != null) {
+                partes.add(cb.lessThan(raiz.get("fechaInicio"), filtro.empiezaAntesDe()));
+            }
+            if (!filtro.estados().isEmpty()) {
+                partes.add(raiz.get("estado").in(filtro.estados()));
+            }
+            return cb.and(partes.toArray(Predicate[]::new));
+        };
+        Sort orden = Sort.by(Sort.Order.desc("fechaInicio"), Sort.Order.desc("idReserva"));
+        Page<ReservaEntity> resultado = repositorio.findAll(condiciones, PageRequest.of(pagina, tamano, orden));
         return new PaginaReservas(resultado.getContent().stream().map(ReservaPersistenceAdapter::aDominio).toList(),
                 pagina, tamano, resultado.getTotalElements());
+    }
+
+    @Override
+    public int completarTerminadas(Instant ahora) {
+        return repositorio.completarTerminadas(ahora, EstadoReserva.Completada, EstadoReserva.Confirmada);
     }
 
     @Override

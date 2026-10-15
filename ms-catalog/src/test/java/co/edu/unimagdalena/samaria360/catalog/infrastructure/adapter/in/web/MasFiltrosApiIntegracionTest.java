@@ -237,6 +237,29 @@ class MasFiltrosApiIntegracionTest {
         }
     }
 
+    /** D1: con filtros de unidad, el precio «desde» es el de las unidades que cumplen, y el orden lo usa. */
+    @Test
+    void conTresHuespedesCasaTayronaMuestra260000YCambiaDePuestoAlOrdenarPorPrecio() throws Exception {
+        List<Map<String, Object>> sinFiltro = todos("categoria=Alojamiento&orden=PrecioAscendente");
+        List<Map<String, Object>> tresHuespedes = todos("categoria=Alojamiento&huespedes=3&orden=PrecioAscendente");
+
+        assertThat(precioDe(sinFiltro, "Hotel Casa Tayrona")).isEqualByComparingTo("150000");
+        assertThat(precioDe(tresHuespedes, "Hotel Casa Tayrona")).isEqualByComparingTo("260000");
+        assertThat(nombres(sinFiltro)).containsExactly("Hostal Bahía Taganga", "Hotel Casa Tayrona",
+                "Cabañas El Roble", "Ecocabañas Cañaveral");
+        assertThat(nombres(tresHuespedes)).containsExactly("Hostal Bahía Taganga", "Cabañas El Roble",
+                "Hotel Casa Tayrona", "Ecocabañas Cañaveral");
+    }
+
+    @Test
+    void sinFiltrosDeUnidadLosAtractivosSiguenSinPrecioYLosServiciosConSuPrecioBase() throws Exception {
+        List<Map<String, Object>> elementos = todos("orden=PrecioAscendente");
+
+        assertThat(elementos).filteredOn(e -> "Atractivo".equals(e.get("tipo"))).isNotEmpty()
+                .allSatisfy(e -> assertThat(e.get("precio")).isNull());
+        assertThat(precioDe(elementos, "Hotel Casa Tayrona")).isEqualByComparingTo("150000");
+    }
+
     @Test
     void lasOpcionesExigenUnaCategoriaValida() throws Exception {
         assertCriteriosInvalidos(mvc.perform(get(FILTROS)).andReturn(), "Las opciones de filtro exigen categoria");
@@ -285,6 +308,11 @@ class MasFiltrosApiIntegracionTest {
                 return elementos;
             }
         }
+    }
+
+    private static BigDecimal precioDe(List<Map<String, Object>> elementos, String nombre) {
+        return elementos.stream().filter(e -> nombre.equals(e.get("nombre"))).findFirst()
+                .map(e -> decimal(e.get("precio"))).orElseThrow();
     }
 
     private static List<String> nombres(List<Map<String, Object>> elementos) {

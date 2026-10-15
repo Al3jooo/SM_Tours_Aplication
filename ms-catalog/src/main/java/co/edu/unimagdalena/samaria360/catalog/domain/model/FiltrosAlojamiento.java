@@ -4,6 +4,7 @@ import co.edu.unimagdalena.samaria360.catalog.domain.exception.CriteriosBusqueda
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -64,6 +65,18 @@ public record FiltrosAlojamiento(Set<ServicioIncluido> serviciosIncluidos, Integ
                 && alojamiento.serviciosIncluidos().containsAll(nombresServiciosIncluidos())
                 && (!filtraUnidades()
                 || alojamiento.unidades().stream().anyMatch(unidad -> cumple(unidad, precioMaximo)));
+    }
+
+    /**
+     * Precio «desde» de la tarjeta con filtros de unidad activos: el menor precio por noche de las unidades que cumplen
+     * los filtros de unidad y el precio máximo; null si ninguna cumple. Sin filtros de unidad, el del servicio.
+     */
+    public BigDecimal precioDesde(DetalleAlojamiento alojamiento, BigDecimal precioMaximo) {
+        if (!filtraUnidades()) {
+            return alojamiento.precioDesde();
+        }
+        return alojamiento.unidades().stream().filter(unidad -> cumple(unidad, precioMaximo))
+                .map(UnidadAlojamiento::precioNoche).min(Comparator.naturalOrder()).orElse(null);
     }
 
     private boolean cumple(UnidadAlojamiento unidad, BigDecimal precioMaximo) {

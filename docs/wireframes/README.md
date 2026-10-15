@@ -31,6 +31,7 @@
 | WF-08-registrar-servicio.png | Registrar servicio comercial | Registrar servicio | RF09, RF10, RF27, RF37, RF48, RF58 | No |
 | WF-09-registrar-atractivo.png | Registrar atractivo turístico | Registrar atractivo | RF06, RF07, RF24, RF27, RF33 | No |
 | WF-10-disponibilidad-reserva.png | Disponibilidad y reserva **(nuevo)** | Reservar servicio | RF11, RF20, RF37, RF44 | No |
+| — (WF-11, sin imagen) | Mis reservas **(pendiente de diseño)** | Reservar servicio | RF12, RF18, RF44, RF52 | Sí (diseño provisional) |
 
 ## WF-01 — Inicio de sesión
 
@@ -97,6 +98,12 @@ Migas: Inicio y búsqueda › Panel del gestor › Registrar atractivo. Seccione
 ## WF-10 — Disponibilidad y reserva (nuevo)
 
 Título «<Servicio> – Disponibilidad y reserva» con datos de verificación y RNT. **Buscar disponibilidad**: check-in, check-out, número de huéspedes y **Verificar disponibilidad en tiempo real** (RF11). Lista de unidades disponibles: imagen, tipo de alojamiento, disponibilidad, capacidad, etiquetas de servicios, estado de cupos, precio por noche y **Seleccionar habitación**; sin cupos, **Notificarme si se libera**. Panel **Resumen de reserva** (fechas, noches, huéspedes, precio × noches, impuestos, total), aviso de cancelación gratuita con 24 horas (RF44), **Confirmar reserva** (RF20) y «Información importante».
+
+## WF-11 — Mis reservas (pendiente de diseño)
+
+**Estado: pendiente de diseño.** No tiene imagen todavía: el diseño final lo hace quien hizo los wireframes y, cuando exista, la pantalla se ajusta a él. Mientras tanto, el prototipo usa el mismo lenguaje visual de WF-10 (tarjetas, tokens y botones). Se llega desde el menú del avatar («Mis reservas», solo para turistas).
+
+Contenido: **lista de reservas** del turista, con el servicio y la unidad tal como se reservaron, las fechas, las cantidades y el total; **filtros** por rango de fechas de la actividad y por estado (RF12); el **estado** de cada reserva (Confirmada, Cancelada o Completada — RF52); y la acción **Cancelar**, con confirmación, solo en las Confirmadas y hasta 24 horas antes del inicio (RF18, RF44).
 
 ## Diferencias detectadas en la v2 (pendientes de resolver antes de implementar esas pantallas)
 
