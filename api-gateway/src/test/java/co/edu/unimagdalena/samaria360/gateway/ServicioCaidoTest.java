@@ -9,7 +9,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-/** Aislamiento de fallos: con ms-catalog caído, la búsqueda da 503 y el login sigue funcionando. */
+/** Aislamiento de fallos: con ms-catalog o ms-booking caídos, su ruta da 503 y el login sigue funcionando. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ServicioCaidoTest {
 
@@ -19,6 +19,7 @@ class ServicioCaidoTest {
     static void destinos(DynamicPropertyRegistry registro) {
         registro.add("AUTH_URI", AUTH::uri);
         registro.add("CATALOG_URI", ServicioSimulado::uriSinServidor);
+        registro.add("BOOKING_URI", ServicioSimulado::uriSinServidor);
     }
 
     @AfterAll
@@ -28,6 +29,18 @@ class ServicioCaidoTest {
 
     @Autowired
     private WebTestClient cliente;
+
+    @Test
+    void conMsBookingCaidoReservarResponde503ConElNombreDelServicio() {
+        cliente.post().uri("/api/v1/reservas").contentType(MediaType.APPLICATION_JSON).bodyValue("{}")
+                .exchange()
+                .expectStatus().isEqualTo(503)
+                .expectHeader().contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.codigo").isEqualTo("SERVICIO_NO_DISPONIBLE")
+                .jsonPath("$.servicio").isEqualTo("ms-booking")
+                .jsonPath("$.instance").isEqualTo("/api/v1/reservas");
+    }
 
     @Test
     void conMsCatalogCaidoLaBusquedaResponde503ConProblemDetail() {

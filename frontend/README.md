@@ -53,6 +53,15 @@ Versiones instaladas (`package-lock.json`) y licencias leídas de `node_modules`
 
 Es adecuado para el prototipo; para un despliegue con tráfico real hace falta un proveedor de teselas propio o contratado. En las pruebas, Leaflet se reemplaza por `src/test/leafletSimulado.ts` (jsdom no dibuja mapas), así que no se pide ninguna tesela.
 
+## Reservas (WF-10, iteración siguiente)
+
+El backend ya está (ms-booking); el contrato está en [`docs/sad/api/ms-booking.md`](../docs/sad/api/ms-booking.md). Reglas para la pantalla:
+
+- **`Idempotency-Key`:** generar una clave nueva (`crypto.randomUUID()`) por cada intención de reservar y **reutilizarla en los reintentos de esa misma intención** (doble clic, error de red, recarga del botón). Un 201 con `Idempotent-Replayed: true` es la misma reserva, no una nueva. Al cambiar algún dato del pedido (fechas, unidad, personas), se genera otra clave; reutilizarla con otro pedido responde 422 `IDEMPOTENCIA_CONFLICTO`.
+- **Precio:** enviar en `precioTotalEsperado` el total que se muestra. Si responde 409 `PRECIO_CAMBIADO`, mostrar el precio nuevo (`precioTotal`) y pedir confirmación otra vez.
+- **Unidades:** los nombres y precios salen del detalle de ms-catalog; la disponibilidad, de `/api/v1/reservas/disponibilidad` (sin nombres ni precios). Con 409 `UNIDAD_NO_DISPONIBLE`, volver a cargar el detalle.
+- **Tarjetas:** el resumen `/api/v1/reservas/disponibilidad/resumen` se pide una vez por página; si ms-booking no responde, la tarjeta sigue con «—».
+
 ## Pendientes de pruebas
 
 Las pruebas no hacen peticiones de red reales. Una guardia en `src/test/setup.ts` hace fallar cualquier prueba que

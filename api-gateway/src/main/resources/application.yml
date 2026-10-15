@@ -38,13 +38,27 @@ spring:
                     name: catalogo
                     fallbackUri: forward:/fallback/catalogo
                     statusCodes: [502, 503, 504]
+            - id: reservas
+              uri: ${BOOKING_URI:http://localhost:8083}
+              predicates:
+                - Path=/api/v1/reservas/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: reservas
+                    fallbackUri: forward:/fallback/reservas
+                    # Sin 503: ms-booking responde 503 SERVICIO_NO_DISPONIBLE (servicio: ms-catalog) cuando el catálogo
+                    # no responde, y debe llegar tal cual. Si ms-booking no responde (conexión rechazada o tiempo
+                    # agotado), sí va al fallback (servicio: ms-booking).
+                    statusCodes: [502, 504]
           globalcors:
             cors-configurations:
               '[/**]':
                 allowed-origins: ${CORS_ORIGENES:http://localhost:5173} # separados por comas
                 allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
-                allowed-headers: [Authorization, Content-Type, X-Correlation-Id]
-                exposed-headers: [X-Correlation-Id]
+                # Idempotency-Key e Idempotent-Replayed: reservar es idempotente por clave (ms-booking, D6).
+                allowed-headers: [Authorization, Content-Type, X-Correlation-Id, Idempotency-Key]
+                exposed-headers: [X-Correlation-Id, Idempotent-Replayed, Location]
                 allow-credentials: false # el token va en la cabecera Authorization, no en cookies
                 max-age: 3600
 

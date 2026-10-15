@@ -1,0 +1,173 @@
+# Samaria360 - demostración del CU «Reservar servicio» contra el API Gateway (docker compose up -d --build).
+# Formato de la extensión REST Client de VS Code. Las credenciales NO se escriben aquí: se leen de las variables de
+# entorno CORREO y CONTRASENA (un turista de prueba, ver README.md). Las fechas son relativas a hoy.
+# Contrato completo: docs/sad/api/ms-booking.md.
+
+@base = http://localhost:8080
+@correo = {{$processEnv CORREO}}
+@contrasena = {{$processEnv CONTRASENA}}
+@entrada = {{$datetime "YYYY-MM-DD" 30 d}}
+@salida = {{$datetime "YYYY-MM-DD" 32 d}}
+@diaTour = {{$datetime "YYYY-MM-DD" 31 d}}
+@diaManana = {{$datetime "YYYY-MM-DD" 1 d}}
+# Cambie la clave en cada demostración: con la misma clave, la reserva se repite (D6).
+@clave = 6f1d2a52-7a8e-4c55-9d7a-2f6b1c3e4d01
+
+### 1. Iniciar sesión como turista
+# @name login
+POST {{base}}/api/v1/auth/login
+Content-Type: application/json
+
+{ "correo": "{{correo}}", "contrasena": "{{contrasena}}" }
+
+### 2. Buscar Hotel Casa Tayrona
+# @name busqueda
+GET {{base}}/api/v1/catalogo/oferta?categoria=Alojamiento&texto=Casa%20Tayrona
+
+### 3. Detalle con sus dos unidades (Doble y Suite familiar)
+# @name hotel
+GET {{base}}/api/v1/catalogo/servicios/{{busqueda.response.body.$.elementos[0].id}}
+
+### 4. Disponibilidad por unidad y noche (pública)
+GET {{base}}/api/v1/reservas/disponibilidad?servicio={{hotel.response.body.$.id}}&desde={{entrada}}&hasta={{salida}}
+
+### 5. Reservar dos noches de la Suite familiar (260.000 × 2 noches × 1 habitación)
+# @name reserva
+POST {{base}}/api/v1/reservas
+Authorization: Bearer {{login.response.body.token}}
+Idempotency-Key: {{clave}}
+Content-Type: application/json
+
+{
+  "idServicio": "{{hotel.response.body.$.id}}",
+  "idUnidad": "{{hotel.response.body.$.detalleCategoria.unidades[1].idUnidad}}",
+  "fechaEntrada": "{{entrada}}",
+  "fechaSalida": "{{salida}}",
+  "cantidad": 1,
+  "personas": 2,
+  "precioTotalEsperado": 520000
+}
+
+### 6. Repetir la misma solicitud: 201 con la misma reserva e Idempotent-Replayed: true
+POST {{base}}/api/v1/reservas
+Authorization: Bearer {{login.response.body.token}}
+Idempotency-Key: {{clave}}
+Content-Type: application/json
+
+{
+  "idServicio": "{{hotel.response.body.$.id}}",
+  "idUnidad": "{{hotel.response.body.$.detalleCategoria.unidades[1].idUnidad}}",
+  "fechaEntrada": "{{entrada}}",
+  "fechaSalida": "{{salida}}",
+  "cantidad": 1,
+  "personas": 2,
+  "precioTotalEsperado": 520000
+}
+
+### 7. La misma clave con otra unidad (Doble): 422 IDEMPOTENCIA_CONFLICTO
+POST {{base}}/api/v1/reservas
+Authorization: Bearer {{login.response.body.token}}
+Idempotency-Key: {{clave}}
+Content-Type: application/json
+
+{
+  "idServicio": "{{hotel.response.body.$.id}}",
+  "idUnidad": "{{hotel.response.body.$.detalleCategoria.unidades[0].idUnidad}}",
+  "fechaEntrada": "{{entrada}}",
+  "fechaSalida": "{{salida}}",
+  "cantidad": 1,
+  "personas": 2,
+  "precioTotalEsperado": 300000
+}
+
+### 8. Sin Idempotency-Key: 400 IDEMPOTENCIA_REQUERIDA
+POST {{base}}/api/v1/reservas
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "idServicio": "{{hotel.response.body.$.id}}" }
+
+### 9. Precio que ya no es el vigente: 409 PRECIO_CAMBIADO con el precio actual (RF37)
+POST {{base}}/api/v1/reservas
+Authorization: Bearer {{login.response.body.token}}
+Idempotency-Key: {{$guid}}
+Content-Type: application/json
+
+{
+  "idServicio": "{{hotel.response.body.$.id}}",
+  "idUnidad": "{{hotel.response.body.$.detalleCategoria.unidades[0].idUnidad}}",
+  "fechaEntrada": "{{entrada}}",
+  "fechaSalida": "{{salida}}",
+  "cantidad": 1,
+  "personas": 2,
+  "precioTotalEsperado": 1
+}
+
+### 10. Un tour: buscar el Tour de Café en Minca
+# @name tour
+GET {{base}}/api/v1/catalogo/oferta?categoria=Tour&texto=Minca
+
+### 11. Reservar el tour de las 08:00 para 2 personas (80.000 × 2)
+POST {{base}}/api/v1/reservas
+Authorization: Bearer {{login.response.body.token}}
+Idempotency-Key: {{$guid}}
+Content-Type: application/json
+
+{
+  "idServicio": "{{tour.response.body.$.elementos[0].id}}",
+  "fechaEntrada": "{{diaTour}}",
+  "horaInicio": "08:00",
+  "personas": 2,
+  "precioTotalEsperado": 160000
+}
+
+### 12. Mis reservas (de la más reciente a la más antigua)
+GET {{base}}/api/v1/reservas/mias
+Authorization: Bearer {{login.response.body.token}}
+
+### 13. Cancelar la reserva de la Suite (faltan más de 24 h): 200 y los cupos vuelven
+POST {{base}}/api/v1/reservas/{{reserva.response.body.$.idReserva}}/cancelacion
+Authorization: Bearer {{login.response.body.token}}
+
+### 14. Cancelarla otra vez: 200, sin devolver cupos dos veces
+POST {{base}}/api/v1/reservas/{{reserva.response.body.$.idReserva}}/cancelacion
+Authorization: Bearer {{login.response.body.token}}
+
+### 15. RF44: reservar el tour de mañana y cancelarlo. Si faltan menos de 24 h para las 08:00,
+###     la cancelación responde 409 CANCELACION_FUERA_DE_PLAZO («El tiempo límite para cancelar expiró…»).
+# @name deManana
+POST {{base}}/api/v1/reservas
+Authorization: Bearer {{login.response.body.token}}
+Idempotency-Key: {{$guid}}
+Content-Type: application/json
+
+{
+  "idServicio": "{{tour.response.body.$.elementos[0].id}}",
+  "fechaEntrada": "{{diaManana}}",
+  "horaInicio": "08:00",
+  "personas": 1,
+  "precioTotalEsperado": 80000
+}
+
+###
+POST {{base}}/api/v1/reservas/{{deManana.response.body.$.idReserva}}/cancelacion
+Authorization: Bearer {{login.response.body.token}}
+
+### 16. Resumen para las tarjetas (público): CON_CUPOS, AGOTADO o SIN_INVENTARIO
+GET {{base}}/api/v1/reservas/disponibilidad/resumen?servicios={{hotel.response.body.$.id}},{{tour.response.body.$.elementos[0].id}}
+
+### 17. Catálogo caído: ejecute antes «docker compose stop ms-catalog».
+###     Reservar responde 503 SERVICIO_NO_DISPONIBLE (servicio: ms-catalog); «Mis reservas» y cancelar siguen
+###     funcionando. Después: «docker compose start ms-catalog».
+POST {{base}}/api/v1/reservas
+Authorization: Bearer {{login.response.body.token}}
+Idempotency-Key: {{$guid}}
+Content-Type: application/json
+
+{
+  "idServicio": "{{tour.response.body.$.elementos[0].id}}",
+  "fechaEntrada": "{{diaTour}}",
+  "horaInicio": "14:00",
+  "personas": 1,
+  "precioTotalEsperado": 80000
+}

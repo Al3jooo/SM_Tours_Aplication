@@ -16,7 +16,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** Enrutamiento, Authorization intacta, 404, X-Correlation-Id, CORS y health, con ambos servicios disponibles. */
+/** Enrutamiento, Authorization intacta, 404, X-Correlation-Id, CORS y health, con los servicios disponibles. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class EnrutamientoTest {
 
@@ -25,17 +25,20 @@ class EnrutamientoTest {
 
     static final ServicioSimulado AUTH = ServicioSimulado.iniciar("ms-auth").responder(200, "{\"token\":\"t\"}");
     static final ServicioSimulado CATALOGO = ServicioSimulado.iniciar("ms-catalog").responder(200, "{\"elementos\":[]}");
+    static final ServicioSimulado RESERVAS = ServicioSimulado.iniciar("ms-booking").responder(201, "{\"estado\":\"Confirmada\"}");
 
     @DynamicPropertySource
     static void destinos(DynamicPropertyRegistry registro) {
         registro.add("AUTH_URI", AUTH::uri);
         registro.add("CATALOG_URI", CATALOGO::uri);
+        registro.add("BOOKING_URI", RESERVAS::uri);
     }
 
     @AfterAll
     static void detener() {
         AUTH.close();
         CATALOGO.close();
+        RESERVAS.close();
     }
 
     @Autowired
@@ -45,6 +48,7 @@ class EnrutamientoTest {
     void limpiar() {
         AUTH.limpiar();
         CATALOGO.limpiar();
+        RESERVAS.limpiar();
     }
 
     @Test
@@ -77,6 +81,49 @@ class EnrutamientoTest {
     }
 
     @Test
+    void elPrefijoDeReservasLlegaAMsBookingConAuthorizationEIdempotencyKey() {
+        String token = "Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIn0.firma-de-prueba";
+
+        cliente.post().uri("/api/v1/reservas")
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .header("Idempotency-Key", "8f14e45f-ceea-4672-a0a3-3b1d8a8f2e01")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"idServicio\":\"x\"}")
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().valueEquals("X-Servicio", "ms-booking");
+
+        assertThat(RESERVAS.ultima().uri()).isEqualTo("/api/v1/reservas");
+        assertThat(RESERVAS.ultima().cabecera(HttpHeaders.AUTHORIZATION)).isEqualTo(token);
+        assertThat(RESERVAS.ultima().cabecera("Idempotency-Key")).isEqualTo("8f14e45f-ceea-4672-a0a3-3b1d8a8f2e01");
+        assertThat(AUTH.solicitudes()).isEmpty();
+        assertThat(CATALOGO.solicitudes()).isEmpty();
+    }
+
+    @Test
+    void un503PropioDeMsBookingLlegaTalCualConElServicioQueNoResponde() {
+        RESERVAS.responder(503, "{\"codigo\":\"SERVICIO_NO_DISPONIBLE\",\"servicio\":\"ms-catalog\"}");
+        try {
+            cliente.post().uri("/api/v1/reservas").contentType(MediaType.APPLICATION_JSON).bodyValue("{}")
+                    .exchange()
+                    .expectStatus().isEqualTo(503)
+                    .expectHeader().valueEquals("X-Servicio", "ms-booking")
+                    .expectBody().jsonPath("$.servicio").isEqualTo("ms-catalog");
+        } finally {
+            RESERVAS.responder(201, "{\"estado\":\"Confirmada\"}");
+        }
+    }
+
+    @Test
+    void laDisponibilidadDeReservasLlegaConSuQueryString() {
+        cliente.get().uri("/api/v1/reservas/disponibilidad/resumen?servicios=a,b")
+                .exchange()
+                .expectHeader().valueEquals("X-Servicio", "ms-booking");
+
+        assertThat(RESERVAS.ultima().uri()).isEqualTo("/api/v1/reservas/disponibilidad/resumen?servicios=a,b");
+    }
+
+    @Test
     void laCabeceraAuthorizationLlegaIntactaAlServicio() {
         String token = "Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIn0.firma-de-prueba";
 
@@ -102,11 +149,13 @@ class EnrutamientoTest {
 
     @Test
     void unaRutaDesconocidaDa404SinLlegarANingunServicio() {
-        cliente.get().uri("/api/v1/reservas/mias").exchange().expectStatus().isNotFound();
+        // El chatbot todavía no existe: su prefijo no tiene ruta.
+        cliente.get().uri("/api/v1/chatbot/mensajes").exchange().expectStatus().isNotFound();
         cliente.get().uri("/otra-cosa").exchange().expectStatus().isNotFound();
 
         assertThat(AUTH.solicitudes()).isEmpty();
         assertThat(CATALOGO.solicitudes()).isEmpty();
+        assertThat(RESERVAS.solicitudes()).isEmpty();
     }
 
     @Test
@@ -164,6 +213,30 @@ class EnrutamientoTest {
 
         // El gateway responde el preflight sin consultar al servicio.
         assertThat(AUTH.solicitudes()).isEmpty();
+    }
+
+    @Test
+    void elPreflightDeReservarAceptaIdempotencyKey() {
+        cliente.options().uri("/api/v1/reservas")
+                .header(HttpHeaders.ORIGIN, ORIGEN_PERMITIDO)
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "authorization,content-type,idempotency-key")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().value(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
+                        v -> assertThat(v).containsIgnoringCase("idempotency-key"));
+
+        assertThat(RESERVAS.solicitudes()).isEmpty();
+    }
+
+    @Test
+    void unaReservaDesdeElOrigenPermitidoExponeIdempotentReplayedYLocation() {
+        cliente.post().uri("/api/v1/reservas").header(HttpHeaders.ORIGIN, ORIGEN_PERMITIDO)
+                .contentType(MediaType.APPLICATION_JSON).bodyValue("{}")
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().value(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, v -> assertThat(v)
+                        .containsIgnoringCase("Idempotent-Replayed").containsIgnoringCase("Location"));
     }
 
     @Test

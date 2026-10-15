@@ -12,36 +12,66 @@ Enum estado_cuenta {
 }
 
 Table Reserva_Cupo_Dia [headercolor: #F6C9A0] {
-  id_reserva integer
-  id_inventario integer
-  cantidad_descontada integer [not null]
+  id_reserva uuid
+  id_inventario bigint
+  cantidad_descontada integer [not null, note: 'CHECK > 0']
 
   indexes {
     (id_reserva, id_inventario) [pk]
+    id_inventario
   }
 }
 
 Table Inventario_Cupo [headercolor: #F7E39C] {
-  id_inventario integer [pk]
-  id_servicio_mongo varchar(24) [not null]
+  id_inventario bigint [pk, increment]
+  id_servicio_mongo varchar(24) [not null, note: 'Referencia lógica a catalog_db, sin FK']
+  categoria varchar(20) [not null, note: 'Tour o Alojamiento (CHECK)']
+  id_unidad varchar(24) [null, note: 'idUnidad de catalog_db; solo Alojamiento (decisión D1)']
   fecha date [not null]
-  hora_inicio time [not null]
-  cupos_totales integer [not null]
-  cupos_disponibles integer [not null]
+  hora_inicio time [null, note: 'Solo Tour']
+  cupos_totales integer [not null, note: 'CHECK > 0']
+  cupos_disponibles integer [not null, note: 'CHECK BETWEEN 0 AND cupos_totales']
+
+  indexes {
+    (id_servicio_mongo, id_unidad, fecha, hora_inicio) [unique, name: 'uq_inventario_cupo_dia', note: 'NULLS NOT DISTINCT']
+  }
+
+  Note: 'CHECK ck_inventario_cupo_forma: Alojamiento con id_unidad y sin hora_inicio; Tour con hora_inicio y sin id_unidad'
 }
 
 Table Reserva [headercolor: #A8DDB5] {
-  id_reserva integer [pk]
-  id_turista uuid [not null]
-  id_servicio_mongo varchar(24) [not null]
-  estado varchar(50) [not null]
-  monto_total numeric(10,2) [not null]
-  cantidad_solicitada integer [not null]
-  fecha_creacion timestamptz [not null]
+  id_reserva uuid [pk, note: 'Generado en el dominio']
+  id_turista uuid [not null, note: 'sub del JWT']
+  id_prestador uuid [not null]
+  id_servicio_mongo varchar(24) [not null, note: 'Referencia lógica a catalog_db, sin FK']
+  nombre_servicio varchar(150) [not null, note: 'Congelado al reservar (RF32)']
+  categoria varchar(20) [not null, note: 'Tour o Alojamiento (CHECK)']
+  id_unidad varchar(24) [null, note: 'Solo Alojamiento (decisión D1)']
+  nombre_unidad varchar(100) [null, note: 'Congelado al reservar (RF32); solo Alojamiento']
+  estado varchar(20) [not null, note: 'Confirmada, Cancelada o Completada (CHECK)']
+  cantidad_solicitada integer [not null, note: 'Habitaciones o personas (CHECK > 0)']
+  personas integer [not null, note: 'CHECK > 0']
+  precio_unitario numeric(10,2) [not null]
+  unidad_cobro varchar(20) [not null, note: 'Noche o Persona (CHECK)']
+  monto_total numeric(12,2) [not null]
+  moneda char(3) [not null, note: 'COP']
+  fecha_entrada date [not null, note: 'Entrada o día del tour']
+  fecha_salida date [null, note: 'Solo Alojamiento']
+  hora_inicio time [null, note: 'Solo Tour']
   fecha_inicio timestamptz [not null]
   fecha_fin timestamptz [not null]
-  precio_unitario numeric(10,2) [not null]
-  unidad_cobro varchar(50) [not null]
+  fecha_creacion timestamptz [not null]
+  fecha_cancelacion timestamptz [null, note: 'RF18']
+  clave_idempotencia uuid [not null, note: 'Idempotency-Key (decisión D6)']
+  hash_solicitud char(64) [not null, note: 'SHA-256 del pedido normalizado']
+
+  indexes {
+    (id_turista, clave_idempotencia) [unique, name: 'uq_reserva_turista_clave']
+    (id_turista, fecha_creacion)
+    (id_prestador, fecha_entrada)
+  }
+
+  Note: 'CHECK ck_reserva_forma: Alojamiento con id_unidad, nombre_unidad y fecha_salida, sin hora_inicio, cobro por Noche; Tour con hora_inicio, sin unidad ni fecha_salida, cobro por Persona'
 }
 
 Table Turista_Categoria_Interes [headercolor: #C5E3A5] {
@@ -114,5 +144,6 @@ Ref: Administrador.id_usuario - Usuario.id_usuario
 Ref: Token_Recuperacion.id_usuario > Usuario.id_usuario
 Ref: Turista_Categoria_Interes.id_usuario > Turista.id_usuario
 Ref: Reserva.id_turista > Turista.id_usuario
+Ref: Reserva.id_prestador > Prestador.id_usuario
 Ref: Reserva_Cupo_Dia.id_reserva > Reserva.id_reserva
 Ref: Reserva_Cupo_Dia.id_inventario > Inventario_Cupo.id_inventario
