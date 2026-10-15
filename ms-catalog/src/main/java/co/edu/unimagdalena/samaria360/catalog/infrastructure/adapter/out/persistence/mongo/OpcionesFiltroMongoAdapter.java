@@ -28,6 +28,7 @@ public class OpcionesFiltroMongoAdapter implements OpcionesFiltroRepositoryPort 
 
     private static final String SERVICIOS = "servicios";
     private static final String DETALLE = "$detalleCategoria.";
+    private static final String UNIDADES = DETALLE + "unidades.";
 
     private final MongoTemplate mongo;
 
@@ -47,7 +48,8 @@ public class OpcionesFiltroMongoAdapter implements OpcionesFiltroRepositoryPort 
         Document valores = resultado == null ? new Document() : resultado;
 
         return switch (categoria) {
-            case Alojamiento -> OpcionesFiltro.alojamiento(serviciosIncluidos(valores), textos(valores, "tiposHabitacion"),
+            case Alojamiento -> OpcionesFiltro.alojamiento(serviciosIncluidos(valores),
+                    textosDeListas(valores, "tiposHabitacion"),
                     rangoEntero(valores, "huespedesMinimo", "huespedesMaximo"));
             case Gastronomia -> OpcionesFiltro.gastronomia(Boolean.TRUE.equals(valores.getBoolean("opcionVegetariana")),
                     textos(valores, "tiposCocina"));
@@ -57,15 +59,21 @@ public class OpcionesFiltroMongoAdapter implements OpcionesFiltroRepositoryPort 
         };
     }
 
-    /** $addToSet omite los campos ausentes (p. ej. un tour sin nivelDificultad); $min y $max los ignoran. */
+    /**
+     * $addToSet omite los campos ausentes (p. ej. un tour sin nivelDificultad); $min y $max los ignoran. En
+     * Alojamiento, los tipos de habitación y los huéspedes salen de todas las unidades (D1): se juntan las listas de
+     * cada alojamiento y el mínimo y el máximo se calculan sobre los de sus unidades.
+     */
     private static Document grupo(Categoria categoria) {
         Document grupo = new Document("_id", null);
         switch (categoria) {
             case Alojamiento -> grupo
                     .append("serviciosIncluidos", new Document("$push", DETALLE + "serviciosIncluidos"))
-                    .append("tiposHabitacion", new Document("$addToSet", DETALLE + "tipoHabitacion"))
-                    .append("huespedesMinimo", new Document("$min", DETALLE + "capacidadMaxHuespedes"))
-                    .append("huespedesMaximo", new Document("$max", DETALLE + "capacidadMaxHuespedes"));
+                    .append("tiposHabitacion", new Document("$push", UNIDADES + "tipoHabitacion"))
+                    .append("huespedesMinimo", new Document("$min",
+                            new Document("$min", UNIDADES + "capacidadMaxHuespedes")))
+                    .append("huespedesMaximo", new Document("$max",
+                            new Document("$max", UNIDADES + "capacidadMaxHuespedes")));
             case Gastronomia -> grupo
                     .append("opcionVegetariana", new Document("$max",
                             new Document("$eq", Arrays.asList(DETALLE + "menuVegetariano", true))))
@@ -93,6 +101,15 @@ public class OpcionesFiltroMongoAdapter implements OpcionesFiltroRepositoryPort 
                         .filter(servicio -> servicio.name().equals(texto))
                         .forEach(servicios::add));
         return servicios;
+    }
+
+    /** Une las listas de cada alojamiento (p. ej. los tipos de habitación de sus unidades). */
+    private static List<String> textosDeListas(Document valores, String campo) {
+        List<?> listas = valores.get(campo, List.class);
+        return listas == null ? List.of()
+                : listas.stream().filter(List.class::isInstance).flatMap(lista -> ((List<?>) lista).stream())
+                .filter(String.class::isInstance).map(String.class::cast)
+                .filter(texto -> !texto.isBlank()).toList();
     }
 
     private static List<String> textos(Document valores, String campo) {

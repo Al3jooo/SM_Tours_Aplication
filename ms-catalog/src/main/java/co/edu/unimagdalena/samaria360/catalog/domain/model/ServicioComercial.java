@@ -33,6 +33,8 @@ public final class ServicioComercial {
     /**
      * @param id nulo antes de persistir
      * @param prestadorActivo copia desnormalizada del estado de la cuenta del prestador en ms-auth (RF22)
+     * @param precioBase precio «desde» (RF37). En Alojamiento se deriva de las unidades (el menor precio por noche):
+     *                   puede llegar nulo, y si llega debe coincidir, como exige el {@code $expr} del esquema v2
      */
     public ServicioComercial(String id, UUID prestadorId, String nombreComercial, Categoria categoria,
                              DetalleCategoria detalle, String descripcion, Coordenada coordenada, Contacto contacto,
@@ -56,8 +58,19 @@ public final class ServicioComercial {
         this.prestadorActivo = prestadorActivo;
         this.condicionesAccesibilidad = condicionesAccesibilidad == null ? Set.of() : Set.copyOf(condicionesAccesibilidad);
         this.horarioAtencion = horarioAtencion;
-        this.precioBase = Validaciones.noNegativoOpcional(precioBase, "precioBase");
+        this.precioBase = detalle instanceof DetalleAlojamiento alojamiento
+                ? precioDesde(alojamiento, precioBase)
+                : Validaciones.noNegativoOpcional(precioBase, "precioBase");
         this.imagenes = Validaciones.lista(imagenes);
+    }
+
+    private static BigDecimal precioDesde(DetalleAlojamiento alojamiento, BigDecimal recibido) {
+        BigDecimal desde = alojamiento.precioDesde();
+        if (recibido != null && recibido.compareTo(desde) != 0) {
+            throw new IllegalArgumentException(
+                    "precioBase de un alojamiento debe ser el menor precioNoche de sus unidades (" + desde + ")");
+        }
+        return desde;
     }
 
     /** RF16 y RF22: la búsqueda pública solo muestra servicios Publicados de prestadores con la cuenta activa. */
@@ -113,7 +126,10 @@ public final class ServicioComercial {
         return Optional.ofNullable(horarioAtencion);
     }
 
-    /** Opcional en el esquema; RF37 lo exige en la práctica (ver «Pendientes para el SAD»). */
+    /**
+     * Precio «desde». Opcional en el esquema; RF37 lo exige en la práctica (ver «Pendientes para el SAD»). En
+     * Alojamiento siempre existe: es el menor precio por noche de sus unidades.
+     */
     public Optional<BigDecimal> getPrecioBase() {
         return Optional.ofNullable(precioBase);
     }

@@ -1,5 +1,6 @@
 package co.edu.unimagdalena.samaria360.catalog.domain.model;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -21,6 +22,12 @@ public sealed interface FiltrosCategoria
     /** Nombres de los parámetros con valor, en el orden de la API. Vacía = sin filtros. */
     List<String> camposActivos();
 
-    /** Si el detalle de un servicio de la categoría cumple todos los filtros. */
-    boolean cumple(DetalleCategoria detalle);
+    /**
+     * Si el detalle de un servicio de la categoría cumple todos los filtros.
+     *
+     * @param precioMaximo precio máximo de la búsqueda (RF16), o null. Solo lo usa Alojamiento, que lo exige a la
+     *                     misma unidad que cumple los filtros de unidad; para el precio del servicio sigue valiendo
+     *                     {@code precioBase} (ver {@link FiltrosAlojamiento})
+     */
+    boolean cumple(DetalleCategoria detalle, BigDecimal precioMaximo);
 }

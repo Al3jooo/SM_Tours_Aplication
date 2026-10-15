@@ -57,8 +57,19 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 
 - Coordenadas GeoJSON en orden **[longitud, latitud]**; índice `2dsphere`.
 - `BigDecimal` → `@Field(targetType = FieldType.DECIMAL128)`. En scripts mongosh usar `NumberInt(...)` y `NumberDecimal(...)`.
-- La búsqueda pública devuelve solo `estadoPublicacion = "Publicado"` y `prestadorActivo = true`. Página de máximo 10 elementos (RF16).
-- Los validadores `$jsonSchema` viven en `infra/mongo/init/`; el `oneOf` de `detalleCategoria` discrimina por `categoria` en el nivel superior.
+- La búsqueda pública devuelve solo `estadoPublicacion = "Publicado"` y `prestadorActivo = true`. Página de máximo 10 elementos (RF16). El detalle (`GET /api/v1/catalogo/servicios/{id}`) aplica la misma visibilidad: si no, 404 `OFERTA_NO_DISPONIBLE`.
+- **Alojamiento con unidades** (D1 de «Reservar servicio», `docs/trazabilidad.md`):
+  - `detalleCategoria.unidades` tiene 1..N unidades: `idUnidad` (ObjectId, estable), `nombre`, `tipoHabitacion`, `numHabitaciones`, `capacidadMaxHuespedes` y `precioNoche`; `serviciosIncluidos` es del alojamiento;
+  - una reserva es de una sola unidad;
+  - `precioBase` es el precio «desde»: el menor `precioNoche`. Lo deriva el dominio al guardar y lo exige el `$expr` del validador;
+  - huéspedes, tipo de habitación y precio máximo los debe cumplir **una misma unidad** (`$elemMatch` y `PoliticaBusqueda`).
+- **Esquema y migraciones de catalog_db:**
+  - `infra/mongo/init/` (01, 02, 03 y `*.v1.schema.json`) es la **línea base congelada** (formato v1): no se vuelve a editar;
+  - cualquier cambio de esquema o de datos va como una **migración M nueva** en `infra/mongo/migraciones/`, con **su propia copia del validador**; nunca se edita una migración ya aplicada;
+  - `esquema/` se aplica siempre y `semilla/` solo en la demo (`MONGO_SEMILLA=true`); la numeración es compartida;
+  - las aplica el servicio de un solo uso `mongo-migraciones` (`aplicar.js`, registro en la colección `migraciones`), igual en un volumen nuevo que en uno existente;
+  - `docs/sad/modelo-nosql/*.schema.json` describe la última versión; `MigracionesMongoTest` lo verifica;
+  - el `oneOf` de `detalleCategoria` discrimina por `categoria` en el nivel superior.
 
 ## API Gateway (Spring Cloud Gateway 4.3, WebFlux)
 
@@ -93,7 +104,7 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 
 ```bash
 docker compose up -d --build    # sistema completo → http://localhost:8000 (ver README, «Arranque en un comando»)
-docker compose up -d postgres mongo   # solo las bases, para desarrollar con ./mvnw y Vite
+docker compose up -d postgres-bases mongo-migraciones   # solo las bases (y sus migraciones), para desarrollar con ./mvnw y Vite
 cd ms-auth && ./mvnw test       # pruebas
 cd ms-auth && ./mvnw spring-boot:run
 cd ms-catalog && ./mvnw spring-boot:run
@@ -118,6 +129,7 @@ Los wireframes (`docs/wireframes/`) son una guía de **estructura**, no de esté
 - No modificar `docs/` (SRS, SAD, diagramas) sin pedir confirmación.
 - No agregar dependencias al `pom.xml` sin justificarlas.
 - Nunca ejecutar `docker compose down -v` sin permiso explícito: borra los volúmenes con los datos.
+- No implementar integraciones con microservicios que todavía no existen.
 
 ## Modelo de datos (leer antes de tocar bases de datos)
 - El modelo conceptual y el modelo lógico (`docs/sad/diagramas/modelo-logico.dbml`) están **unificados en un solo diagrama por petición del profesor**. Esa unificación es un requisito académico: no representa una base única. No propongas separarlos ni simplificarlos.
@@ -125,6 +137,7 @@ Los wireframes (`docs/wireframes/`) son una guía de **estructura**, no de esté
   - **ms-auth → `auth_db`**: `rol`, `usuario`, `turista`, `prestador`, `gestor`, `administrador`, `token_recuperacion`, `turista_categoria_interes`.
   - **ms-booking (planificado) → `reservas_db`**: `reserva`, `inventario_cupo`, `reserva_cupo_dia`.
 - Ningún servicio lee ni escribe la base de otro. No crees tablas de reservas en `auth_db` ni tablas de autenticación en `reservas_db`.
+- El servicio de un solo uso `postgres-bases` (Compose) crea en cada arranque las bases que falten (`infra/postgres/asegurar-bases.sql`), también en volúmenes creados antes; `infra/postgres/init/` solo corre con el volumen vacío.
 - Las relaciones del diagrama que cruzan bases son **referencias lógicas sin llave foránea física**, y la integridad la valida la aplicación:
   - `Reserva.id_turista` → `usuario.id_usuario` de `auth_db` (`uuid`, tomado del claim `sub` del JWT);
   - `id_servicio_mongo` → `_id` del documento en `catalog_db` (MongoDB).

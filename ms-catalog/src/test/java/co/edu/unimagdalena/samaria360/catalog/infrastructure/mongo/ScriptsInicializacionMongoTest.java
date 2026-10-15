@@ -31,14 +31,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Ejecuta infra/mongo/init/01, 02 y 03 con mongosh dentro de mongo:7.0 (la imagen de docker-compose), igual que
- * el entrypoint de Docker, y verifica el resultado con el driver de Java.
+ * LÍNEA BASE CONGELADA (formato v1): ejecuta infra/mongo/init/01, 02 y 03 con mongosh dentro de mongo:7.0 (la imagen
+ * de docker-compose), igual que el entrypoint de Docker, y verifica el resultado con el driver de Java. Sin
+ * migraciones: el formato actual (v2) lo verifica {@link MigracionesMongoTest}.
  */
 @Testcontainers
 class ScriptsInicializacionMongoTest {
 
     private static final Path SCRIPTS = Path.of("../infra/mongo/init");
-    private static final Path ESQUEMAS = Path.of("../docs/sad/modelo-nosql");
     private static final String PRESTADOR = "00000000-0000-4000-8000-000000000002";
     private static final String PRESTADOR_INACTIVO = "00000000-0000-4000-8000-000000000005";
     private static final String GESTOR = "00000000-0000-4000-8000-000000000003";
@@ -74,10 +74,10 @@ class ScriptsInicializacionMongoTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"servicios", "atractivos"})
-    void elValidadorEsElDelEntregable2TalCual(String coleccion) throws IOException {
+    void elValidadorEsElV1CongeladoJuntoALosScripts(String coleccion) throws IOException {
         Document opciones = catalogo.listCollections().filter(Filters.eq("name", coleccion)).first()
                 .get("options", Document.class);
-        Document esperado = Document.parse(Files.readString(ESQUEMAS.resolve(coleccion + ".schema.json")));
+        Document esperado = Document.parse(Files.readString(SCRIPTS.resolve(coleccion + ".v1.schema.json")));
 
         assertThat(opciones.get("validator", Document.class)).isEqualTo(esperado);
         assertThat(opciones.getString("validationLevel")).isEqualTo("strict");

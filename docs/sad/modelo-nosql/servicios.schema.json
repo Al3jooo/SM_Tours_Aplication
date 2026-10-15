@@ -53,7 +53,10 @@
         "items": { "bsonType": "string" }
       },
       "horarioAtencion": { "bsonType": "string" },
-      "precioBase": { "bsonType": "decimal" },
+      "precioBase": {
+        "bsonType": "decimal",
+        "description": "Precio «desde» en COP (RF37). En Alojamiento es el menor precioNoche de sus unidades; lo exige $expr."
+      },
       "imagenes": {
         "bsonType": "array",
         "items": { "bsonType": "string" }
@@ -65,12 +68,27 @@
           "categoria": { "enum": ["Alojamiento"] },
           "detalleCategoria": {
             "bsonType": "object",
-            "required": ["tipoHabitacion", "numHabitaciones", "capacidadMaxHuespedes"],
+            "required": ["unidades"],
             "additionalProperties": false,
             "properties": {
-              "tipoHabitacion": { "bsonType": "string" },
-              "numHabitaciones": { "bsonType": "int" },
-              "capacidadMaxHuespedes": { "bsonType": "int" },
+              "unidades": {
+                "bsonType": "array",
+                "description": "Unidades reservables (tipos de habitación): al menos una; idUnidad única (lo exige $expr).",
+                "minItems": 1,
+                "items": {
+                  "bsonType": "object",
+                  "required": ["idUnidad", "nombre", "tipoHabitacion", "numHabitaciones", "capacidadMaxHuespedes", "precioNoche"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "idUnidad": { "bsonType": "objectId", "description": "Estable: no cambia si se renombra la unidad" },
+                    "nombre": { "bsonType": "string", "minLength": 1, "maxLength": 100 },
+                    "tipoHabitacion": { "bsonType": "string", "minLength": 1 },
+                    "numHabitaciones": { "bsonType": "int", "minimum": 1 },
+                    "capacidadMaxHuespedes": { "bsonType": "int", "minimum": 1 },
+                    "precioNoche": { "bsonType": "decimal", "minimum": 0, "exclusiveMinimum": true }
+                  }
+                }
+              },
               "serviciosIncluidos": {
                 "bsonType": "array",
                 "items": { "bsonType": "string", "enum": ["WiFi", "Desayuno", "Piscina", "Parqueadero"] }
@@ -78,7 +96,7 @@
             }
           }
         },
-        "required": ["detalleCategoria"]
+        "required": ["detalleCategoria", "precioBase"]
       },
       {
         "properties": {
@@ -129,6 +147,22 @@
           }
         },
         "required": ["detalleCategoria"]
+      }
+    ]
+  },
+  "$expr": {
+    "$or": [
+      { "$ne": ["$categoria", "Alojamiento"] },
+      {
+        "$and": [
+          { "$eq": ["$precioBase", { "$min": "$detalleCategoria.unidades.precioNoche" }] },
+          {
+            "$eq": [
+              { "$size": { "$setUnion": [{ "$ifNull": ["$detalleCategoria.unidades.idUnidad", []] }, []] } },
+              { "$size": { "$ifNull": ["$detalleCategoria.unidades", []] } }
+            ]
+          }
+        ]
       }
     ]
   }

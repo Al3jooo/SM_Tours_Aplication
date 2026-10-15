@@ -44,6 +44,24 @@ services:
       timeout: 3s
       retries: 10
 
+  # Un solo uso: en cada arranque crea las bases que falten, también en volúmenes creados antes de que existieran
+  # (init/ solo corre con el volumen vacío). Es idempotente y termina; ms-auth espera a que termine bien.
+  postgres-bases:
+    image: postgres:16-alpine
+    container_name: samaria360-postgres-bases
+    restart: "no"
+    environment:
+      PGHOST: postgres
+      PGDATABASE: postgres
+      PGUSER: ${POSTGRES_USER:?Falta POSTGRES_USER en .env}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
+    volumes:
+      - ./infra/postgres/asegurar-bases.sql:/asegurar-bases.sql:ro
+    command: ["psql", "-v", "ON_ERROR_STOP=1", "-f", "/asegurar-bases.sql"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   mongo:
     image: mongo:7.0
     container_name: samaria360-mongo
@@ -56,13 +74,31 @@ services:
       - "127.0.0.1:${MONGO_PORT:-27017}:27017"
     volumes:
       - mongo-data:/data/db
-      # Validadores $jsonSchema, índices (2dsphere) y semilla del catálogo
+      # Línea base congelada (formato v1): validadores, índices (2dsphere) y semilla. Solo con el volumen vacío.
       - ./infra/mongo/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # Un solo uso: aplica las migraciones de catalog_db (infra/mongo/migraciones) que falten, igual en un volumen nuevo
+  # que en uno existente, y termina. ms-catalog espera a que termine bien.
+  mongo-migraciones:
+    image: mongo:7.0
+    container_name: samaria360-mongo-migraciones
+    restart: "no"
+    environment:
+      MONGO_USER: ${MONGO_USER:?Falta MONGO_USER en .env}
+      MONGO_PASSWORD: ${MONGO_PASSWORD:?Falta MONGO_PASSWORD en .env}
+      # Configuración de DEMOSTRACIÓN: aplica también infra/mongo/migraciones/semilla. Para un despliegue real, false.
+      MONGO_SEMILLA: "true"
+    volumes:
+      - ./infra/mongo/migraciones:/migraciones:ro
+    entrypoint: ["sh", "/migraciones/aplicar.sh"]
+    depends_on:
+      mongo:
+        condition: service_healthy
 
   ms-auth:
     build: ./ms-auth
@@ -87,8 +123,8 @@ services:
     expose:
       - "8081" # sin ports: solo se alcanza por la red interna, a través del gateway (ADR-005)
     depends_on:
-      postgres:
-        condition: service_healthy
+      postgres-bases:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8081/actuator/health"]
       <<: *salud-java
@@ -109,8 +145,8 @@ services:
     expose:
       - "8082"
     depends_on:
-      mongo:
-        condition: service_healthy
+      mongo-migraciones:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8082/actuator/health"]
       <<: *salud-java

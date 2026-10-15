@@ -1,5 +1,6 @@
 package co.edu.unimagdalena.samaria360.catalog.domain.model;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /** @param tipoVehiculoEquipo tipo de vehículo o equipo exacto */
@@ -20,7 +21,7 @@ public record FiltrosAlquilerEquipo(String tipoVehiculoEquipo) implements Filtro
     }
 
     @Override
-    public boolean cumple(DetalleCategoria detalle) {
+    public boolean cumple(DetalleCategoria detalle, BigDecimal precioMaximo) {
         return detalle instanceof DetalleAlquilerEquipo alquiler
                 && TextoFiltro.coincide(tipoVehiculoEquipo, alquiler.tipoVehiculoEquipo());
     }

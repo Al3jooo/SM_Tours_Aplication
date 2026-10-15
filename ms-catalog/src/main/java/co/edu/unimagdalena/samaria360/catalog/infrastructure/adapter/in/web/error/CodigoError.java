@@ -6,6 +6,7 @@ package co.edu.unimagdalena.samaria360.catalog.infrastructure.adapter.in.web.err
  */
 public enum CodigoError {
     CRITERIOS_INVALIDOS,
+    OFERTA_NO_DISPONIBLE,
     NO_AUTENTICADO,
     ACCESO_DENEGADO,
     SOLICITUD_INVALIDA,

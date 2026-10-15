@@ -21,8 +21,10 @@ samaria360/
 │   ├── casos-de-uso/             # especificaciones textuales
 │   └── iteraciones/              # planes y evaluaciones de iteración
 ├── infra/
-│   ├── postgres/init/            # 01-crear-bases.sql (auth_db, reservas_db)
-│   ├── mongo/init/               # 01-validadores.js, 02-indices.js, 03-semilla-catalogo.js
+│   ├── postgres/init/            # 01-crear-bases.sql (auth_db, reservas_db), solo con el volumen vacío
+│   ├── postgres/asegurar-bases.sql   # lo ejecuta postgres-bases en cada arranque (bases que falten)
+│   ├── mongo/init/               # línea base congelada (v1): 01-validadores.js, 02-indices.js, 03-semilla-catalogo.js
+│   ├── mongo/migraciones/        # aplicar.js + esquema/ y semilla/ (M001, M002…), las aplica mongo-migraciones
 │   └── keys/                     # llaves RSA del JWT (no se versionan)
 ├── frontend/                     # React + Vite + TypeScript
 │   └── src/
@@ -113,6 +115,11 @@ Para crear cuentas nuevas: **«Registrarse»** en la pantalla de inicio de sesi�
   dentro de la red de Docker. PostgreSQL y MongoDB se publican solo en `127.0.0.1`, para DBeaver o Compass.
 - Las llaves del JWT se montan como *secrets* de solo lectura en `/run/secrets/` de ms-auth; nunca se copian a una
   imagen.
+- **Servicios de un solo uso**, que se ejecutan en cada `docker compose up`, terminan y no dejan nada corriendo:
+  `postgres-bases` crea las bases que falten (`infra/postgres/asegurar-bases.sql`) y `mongo-migraciones` aplica las
+  migraciones de catalog_db que falten (`infra/mongo/migraciones`, registradas en la colección `migraciones`). Así un
+  volumen creado con una versión anterior se pone al día **sin borrar datos**. ms-auth y ms-catalog esperan a que
+  terminen bien (`service_completed_successfully`); en `docker compose ps -a` aparecen como `Exited (0)`.
 - **Memoria de las JVM**: ms-auth, ms-catalog y api-gateway tienen `mem_limit: 768m` en `docker-compose.yml`. Las
   imágenes arrancan la JVM con `-XX:MaxRAMPercentage=75`, así que el heap máximo de cada una queda en unos 576 MB y
   el resto (metaspace, hilos, búferes) cabe en el contenedor. Sin ese límite, cada JVM calcularía su memoria sobre
@@ -143,7 +150,8 @@ docker compose down -v                     # detener todo y BORRAR los volúmene
 | `docker compose up` falla con un error que menciona `infra/keys/jwt-privada.pem` (o la pública) | Faltan las llaves del JWT | Generarlas en `infra/keys/` (paso 2) y volver a ejecutar `docker compose up -d`. |
 | `required variable POSTGRES_PASSWORD is missing a value: Falta POSTGRES_PASSWORD en .env` | Falta el `.env` o una variable | `cp .env.example .env` y completar los valores. |
 | En Linux, ms-auth no puede leer la llave privada | Los *secrets* de Compose son archivos montados con los permisos del host | Dar permiso de lectura al usuario del contenedor: `chmod 644 infra/keys/jwt-*.pem`. |
-| Faltan datos de prueba, o no aparecen cambios de los scripts de `infra/*/init/` | Los scripts de inicialización solo corren con el volumen vacío | `docker compose down -v` y `docker compose up -d --build`. **Borra** los datos de las bases. |
+| Faltan datos de prueba, o no aparecen cambios de los scripts de `infra/*/init/` | Los scripts de inicialización solo corren con el volumen vacío, y son la línea base: no cambian | Los cambios de esquema y de datos llegan como migraciones (Flyway en ms-auth; `infra/mongo/migraciones` en catalog_db), que se aplican solas con `docker compose up -d` sin borrar nada. Solo como último recurso, y sabiendo que **borra** los datos: `docker compose down -v`. |
+| ms-catalog no arranca y `mongo-migraciones` aparece como `Exited (1)` (o ms-auth y `postgres-bases`) | Una migración falló; por ejemplo, M001 se detiene si un alojamiento no tiene `precioBase` | `docker compose logs mongo-migraciones` (o `postgres-bases`) muestra el motivo. Corregir el dato y volver a ejecutar `docker compose up -d`: las migraciones ya aplicadas no se repiten. |
 | Un servicio Java se reinicia solo, con código de salida 137 | Superó su límite de memoria (`OOMKilled`) | Confirmarlo con `docker inspect -f '{{.State.OOMKilled}}' samaria360-ms-auth` y subir `mem_limit` en `docker-compose.yml`. |
 | Justo después de `up -d`, el sitio muestra «servicio no disponible» durante unos 40 s | El gateway todavía está arrancando. El frontend ya lo espera (`service_healthy`), pero ms-auth y ms-catalog pueden seguir arrancando, y tras reiniciar Docker los contenedores vuelven sin respetar ese orden | Esperen a que `docker compose ps` marque todos los servicios como `healthy` y pulsen «Reintentar». |
 | Un servicio queda en `unhealthy` o se reinicia | Error al arrancar (credenciales, llaves, base no disponible) | `docker compose logs <servicio>`. |
@@ -156,7 +164,7 @@ contenedor ocupa el 8080, y así no quedan dos instancias de cada servicio.
 
 ```bash
 cp .env.example .env          # y cambiar las contraseñas
-docker compose up -d postgres mongo
+docker compose up -d postgres-bases mongo-migraciones   # las bases, con sus bases y migraciones al día
 cd ms-auth && ./mvnw spring-boot:run          # :8081 (y lo mismo en ms-catalog :8082 y api-gateway :8080)
 cd frontend && npm install && npm run dev     # http://localhost:5173 (proxy /api → 8080)
 ```
