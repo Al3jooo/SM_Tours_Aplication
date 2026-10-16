@@ -17,7 +17,8 @@
     "espanol": "Español",
     "ingles": "Inglés",
     "menuUsuario": "Menú de usuario de {{nombre}}",
-    "cerrarSesion": "Cerrar sesión"
+    "cerrarSesion": "Cerrar sesión",
+    "misReservas": "Mis reservas"
   },
   "login": {
     "titulo": "Iniciar sesión en Samaria360",
@@ -201,7 +202,12 @@
       "distancia": "Distancia",
       "accesibilidad": "Accesibilidad",
       "estado": "Estado",
-      "verDetalle": "Ver detalle"
+      "verDetalle": "Ver detalle",
+      "disponibilidadEstados": {
+        "CON_CUPOS": "Disponible esta semana",
+        "AGOTADO": "Agotado los próximos 7 días",
+        "SIN_INVENTARIO": "Sin fechas"
+      }
     },
     "busqueda": {
       "cargando": "Buscando lugares…",
@@ -298,7 +304,8 @@
     "acercar": "Acercar",
     "alejar": "Alejar",
     "tuUbicacion": "Tu ubicación",
-    "indicacionRueda": "Haz clic en el mapa o enfócalo para usar la rueda."
+    "indicacionRueda": "Haz clic en el mapa o enfócalo para usar la rueda.",
+    "miniatura": "Foto de {{nombre}}"
   },
   "ubicacion": {
     "centrar": "Centrar en mi ubicación",
@@ -314,5 +321,228 @@
     "selector": "Vista de resultados",
     "lista": "Lista",
     "mapa": "Mapa"
+  },
+  "detalle": {
+    "volverBusqueda": "Volver a la búsqueda",
+    "cargando": "Cargando el servicio…",
+    "errores": {
+      "noEncontrado": "Este servicio no está disponible.",
+      "noDisponible": "El catálogo no está disponible en este momento.",
+      "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
+      "otro": "Ocurrió un error inesperado al cargar el servicio."
+    },
+    "foto": "Foto {{numero}} de {{nombre}}",
+    "descripcion": "Descripción",
+    "datos": "Datos del servicio",
+    "reservar": "Ver disponibilidad y reservar",
+    "serviciosIncluidos": "Servicios incluidos",
+    "unidades": "Habitaciones",
+    "tipoHabitacion": "Tipo",
+    "habitaciones": "Habitaciones",
+    "capacidad": "Capacidad",
+    "huespedesPorHabitacion_one": "{{count}} huésped por habitación",
+    "huespedesPorHabitacion_other": "{{count}} huéspedes por habitación",
+    "precioNoche": "{{precio}} por noche",
+    "duracion": "Duración",
+    "horas": "{{horas}} h",
+    "puntoEncuentro": "Punto de encuentro",
+    "dificultad": "Nivel de dificultad",
+    "aforoGrupo": "Aforo por grupo",
+    "personas_one": "{{count}} persona",
+    "personas_other": "{{count}} personas",
+    "tipoCocina": "Tipo de cocina",
+    "aforoTurno": "Aforo por turno",
+    "menuVegetariano": "Opción vegetariana",
+    "si": "Sí",
+    "no": "No",
+    "rangoPrecioPlato": "Precio por plato",
+    "tipoEquipo": "Vehículo o equipo",
+    "unidadesDisponibles": "Unidades disponibles",
+    "condiciones": "Condiciones de alquiler"
+  },
+  "reserva": {
+    "titulo": "{{servicio}} – Disponibilidad y reserva",
+    "volverDetalle": "Volver al detalle",
+    "noReservable": "Este servicio no se reserva en línea. Consulta sus datos en el detalle.",
+    "buscar": "Buscar disponibilidad",
+    "entrada": "Entrada (check-in)",
+    "salida": "Salida (check-out)",
+    "fecha": "Fecha del tour",
+    "huespedes": "Huéspedes",
+    "personas": "Personas",
+    "habitaciones": "Habitaciones",
+    "ayudaVentana": "Hay disponibilidad publicada hasta el {{fecha}}.",
+    "ayudaSalida": "Máximo 14 noches.",
+    "ayudaHabitaciones_one": "Cada habitación admite {{count}} huésped.",
+    "ayudaHabitaciones_other": "Cada habitación admite hasta {{count}} huéspedes.",
+    "verificar": "Verificar disponibilidad en tiempo real",
+    "disponibilidad": "Disponibilidad",
+    "consultadaEn": "Inventario consultado a las {{hora}}.",
+    "elegirFechas": "Elige las fechas y verifica la disponibilidad.",
+    "verificando": "Consultando la disponibilidad…",
+    "salidaAjustada": "Ajustamos la salida al {{fecha}} para que la estadía sea válida.",
+    "salidaBorrada": "Borramos la salida: con esa entrada no quedan noches dentro de las fechas publicadas.",
+    "sinInventario": "No hay inventario publicado para estas fechas. Prueba con otras.",
+    "sinHorarios": "No hay horarios publicados para esta fecha. Prueba con otra.",
+    "elegirHabitacion": "Elige la habitación",
+    "datosUnidad_one": "{{tipo}} · hasta {{count}} huésped por habitación",
+    "datosUnidad_other": "{{tipo}} · hasta {{count}} huéspedes por habitación",
+    "precioNoche": "{{precio}} por noche",
+    "quedanHabitaciones_one": "Queda {{count}} habitación para todas tus noches.",
+    "quedanHabitaciones_other": "Quedan {{count}} habitaciones para todas tus noches.",
+    "sinCupoNoche": "Sin cupo el {{fecha}}.",
+    "agotado": "Agotado",
+    "horario": "Horario",
+    "quedanCupos_one": "queda {{count}} cupo",
+    "quedanCupos_other": "quedan {{count}} cupos",
+    "disponibilidadErrores": {
+      "noDisponible": "No pudimos consultar la disponibilidad: el sistema de reservas no responde.",
+      "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
+      "otro": "Ocurrió un error inesperado al consultar la disponibilidad."
+    },
+    "motivos": {
+      "verificar": "Verifica la disponibilidad para continuar.",
+      "fechasCambiaron": "Cambiaste las fechas: verifica la disponibilidad de nuevo.",
+      "elegirUnidad": "Elige una habitación con cupo.",
+      "elegirHorario": "Elige un horario con cupo.",
+      "revisarDatos": "Revisa los datos marcados.",
+      "sinTotal": "No pudimos calcular el total: el precio publicado no tiene un formato válido. Escoge otra opción o vuelve más tarde."
+    },
+    "soloTuristas": "Solo los turistas pueden reservar. Inicia sesión con una cuenta de turista.",
+    "confirmar": "Confirmar reserva",
+    "confirmando": "Confirmando…",
+    "aceptarPrecio": "Aceptar el nuevo precio y confirmar",
+    "errores": {
+      "PRECIO_CAMBIADO": "El precio cambió: antes {{anterior}}, ahora {{nuevo}}.",
+      "CUPO_AGOTADO": "Ya no quedan cupos suficientes para tu selección. Actualizamos la disponibilidad.",
+      "FECHA_NO_DISPONIBLE": "Alguna de las fechas ya no tiene inventario publicado. Actualizamos la disponibilidad.",
+      "UNIDAD_NO_DISPONIBLE": "Esa habitación ya no está disponible. Actualizamos el servicio y la disponibilidad.",
+      "OFERTA_NO_DISPONIBLE": "Este servicio ya no está disponible para reservar.",
+      "CATEGORIA_NO_RESERVABLE": "Este servicio no se reserva en línea.",
+      "IDEMPOTENCIA_CONFLICTO": "No pudimos confirmar esta solicitud. Revisa tu selección e inténtalo de nuevo.",
+      "IDEMPOTENCIA_REQUERIDA": "No pudimos confirmar esta solicitud. Inténtalo de nuevo.",
+      "NO_AUTENTICADO": "Tu sesión expiró. Inicia sesión de nuevo para reservar.",
+      "DATOS_INVALIDOS": "Revisa los datos de la reserva:",
+      "noDisponible": "El sistema de reservas no está disponible en este momento. Puedes reintentar: no se reservará dos veces.",
+      "red": "No fue posible conectar con el servidor. Revisa tu conexión y reintenta: no se reservará dos veces.",
+      "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo."
+    },
+    "campos": {
+      "idServicio": "Servicio",
+      "idUnidad": "Habitación",
+      "fechaEntrada": "Entrada",
+      "fechaSalida": "Salida",
+      "horaInicio": "Horario",
+      "cantidad": "Habitaciones",
+      "personas": "Personas",
+      "precioTotalEsperado": "Total"
+    },
+    "validacion": {
+      "REQUERIDO": "Este dato es obligatorio.",
+      "FORMATO": "Escribe un valor válido.",
+      "FECHA_PASADA": "La fecha ya pasó.",
+      "FUERA_DE_VENTANA": "Solo hay disponibilidad publicada hasta el {{fecha}}.",
+      "RANGO_INVALIDO": "La salida debe ser posterior a la entrada.",
+      "MAXIMO_NOCHES": "La estadía puede ser de 14 noches como máximo.",
+      "VALOR_MINIMO": "Debe ser al menos 1.",
+      "EXCEDE_CAPACIDAD": "Para {{personas}} huéspedes necesitas más habitaciones de este tipo.",
+      "EXCEDE_AFORO": "El grupo admite hasta {{maximo}} personas.",
+      "EXCEDE_CUPO": "Solo quedan {{maximo}}.",
+      "NO_PERMITIDO": "Este dato no aplica.",
+      "CATEGORIA_NO_RESERVABLE": "Este servicio no se reserva en línea."
+    },
+    "resumen": {
+      "titulo": "Resumen de reserva",
+      "servicio": "Servicio",
+      "habitacion": "Habitación",
+      "fechas": "Fechas",
+      "noches": "Noches",
+      "habitaciones": "Habitaciones",
+      "huespedes": "Huéspedes",
+      "fecha": "Fecha",
+      "hora": "Hora",
+      "personas": "Personas",
+      "nNoches_one": "{{count}} noche",
+      "nNoches_other": "{{count}} noches",
+      "nHabitaciones_one": "{{count}} habitación",
+      "nHabitaciones_other": "{{count}} habitaciones",
+      "nPersonas_one": "{{count}} persona",
+      "nPersonas_other": "{{count}} personas",
+      "total": "Total",
+      "totalActualizado": "Total (precio actualizado)",
+      "cancelacionGratuita_one": "Cancelación gratuita hasta {{count}} hora antes del inicio.",
+      "cancelacionGratuita_other": "Cancelación gratuita hasta {{count}} horas antes del inicio."
+    },
+    "informacion": {
+      "titulo": "Información importante",
+      "checkIn": "Check-in desde las {{hora}}.",
+      "checkOut": "Check-out hasta las {{hora}}.",
+      "plazo_one": "Puedes cancelar sin costo hasta {{count}} hora antes del inicio; después, la reserva ya no se puede cancelar.",
+      "plazo_other": "Puedes cancelar sin costo hasta {{count}} horas antes del inicio; después, la reserva ya no se puede cancelar."
+    },
+    "confirmacion": {
+      "titulo": "¡Reserva confirmada!",
+      "texto": "Tu reserva quedó Confirmada y los cupos ya están apartados.",
+      "cancelableHasta": "Puedes cancelarla sin costo hasta el {{fecha}}.",
+      "verMisReservas": "Ver mis reservas"
+    }
+  },
+  "misReservas": {
+    "titulo": "Mis reservas",
+    "apoyo": "Consulta tus reservas, filtra por fecha de la actividad o por estado y cancela las que aún estén a tiempo.",
+    "filtros": "Filtrar reservas",
+    "desde": "Desde",
+    "hasta": "Hasta",
+    "estado": "Estado",
+    "estados": {
+      "Confirmada": "Confirmada",
+      "Cancelada": "Cancelada",
+      "Completada": "Completada"
+    },
+    "quitarFiltros": "Quitar filtros",
+    "resultados": "Reservas",
+    "contador_one": "{{count}} reserva",
+    "contador_other": "{{count}} reservas",
+    "cargando": "Cargando tus reservas…",
+    "sinResultados": "No hay reservas con estos filtros.",
+    "sinReservas": "Aún no tienes reservas.",
+    "soloTuristas": "«Mis reservas» es solo para cuentas de turista.",
+    "cancelada": "Cancelaste la reserva de {{servicio}}. Los cupos quedaron libres.",
+    "errores": {
+      "noDisponible": "El sistema de reservas no está disponible en este momento.",
+      "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
+      "otro": "Ocurrió un error inesperado al cargar tus reservas.",
+      "CANCELACION_FUERA_DE_PLAZO": "Ya no se puede cancelar: faltan menos de 24 horas para el inicio.",
+      "RESERVA_NO_CANCELABLE": "Esta reserva ya se completó y no se puede cancelar. Actualizamos la lista.",
+      "RESERVA_NO_ENCONTRADA": "No encontramos esta reserva.",
+      "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión y reintenta.",
+      "SERVICIO_NO_DISPONIBLE": "El sistema de reservas no está disponible en este momento. Reintenta en unos minutos.",
+      "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo."
+    },
+    "validacion": {
+      "FORMATO": "Escribe una fecha válida.",
+      "RANGO_INVALIDO": "«Hasta» no puede ser anterior a «Desde».",
+      "MAXIMO_DIAS": "El rango puede ser de 366 días como máximo.",
+      "NO_PERMITIDO": "Ese estado no existe."
+    },
+    "tarjeta": {
+      "estadia": "{{entrada}} → {{salida}} · {{noches}}",
+      "tour": "{{fecha}} · {{hora}}",
+      "huespedes_one": "{{count}} huésped",
+      "huespedes_other": "{{count}} huéspedes",
+      "fechas": "Fechas",
+      "cantidades": "Cantidades",
+      "cancelar": "Cancelar reserva",
+      "cancelableHasta": "Cancelación gratuita hasta el {{fecha}}.",
+      "fueraDePlazo": "Ya no se puede cancelar: el plazo terminó el {{fecha}} (24 horas antes del inicio)."
+    },
+    "dialogo": {
+      "titulo": "¿Cancelar esta reserva?",
+      "texto": "La reserva de {{servicio}} queda Cancelada y sus cupos se liberan. Esta acción no se puede deshacer.",
+      "confirmar": "Sí, cancelar",
+      "volver": "No, volver",
+      "cancelando": "Cancelando…",
+      "cerrar": "Cerrar"
+    }
   }
 }

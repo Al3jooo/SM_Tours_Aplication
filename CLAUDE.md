@@ -11,8 +11,12 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 
 - Metodología **RUP**, fase de **Construcción**. Este código es el **prototipo arquitectónico ejecutable** que valida la línea base de la arquitectura; no es un producto completo.
 - Usar solo terminología RUP: fases, iteraciones, casos de uso, requisitos funcionales (RF), requisitos no funcionales (RNF). No usar terminología de métodos ágiles.
-- **Alcance de esta iteración:** inicio de sesión y registro de turistas y prestadores (`ms-auth`: RF15, RF01, RF02), vista principal del catálogo (`ms-catalog`) y el CU «Reservar servicio» en el backend (`ms-booking`: RF11, RF18, RF20, RF32, RF37, RF44; la pantalla WF-10 llega en la iteración siguiente).
-- **Fuera de alcance:** chatbot real, notificaciones (el aviso por correo del registro llega con RF34; RF13, RF30 y RF63, con ms-notificaciones), analítica, y en reservas RF12, RF19 y RF52. No implementarlos aunque parezcan fáciles.
+- **Alcance de esta iteración:**
+  - inicio de sesión y registro de turistas y prestadores (`ms-auth`: RF15, RF01, RF02);
+  - vista principal del catálogo (`ms-catalog`);
+  - el CU «Reservar servicio» (`ms-booking`: RF11, RF18, RF20, RF32, RF37, RF44), con RF12 del lado del turista («Mis reservas» con filtros) y RF52 (Confirmada → Completada automática) ya implementados;
+  - las pantallas de reservas, con carga diferida: WF-06 mínimo (`/servicios/:id`), WF-10 (`/servicios/:id/reservar`, la selección vive en la URL) y WF-11 «Mis reservas» (`/mis-reservas`, privada, solo turistas; pendiente de diseño), más la disponibilidad de las tarjetas y la miniatura del popup del mapa (RF23).
+- **Fuera de alcance:** chatbot real, notificaciones (el aviso por correo del registro llega con RF34; RF13, RF30 y RF63, con ms-notificaciones), analítica, y en reservas RF12 del lado del prestador y RF19. No implementarlos aunque parezcan fáciles.
 - Si una regla de negocio no está definida en el SRS (`docs/srs/`), **preguntar**; no inventarla.
 - Fuente única de requisitos: `docs/srs/especificacion de requisitos.pdf`. Modelo de datos: `docs/sad/diagramas/modelo-logico.dbml`. Ignorar las carpetas `Documentos extras/`, `DocumentosEntregable1/` y `Diagramas de casos de uso/`, que contienen versiones anteriores.
 - Las pantallas del frontend y los datos que exponen los endpoints deben corresponder a los wireframes de `docs/wireframes/`. Si un elemento del wireframe queda fuera del alcance del prototipo, se muestra deshabilitado y se lista como pendiente.
@@ -48,7 +52,7 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
   3. con la contraseña correcta: 403 `CUENTA_INACTIVA` si `estado_cuenta` no es Activo (RF22, RF62); 403 `CUENTA_PENDIENTE_VALIDACION` o `CUENTA_RECHAZADA` si es un prestador sin validar (RF02, RF28). En esos 403 no se emite token y el conteo vuelve a 0;
   4. el acceso solo se registra al emitir el token.
 - **RNF05:** contraseñas con BCrypt (`spring-security-crypto`), detrás de `PasswordHasherPort`.
-- **JWT RS256** con `NimbusJwtEncoder`. Claims: `sub` = id_usuario, `rol`, `exp`. La clave pública se publica en `GET /api/v1/auth/.well-known/jwks.json`. Las llaves se leen de las rutas en `JWT_LLAVE_PRIVADA` / `JWT_LLAVE_PUBLICA` (ver `.env.example`).
+- **JWT RS256** con `NimbusJwtEncoder`. Claims: `sub` = id_usuario, `rol`, `iss` y `exp`; ms-catalog y ms-booking validan la firma, `iss` y `exp` con el JWKS (ADR-005). La clave pública se publica en `GET /api/v1/auth/.well-known/jwks.json`. Las llaves se leen de las rutas en `JWT_LLAVE_PRIVADA` / `JWT_LLAVE_PUBLICA` (ver `.env.example`).
 - Endpoints del prototipo: `POST /api/v1/auth/login`, `GET /api/v1/auth/me`, `POST /api/v1/auth/registro/turista`, `POST /api/v1/auth/registro/prestador` y `GET /api/v1/auth/paises` (los tres últimos, públicos).
 - **Registro (RF01, RF02):** respuesta uniforme `202 {"estado":"RECIBIDO"}`, exista o no el correo, con BCrypt siempre y sin inicio de sesión automático ([ADR-006](docs/sad/adr/ADR-006-registro-sin-enumeracion.md)). `DATOS_INVALIDOS` lleva en `campos` un código por campo, con los nombres JSON (nunca textos). Decisiones D1 a D6 en `docs/trazabilidad.md`.
 - `Token_Recuperacion` guarda solo `token_hash` (SHA-256), nunca el token en claro.
@@ -77,8 +81,13 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 - Flyway y `ddl-auto=validate`, con las mismas reglas de migraciones que ms-auth. La reserva es una entidad JPA que se inserta con `EntityManager.persist` + `flush` (el uuid lo asigna el dominio; nunca `save()`); el inventario usa SQL nativo (`JdbcTemplate`), sin entidades.
 - **Concurrencia (D3):** UPDATE condicional + CHECK, un día por sentencia, en orden de fecha y hora, dentro de una transacción. Nunca cargar filas de inventario para modificarlas en memoria.
 - **Catálogo (D4):** llamada al detalle público de ms-catalog **antes** de abrir la transacción (`ReservarServicioTransaccional`); timeouts de 500 ms y 1,5 s, un reintento solo ante red o 5xx, circuit breaker `catalogo`. Consultar, cancelar y la disponibilidad no llaman al catálogo.
-- **Idempotencia (D6):** `Idempotency-Key` obligatoria en `POST /api/v1/reservas`; el reenvío responde 201 con `Idempotent-Replayed: true`.
-- Fechas en `America/Bogota`; la hora actual sale de `RelojPort`. RF44: cancelar hasta 24 h antes del inicio, límite incluido.
+- **Idempotencia (D6):** `Idempotency-Key` obligatoria en `POST /api/v1/reservas`; el reenvío responde 201 con `Idempotent-Replayed: true`. El frontend guarda la clave del intento en `sessionStorage`, asociada al cuerpo exacto, y la borra con una respuesta definitiva (201 o 4xx).
+- Fechas en `America/Bogota`; la hora actual sale de `RelojPort`. RF44: cancelar hasta 24 h antes del inicio, límite incluido; `cancelableHasta` lo calcula el servidor y viaja en todas las respuestas de una reserva.
+- **Mis reservas (RF12, turista):** `GET /api/v1/reservas/mias` con `desde`, `hasta` y `estado` (uno o varios, separados por coma).
+  - Regla del cruce: la actividad aparece si `fecha_inicio < (hasta + 1 día) 00:00` y `fecha_fin > desde 00:00`, en Bogotá.
+  - Máximo 366 días; orden `fecha_inicio` descendente con `id_reserva` como desempate.
+- **RF52:** `CompletarReservasProgramador` pasa de Confirmada a Completada las reservas con `fecha_fin` vencida, con un UPDATE condicional idempotente, al arrancar y cada 15 minutos (`samaria360.completar-reservas.cada`).
+- **Índices** (además de los de V1): V2 `ix_reserva_turista_inicio` (`id_turista, fecha_inicio DESC, id_reserva DESC`, para `/mias`) y V3 `ix_reserva_confirmada_fin` (parcial, `fecha_fin WHERE estado = 'Confirmada'`, para RF52).
 - El generador de inventario demo (D5) solo corre con `INVENTARIO_DEMO_HABILITADO=true` (Docker Compose). Es un sustituto temporal de RF19.
 
 ## API Gateway (Spring Cloud Gateway 4.3, WebFlux)

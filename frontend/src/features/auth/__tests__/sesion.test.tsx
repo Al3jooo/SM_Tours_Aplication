@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {
   USUARIO_TURISTA,
@@ -79,8 +79,10 @@ describe('Sesión', () => {
     avatar.focus()
     await usuario.keyboard('{Enter}')
 
-    const opcion = screen.getByRole('menuitem', { name: 'Cerrar sesión' })
+    // Para un turista, la primera opción es «Mis reservas» (WF-11).
+    const opcion = screen.getByRole('menuitem', { name: 'Mis reservas' })
     await waitFor(() => expect(opcion).toHaveFocus())
+    expect(avatar).toHaveAttribute('aria-controls', screen.getByRole('menu').id)
     expect(avatar).toHaveAttribute('aria-expanded', 'true')
 
     await usuario.keyboard('{Escape}')
@@ -88,5 +90,51 @@ describe('Sesión', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
     expect(avatar).toHaveFocus()
     expect(avatar).toHaveAttribute('aria-expanded', 'false')
+  })
+})
+
+describe('Menú del avatar', () => {
+  const abrirMenu = async (usuarioActual = USUARIO_TURISTA) => {
+    sesionGuardada()
+    simularFetch({ [ME]: () => respuestaJson(200, usuarioActual), ...CATALOGO })
+    const resultado = renderApp('/')
+    const avatar = await screen.findByRole('button', { name: `Menú de usuario de ${usuarioActual.nombreVisible}` })
+    return { ...resultado, avatar }
+  }
+
+  it('para un turista, «Mis reservas» va antes de «Cerrar sesión» y lleva a /mis-reservas', async () => {
+    const { usuario, avatar } = await abrirMenu()
+    await usuario.click(avatar)
+
+    const opciones = within(screen.getByRole('menu')).getAllByRole('menuitem')
+    expect(opciones.map((opcion) => opcion.textContent)).toEqual(['Mis reservas', 'Cerrar sesión'])
+    expect(opciones[0]).toHaveAttribute('href', '/mis-reservas')
+
+    await usuario.click(opciones[0])
+    // La navegación va en una transición: la ruta cambia cuando llega la página diferida.
+    await waitFor(() => expect(ubicacionActual()).toBe('/mis-reservas'))
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+  })
+
+  it('para otro rol no aparece «Mis reservas»', async () => {
+    const { usuario, avatar } = await abrirMenu({ ...USUARIO_TURISTA, rol: 'Prestador', nombreVisible: 'Hotel Prueba' })
+    await usuario.click(avatar)
+
+    const opciones = within(screen.getByRole('menu')).getAllByRole('menuitem')
+    expect(opciones.map((opcion) => opcion.textContent)).toEqual(['Cerrar sesión'])
+    await waitFor(() => expect(opciones[0]).toHaveFocus())
+  })
+
+  it('se abre con la barra espaciadora y se cierra con un clic afuera', async () => {
+    const { usuario, avatar } = await abrirMenu()
+    avatar.focus()
+    await usuario.keyboard(' ')
+    expect(avatar).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+
+    fireEvent.mouseDown(document.body)
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
+    expect(avatar).toHaveAttribute('aria-expanded', 'false')
+    expect(avatar).not.toHaveAttribute('aria-controls')
   })
 })

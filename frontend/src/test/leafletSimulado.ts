@@ -71,6 +71,13 @@ export class MarcadorSimulado extends Emisor {
     return this
   }
 
+  /** En las pruebas: como Leaflet al abrir la ventana emergente, evalúa el contenido si es una función. */
+  abrirPopup(): HTMLElement {
+    const contenido = typeof this.popup === 'function' ? (this.popup as (capa: unknown) => unknown)(this) : this.popup
+    if (!(contenido instanceof HTMLElement)) throw new Error('La ventana emergente no es un elemento')
+    return contenido
+  }
+
   getElement() {
     return this.elemento
   }

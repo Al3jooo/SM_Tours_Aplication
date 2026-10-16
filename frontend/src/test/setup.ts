@@ -8,6 +8,31 @@ import { reiniciarLeafletSimulado } from './leafletSimulado'
 // jsdom no dibuja mapas: todas las pruebas usan el Leaflet simulado (ver leafletSimulado.ts).
 vi.mock('leaflet', async () => (await import('./leafletSimulado')).moduloLeaflet)
 
+/**
+ * jsdom tiene <dialog> (con `open`), pero no showModal() ni close(). Polyfill mínimo con lo que usa la app
+ * (DialogoCancelar): showModal() lo abre; close() lo cierra y dispara «close»; Esc dentro del diálogo dispara «cancel»
+ * (cancelable) y, si nadie lo impide, lo cierra, como el navegador. El foco atrapado lo da el navegador real: se
+ * verifica en el recorrido manual.
+ */
+if (!HTMLDialogElement.prototype.showModal) {
+  const alPulsarEsc = function (this: HTMLDialogElement, evento: KeyboardEvent) {
+    if (evento.key !== 'Escape' || !this.open) return
+    const cancelar = new Event('cancel', { cancelable: true })
+    if (this.dispatchEvent(cancelar)) this.close()
+  }
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    if (this.open) throw new DOMException('El diálogo ya está abierto', 'InvalidStateError')
+    this.open = true
+    this.addEventListener('keydown', alPulsarEsc)
+  }
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    if (!this.open) return
+    this.open = false
+    this.removeEventListener('keydown', alPulsarEsc)
+    this.dispatchEvent(new Event('close'))
+  }
+}
+
 // /explorar se carga de forma diferida (React.lazy): la primera vez en cada archivo, Vitest transforma el módulo
 // dentro de la espera de findBy/waitFor, y con las pruebas en paralelo (o con Docker Compose corriendo) eso puede
 // pasar de 1 s (el valor por defecto).

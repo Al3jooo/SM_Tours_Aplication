@@ -5,6 +5,8 @@ export interface SolicitudSimulada {
   metodo: string
   cabeceras: Record<string, string>
   cuerpo: unknown
+  /** El cuerpo tal como salió (p. ej. para ver un decimal exacto que JSON.parse convierte en número). */
+  cuerpoTexto: string | undefined
 }
 
 type Manejador = (solicitud: SolicitudSimulada) => Response | Promise<Response>
@@ -60,6 +62,7 @@ export function simularFetch(rutas: Record<string, Manejador>) {
       metodo: init?.method ?? 'GET',
       cabeceras: { ...(init?.headers as Record<string, string> | undefined) },
       cuerpo: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined,
+      cuerpoTexto: typeof init?.body === 'string' ? init.body : undefined,
     }
     solicitudes.push(solicitud)
     // Primero la URL exacta; si no, la ruta sin la consulta (el manejador recibe la URL completa).
@@ -125,4 +128,139 @@ export function paginaOferta(
 export function ultimaConsultaCatalogo(solicitudes: SolicitudSimulada[]): string {
   const catalogo = solicitudes.filter((s) => s.url.startsWith('/api/v1/catalogo/oferta'))
   return catalogo.length === 0 ? '' : (catalogo[catalogo.length - 1].url.split('?')[1] ?? '')
+}
+
+// ------------------------------------------------------------------ detalle (GET /api/v1/catalogo/servicios/{id})
+
+export const USUARIO_PRESTADOR = {
+  ...USUARIO_TURISTA,
+  idUsuario: '00000000-0000-4000-8000-000000000002',
+  correo: 'prestador@samaria360.test',
+  rol: 'Prestador',
+  nombreVisible: 'Casa Tayrona SAS',
+}
+
+/** Dos unidades: «Doble» con el precio como número y «Suite familiar» como texto decimal con centavos. */
+export const DETALLE_HOTEL = {
+  id: 's-hotel',
+  idPrestador: '00000000-0000-4000-8000-000000000002',
+  nombreComercial: 'Hotel Casa Tayrona',
+  categoria: 'Alojamiento',
+  descripcion: 'Alojamiento boutique cerca del Parque de los Novios.',
+  imagenes: ['/imagenes/catalogo/hotel-casa-tayrona.webp', '/imagenes/catalogo/hotel-casa-tayrona-2.webp'],
+  precioBase: 150000,
+  moneda: 'COP',
+  detalleCategoria: {
+    serviciosIncluidos: ['WiFi', 'Desayuno'],
+    unidades: [
+      {
+        idUnidad: 'u-doble',
+        nombre: 'Doble',
+        tipoHabitacion: 'Doble',
+        numHabitaciones: 3,
+        capacidadMaxHuespedes: 2,
+        precioNoche: 150000,
+      },
+      {
+        idUnidad: 'u-suite',
+        nombre: 'Suite familiar',
+        tipoHabitacion: 'Suite',
+        numHabitaciones: 3,
+        capacidadMaxHuespedes: 4,
+        precioNoche: '260000.50',
+      },
+    ],
+  },
+}
+
+export const DETALLE_TOUR = {
+  id: 's-tour-cafe',
+  idPrestador: '00000000-0000-4000-8000-000000000002',
+  nombreComercial: 'Tour de Café en Minca',
+  categoria: 'Tour',
+  descripcion: 'Recorrido guiado por fincas cafeteras.',
+  imagenes: ['/imagenes/catalogo/tour-cafe-minca.webp'],
+  precioBase: 80000,
+  moneda: 'COP',
+  detalleCategoria: { puntoEncuentro: 'Iglesia de Minca', duracionHoras: 4, nivelDificultad: 'Media', aforoMaxGrupo: 12 },
+}
+
+export const DETALLE_RESTAURANTE = {
+  id: 's-restaurante',
+  idPrestador: '00000000-0000-4000-8000-000000000002',
+  nombreComercial: 'Mirador Gourmet',
+  categoria: 'Gastronomia',
+  descripcion: null,
+  imagenes: [],
+  precioBase: 45000,
+  moneda: 'COP',
+  detalleCategoria: { tipoCocina: 'Caribeña', aforoMaxTurno: 40, menuVegetariano: true, rangoPrecioPlato: '$30.000 – $60.000' },
+}
+
+// ------------------------------------------------------------------ ms-booking (/api/v1/reservas)
+
+const HORARIO_RESERVAS = { horaCheckIn: '15:00:00', horaCheckOut: '12:00:00', plazoCancelacionHoras: 24 }
+
+/** Disponibilidad de un alojamiento: cupos por unidad y noche (`{ 'u-doble': [2, 1], ... }`, desde `desde`). */
+export function disponibilidadAlojamiento(idServicio: string, desde: string, cupos: Record<string, number[]>) {
+  const sumar = (dias: number) => new Date(Date.parse(`${desde}T00:00:00Z`) + dias * 86_400_000).toISOString().slice(0, 10)
+  const unidades = Object.entries(cupos).map(([idUnidad, porNoche]) => ({
+    idUnidad,
+    noches: porNoche.map((cuposDisponibles, i) => ({ fecha: sumar(i), cuposTotales: 3, cuposDisponibles })),
+  }))
+  const longitud = Math.max(1, ...Object.values(cupos).map((porNoche) => porNoche.length))
+  return {
+    idServicio,
+    desde,
+    hasta: sumar(longitud - 1),
+    categoria: unidades.length > 0 ? 'Alojamiento' : null,
+    unidades,
+    horarios: [],
+    ...HORARIO_RESERVAS,
+  }
+}
+
+/** Disponibilidad de un tour en un día: `{ '08:00:00': 5, '14:00:00': 0 }`. */
+export function disponibilidadTour(idServicio: string, fecha: string, cupos: Record<string, number>) {
+  const horarios = Object.entries(cupos).map(([hora, cuposDisponibles]) => ({ fecha, hora, cuposTotales: 12, cuposDisponibles }))
+  return {
+    idServicio,
+    desde: fecha,
+    hasta: fecha,
+    categoria: horarios.length > 0 ? 'Tour' : null,
+    unidades: [],
+    horarios,
+    ...HORARIO_RESERVAS,
+  }
+}
+
+export function reservaConfirmada(extra: Record<string, unknown> = {}) {
+  return {
+    idReserva: '3f1c0000-0000-4000-8000-000000000001',
+    estado: 'Confirmada',
+    idServicio: 's-hotel',
+    nombreServicio: 'Hotel Casa Tayrona',
+    categoria: 'Alojamiento',
+    idUnidad: 'u-suite',
+    nombreUnidad: 'Suite familiar',
+    fechaEntrada: '2026-12-12',
+    fechaSalida: '2026-12-15',
+    horaInicio: null,
+    fechaInicio: '2026-12-12T20:00:00Z',
+    fechaFin: '2026-12-15T17:00:00Z',
+    cantidad: 2,
+    personas: 5,
+    precioUnitario: 260000.5,
+    unidadCobro: 'Noche',
+    precioTotal: 1560003,
+    moneda: 'COP',
+    fechaCreacion: '2026-10-16T17:00:00Z',
+    fechaCancelacion: null,
+    cancelableHasta: '2026-12-11T20:00:00Z',
+    ...extra,
+  }
+}
+
+export function paginaReservas(elementos: unknown[], { pagina = 0, totalElementos = elementos.length } = {}) {
+  return { elementos, pagina, tamano: 20, totalElementos, totalPaginas: Math.ceil(totalElementos / 20) }
 }

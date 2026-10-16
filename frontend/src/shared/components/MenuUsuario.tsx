@@ -1,20 +1,27 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { iniciales } from './iniciales'
 
 export interface UsuarioEncabezado {
   nombreVisible: string
   correo: string
+  /** «Mis reservas» (WF-11) solo aparece para el rol Turista. */
+  rol?: string
 }
 
-/** Avatar con iniciales y menú con Cerrar sesión (RF55). Accesible con teclado: Enter abre, Escape cierra. */
+/**
+ * Avatar con iniciales y menú: «Mis reservas» (solo turistas, WF-11) y «Cerrar sesión» (RF55). Accesible con
+ * teclado: Enter abre y lleva el foco a la primera opción, Escape cierra y devuelve el foco al avatar.
+ */
 export function MenuUsuario({ usuario, onCerrarSesion }: { usuario: UsuarioEncabezado; onCerrarSesion: () => void }) {
   const { t } = useTranslation()
   const [abierto, setAbierto] = useState(false)
   const idMenu = useId()
   const contenedor = useRef<HTMLDivElement>(null)
   const boton = useRef<HTMLButtonElement>(null)
-  const primeraOpcion = useRef<HTMLButtonElement>(null)
+  const primeraOpcion = useRef<HTMLElement>(null)
+  const esTurista = usuario.rol === 'Turista'
 
   useEffect(() => {
     if (!abierto) return
@@ -62,9 +69,21 @@ export function MenuUsuario({ usuario, onCerrarSesion }: { usuario: UsuarioEncab
           <p className="menu-usuario__nombre">{usuario.nombreVisible}</p>
           <p className="menu-usuario__correo">{usuario.correo}</p>
           <ul id={idMenu} role="menu" aria-label={usuario.nombreVisible}>
+            {esTurista && (
+              <li role="none">
+                <Link
+                  ref={primeraOpcion as RefObject<HTMLAnchorElement>}
+                  to="/mis-reservas"
+                  role="menuitem"
+                  onClick={() => setAbierto(false)}
+                >
+                  {t('encabezado.misReservas')}
+                </Link>
+              </li>
+            )}
             <li role="none">
               <button
-                ref={primeraOpcion}
+                ref={esTurista ? undefined : (primeraOpcion as RefObject<HTMLButtonElement>)}
                 type="button"
                 role="menuitem"
                 onClick={() => {

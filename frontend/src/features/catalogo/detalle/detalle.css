@@ -1,0 +1,219 @@
+/* WF-06, detalle mínimo de un servicio. Solo tokens de app/estilos.css (Guía visual de frontend/README.md). */
+
+.detalle,
+.reserva {
+  display: grid;
+  gap: var(--espacio-4);
+}
+
+.detalle__volver {
+  margin: 0;
+  font-size: var(--texto-sm);
+}
+
+.detalle__volver a {
+  color: var(--color-mar-700);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.detalle__ficha {
+  display: grid;
+  gap: var(--espacio-5);
+  padding: var(--espacio-5);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+}
+
+.detalle__encabezado {
+  display: grid;
+  gap: var(--espacio-1);
+}
+
+.detalle__encabezado h1 {
+  margin: 0;
+  color: var(--color-mar-900);
+  font-size: var(--texto-3xl);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.detalle__categoria {
+  margin: 0;
+  color: var(--color-cafe-700);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.detalle__precio {
+  margin: 0;
+  color: var(--color-atardecer-700);
+  font-size: var(--texto-lg);
+  font-weight: 700;
+}
+
+/* Galería: 1 grande + hasta 4 miniaturas (WF-06). */
+.detalle__galeria {
+  display: grid;
+  gap: var(--espacio-3);
+}
+
+.detalle__portada {
+  overflow: hidden;
+  max-width: 48rem;
+  border-radius: var(--radio-md);
+}
+
+.detalle__miniaturas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--espacio-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detalle__miniaturas img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radio-sm);
+  background: var(--color-arena-200);
+  object-fit: cover;
+}
+
+.detalle__cuerpo {
+  display: grid;
+  gap: var(--espacio-5);
+}
+
+.detalle__cuerpo h2 {
+  margin: 0 0 var(--espacio-2);
+  color: var(--color-mar-900);
+  font-size: var(--texto-xl);
+}
+
+.detalle__descripcion {
+  max-width: 46rem;
+  margin: 0;
+  line-height: var(--interlineado);
+}
+
+.detalle__etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detalle__etiquetas li {
+  padding: 0.15rem var(--espacio-3);
+  border-radius: var(--radio-pill);
+  background: var(--color-mar-100);
+  color: var(--color-mar-900);
+  font-size: var(--texto-xs);
+  font-weight: 600;
+}
+
+.detalle__unidades {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detalle__unidad {
+  display: grid;
+  gap: var(--espacio-2);
+  padding: var(--espacio-4);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-arena);
+}
+
+.detalle__unidad h3 {
+  margin: 0;
+  font-size: var(--texto-lg);
+}
+
+.detalle__unidad dl,
+.detalle__datos {
+  display: grid;
+  gap: var(--espacio-1);
+  margin: 0;
+}
+
+.detalle__unidad dl div,
+.detalle__datos div {
+  display: block;
+}
+
+/* La etiqueta y su valor en la misma línea; un valor largo continúa debajo, sin dejar la etiqueta sola. */
+.detalle__unidad dt,
+.detalle__unidad dd,
+.detalle__datos dt,
+.detalle__datos dd {
+  display: inline;
+}
+
+.detalle__unidad dd,
+.detalle__datos dd {
+  margin-left: var(--espacio-1);
+}
+
+.detalle__unidad dt,
+.detalle__datos dt {
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.detalle__unidad dt::after,
+.detalle__datos dt::after {
+  content: ':';
+}
+
+.detalle__unidad dd,
+.detalle__datos dd {
+  font-size: var(--texto-sm);
+  font-weight: 600;
+}
+
+.detalle__unidad-precio {
+  margin: 0;
+  color: var(--color-atardecer-700);
+  font-weight: 700;
+}
+
+.detalle__acciones {
+  margin: 0;
+}
+
+.detalle__acciones .boton-principal {
+  text-decoration: none;
+}
+
+@media (min-width: 64rem) {
+  /* Dos columnas solo si hay miniaturas: con una sola foto, la portada no deja una columna vacía. */
+  .detalle__galeria:has(.detalle__miniaturas) {
+    grid-template-columns: 2fr 1fr;
+    align-items: start;
+  }
+
+  .detalle__galeria:has(.detalle__miniaturas) .detalle__portada {
+    max-width: none;
+  }
+
+  .detalle__miniaturas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

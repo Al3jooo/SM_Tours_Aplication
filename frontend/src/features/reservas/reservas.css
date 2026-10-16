@@ -1,0 +1,581 @@
+/* WF-10 (disponibilidad y reserva) y WF-11 (Mis reservas). Solo tokens de app/estilos.css. */
+
+.reserva__encabezado {
+  display: grid;
+  gap: var(--espacio-1);
+}
+
+.reserva__titulo,
+.mis-reservas h1 {
+  margin: 0;
+  color: var(--color-mar-900);
+  font-size: var(--texto-3xl);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.reserva__cuerpo {
+  display: grid;
+  gap: var(--espacio-5);
+  align-items: start;
+}
+
+.reserva__principal {
+  display: grid;
+  gap: var(--espacio-4);
+  min-width: 0;
+}
+
+/* Grupos con borde (fieldset/legend): «Buscar disponibilidad», «Elige la habitación», «Horario», filtros. */
+.reserva__grupo {
+  display: grid;
+  gap: var(--espacio-4);
+  min-width: 0;
+  margin: 0;
+  padding: var(--espacio-4) var(--espacio-5) var(--espacio-5);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+}
+
+.reserva__grupo > legend {
+  padding: 0 var(--espacio-2);
+  color: var(--color-mar-900);
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-lg);
+  font-weight: 600;
+}
+
+.reserva__campos {
+  display: grid;
+  /* auto-fill: un campo solo (Habitaciones) no se estira a todo el ancho. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  align-items: start;
+  gap: var(--espacio-4);
+}
+
+/* Etiqueta, control y ayuda arriba: una ayuda más larga en un campo no estira el control de los otros. */
+.reserva__campos > .campo {
+  align-content: start;
+}
+
+.reserva__verificar {
+  justify-self: start;
+}
+
+.reserva__anuncio,
+.reserva__consulta {
+  margin: 0;
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.reserva__anuncio:empty,
+.reserva__consulta:empty {
+  display: none;
+}
+
+.reserva__disponibilidad {
+  display: grid;
+  gap: var(--espacio-3);
+}
+
+.reserva__disponibilidad > h2,
+.mis-reservas__resultados h2 {
+  margin: 0;
+  color: var(--color-mar-900);
+  font-size: var(--texto-xl);
+}
+
+.reserva__unidades > ul,
+.reserva__horarios > ul {
+  display: grid;
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Tarjeta de unidad: el radio y su etiqueta (nombre) eligen la habitación; el resto la describe. */
+.tarjeta-unidad {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  overflow: hidden;
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  transition:
+    border-color var(--transicion),
+    box-shadow var(--transicion);
+}
+
+.tarjeta-unidad .imagen-oferta {
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.tarjeta-unidad:has(input:checked),
+.tarjeta-unidad--elegida {
+  border-color: var(--color-mar-700);
+  box-shadow: 0 0 0 3px var(--color-mar-100);
+}
+
+.tarjeta-unidad--sin-cupo {
+  background: var(--color-arena);
+}
+
+.tarjeta-unidad__cuerpo {
+  display: grid;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3) var(--espacio-4);
+}
+
+.tarjeta-unidad__eleccion,
+.opcion-horario {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+.tarjeta-unidad__eleccion input,
+.opcion-horario input,
+.mis-reservas__estados input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  accent-color: var(--color-mar-700);
+}
+
+.tarjeta-unidad__eleccion label {
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-lg);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tarjeta-unidad__datos,
+.tarjeta-unidad__cupo {
+  margin: 0;
+  font-size: var(--texto-sm);
+}
+
+.tarjeta-unidad__cupo {
+  color: var(--color-mar-700);
+  font-weight: 600;
+}
+
+.tarjeta-unidad__cupo--agotado,
+.opcion-horario--agotado .opcion-horario__cupo {
+  color: var(--color-error);
+}
+
+.opcion-horario {
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radio-sm);
+}
+
+.opcion-horario:has(input:checked) {
+  border-color: var(--color-mar-700);
+  background: var(--color-mar-100);
+}
+
+.opcion-horario--agotado {
+  background: var(--color-arena);
+}
+
+.opcion-horario label {
+  cursor: pointer;
+}
+
+.opcion-horario__hora {
+  font-weight: 700;
+}
+
+/* Panel «Resumen de reserva». */
+.resumen-reserva {
+  display: grid;
+  gap: var(--espacio-3);
+  padding: var(--espacio-5);
+  border: 1px solid var(--color-borde);
+  border-top: 4px solid var(--color-atardecer-600);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-2);
+}
+
+.resumen-reserva h2 {
+  margin: 0;
+  font-size: var(--texto-xl);
+}
+
+.resumen-reserva h3 {
+  margin: 0 0 var(--espacio-1);
+  font-size: var(--texto-base);
+}
+
+.resumen-reserva__datos {
+  display: grid;
+  gap: var(--espacio-2);
+  margin: 0;
+}
+
+.resumen-reserva__datos div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+}
+
+.resumen-reserva__datos dt {
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.resumen-reserva__datos dd {
+  margin: 0;
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  text-align: right;
+}
+
+.resumen-reserva__linea {
+  margin: 0;
+  padding-top: var(--espacio-2);
+  border-top: 1px dashed var(--color-borde);
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.resumen-reserva__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--texto-lg);
+}
+
+.resumen-reserva__total strong {
+  color: var(--color-mar-900);
+  font-size: var(--texto-xl);
+}
+
+.resumen-reserva__aviso {
+  margin: 0;
+  padding: var(--espacio-2) var(--espacio-3);
+  border-left: 4px solid var(--color-mar-700);
+  border-radius: var(--radio-sm);
+  background: var(--color-mar-100);
+  color: var(--color-mar-900);
+  font-size: var(--texto-sm);
+}
+
+.resumen-reserva__confirmar {
+  width: 100%;
+}
+
+/* Botón principal bloqueado (aria-disabled, sigue enfocable): tinta-suave sobre arena, un par AA de tokens.test.ts. */
+.boton-principal.deshabilitado,
+.boton-principal.deshabilitado:hover:not(:disabled),
+.boton-principal[aria-disabled='true'] {
+  border: 1.5px solid var(--color-borde);
+  background: var(--color-arena);
+  box-shadow: none;
+  color: var(--color-tinta-suave);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.resumen-reserva__motivo {
+  margin: 0;
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.resumen-reserva__info ul {
+  display: grid;
+  gap: var(--espacio-1);
+  margin: 0;
+  padding-left: var(--espacio-5);
+  font-size: var(--texto-sm);
+}
+
+/* Avisos de un intento (errores de reservar, rol) y confirmación. */
+.aviso-reserva {
+  display: grid;
+  justify-items: start;
+  gap: var(--espacio-2);
+  margin: 0;
+  padding: var(--espacio-3) var(--espacio-4);
+  border-left: 4px solid var(--color-error);
+  border-radius: var(--radio-sm);
+  background: var(--color-error-fondo);
+  color: var(--color-error);
+}
+
+.aviso-reserva p,
+.aviso-reserva ul {
+  margin: 0;
+}
+
+.confirmacion-reserva {
+  display: grid;
+  gap: var(--espacio-3);
+  max-width: 40rem;
+  padding: var(--espacio-5);
+  border: 1px solid var(--color-borde);
+  border-top: 4px solid var(--color-mar-700);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-2);
+}
+
+.confirmacion-reserva h2 {
+  margin: 0;
+  color: var(--color-mar-900);
+}
+
+.confirmacion-reserva p {
+  margin: 0;
+}
+
+.confirmacion-reserva__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-4);
+}
+
+.confirmacion-reserva__acciones a:not(.boton-principal),
+.mis-reservas a:not(.boton-principal) {
+  color: var(--color-mar-700);
+  font-weight: 600;
+}
+
+.confirmacion-reserva__acciones .boton-principal {
+  text-decoration: none;
+}
+
+/* ============================ Mis reservas (WF-11) ============================ */
+
+.mis-reservas {
+  display: grid;
+  gap: var(--espacio-4);
+}
+
+.mis-reservas__apoyo {
+  max-width: 46rem;
+  margin: 0;
+  color: var(--color-tinta-suave);
+}
+
+.mis-reservas__estados {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.mis-reservas__estados legend {
+  margin-bottom: var(--espacio-2);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+}
+
+.mis-reservas__estados ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2) var(--espacio-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mis-reservas__estados li {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+.mis-reservas__filtros .boton-secundario {
+  justify-self: start;
+}
+
+.mis-reservas__resultados {
+  display: grid;
+  gap: var(--espacio-3);
+}
+
+.mis-reservas__lista {
+  display: grid;
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarjeta-reserva {
+  display: grid;
+  gap: var(--espacio-2);
+  padding: var(--espacio-4) var(--espacio-5);
+  border: 1px solid var(--color-borde);
+  border-left: 4px solid var(--color-mar-700);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+}
+
+.tarjeta-reserva--Cancelada {
+  border-left-color: var(--color-error);
+}
+
+.tarjeta-reserva--Completada {
+  border-left-color: var(--color-cafe-700);
+}
+
+.tarjeta-reserva__titulo {
+  margin: 0;
+  font-size: var(--texto-lg);
+}
+
+.tarjeta-reserva__unidad {
+  margin: 0;
+  color: var(--color-tinta-suave);
+}
+
+.tarjeta-reserva__datos {
+  display: grid;
+  gap: var(--espacio-1);
+  margin: 0;
+}
+
+.tarjeta-reserva__datos div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+.tarjeta-reserva__datos dt {
+  display: inline-flex;
+  color: var(--color-mar-700);
+}
+
+.tarjeta-reserva__datos dd {
+  margin: 0;
+}
+
+.tarjeta-reserva__total dt {
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.tarjeta-reserva__total dd {
+  font-weight: 700;
+}
+
+.tarjeta-reserva__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2) var(--espacio-4);
+}
+
+.tarjeta-reserva__motivo,
+.tarjeta-reserva__plazo {
+  margin: 0;
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+/* Insignia de estado: pares que ya pasan AA en tokens.test.ts (los mismos que .insignia-estado). */
+.insignia-reserva {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--espacio-1);
+  margin: 0;
+  padding: 0.15rem var(--espacio-2);
+  border-radius: var(--radio-pill);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+}
+
+.insignia-reserva--Confirmada {
+  background: var(--color-mar-100);
+  color: var(--color-mar-700);
+}
+
+.insignia-reserva--Cancelada {
+  background: var(--color-error-fondo);
+  color: var(--color-error);
+}
+
+.insignia-reserva--Completada {
+  background: var(--color-sol-100);
+  color: var(--color-cafe-700);
+}
+
+/* Diálogo nativo (<dialog> con showModal): el navegador atrapa el foco y cierra con Esc. */
+.dialogo {
+  width: min(32rem, calc(100% - 2 * var(--espacio-4)));
+  padding: var(--espacio-5);
+  border: 0;
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-3);
+  color: var(--color-tinta);
+}
+
+.dialogo::backdrop {
+  background: rgb(7 59 68 / 55%);
+}
+
+.dialogo h2 {
+  margin: 0 0 var(--espacio-2);
+  color: var(--color-mar-900);
+  font-size: var(--texto-xl);
+}
+
+.dialogo p {
+  margin: 0 0 var(--espacio-3);
+}
+
+.dialogo__error {
+  padding: var(--espacio-2) var(--espacio-3);
+  border-left: 4px solid var(--color-error);
+  background: var(--color-error-fondo);
+  color: var(--color-error);
+}
+
+.dialogo__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--espacio-3);
+}
+
+@media (min-width: 64rem) {
+  .reserva__cuerpo {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+  }
+
+  .resumen-reserva {
+    position: sticky;
+    top: calc(var(--alto-encabezado) + var(--espacio-4));
+  }
+}
+
+@media (max-width: 30rem) {
+  .tarjeta-unidad {
+    grid-template-columns: 1fr;
+  }
+
+  .tarjeta-unidad .imagen-oferta {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-unidad {
+    transition: none;
+  }
+}
