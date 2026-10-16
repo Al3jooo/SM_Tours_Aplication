@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { App } from '../../../app/App'
 import {
   CASCADA_CERRADA,
+  DETALLE_HOTEL,
   HOTEL,
   TOUR_CAFE,
   paginaOferta,
@@ -239,10 +240,58 @@ describe('Exploración WF-05: mapa', () => {
     await screen.findByRole('heading', { name: nombre })
     await waitFor(() => marcador(nombre))
 
-    const popup = marcador(nombre).popup as HTMLElement
-    expect(popup).toBeInstanceOf(HTMLElement)
-    expect(popup.textContent).toBe(nombre)
-    expect(popup.querySelector('img')).toBeNull()
+    const popup = marcador(nombre).abrirPopup()
+    expect(popup.querySelector('.popup-oferta__nombre')!.textContent).toBe(nombre)
+    // La única imagen es la miniatura: el nombre no se interpretó como HTML.
+    const imagenes = popup.querySelectorAll('img')
+    expect(imagenes).toHaveLength(1)
+    expect(imagenes[0]).toHaveClass('popup-oferta__miniatura')
+    expect(imagenes[0]).toHaveAttribute('alt', `Foto de ${nombre}`)
+  })
+
+  // RF23: «desplegando el nombre y una imagen miniatura al hacer clic sobre el marcador».
+  it('la ventana emergente de un servicio trae miniatura de tamaño fijo, nombre y «Ver detalle»', async () => {
+    conResultados()
+    await cargarExplorar('/explorar?texto=hotel')
+
+    const popup = within(marcador('Hotel Casa Tayrona').abrirPopup())
+    const miniatura = popup.getByRole('img', { name: 'Foto de Hotel Casa Tayrona' })
+    expect(miniatura).toHaveAttribute('src', HOTEL.imagen)
+    expect(miniatura).toHaveAttribute('width', '120')
+    expect(miniatura).toHaveAttribute('height', '80')
+    // La ventana emergente no está montada en el documento (Leaflet la monta al abrirse): se revisa su contenido.
+    expect(popup.getByText('Hotel Casa Tayrona')).toHaveClass('popup-oferta__nombre')
+    expect(popup.getByRole('link', { name: 'Ver detalle' })).toHaveAttribute('href', '/servicios/s-hotel')
+
+    // Si la foto no carga, la ilustración de su categoría.
+    fireEvent.error(miniatura)
+    expect(miniatura).toHaveAttribute('src', '/imagenes/catalogo/categorias/alojamiento.svg')
+  })
+
+  it('un atractivo no tiene «Ver detalle» en la ventana emergente', async () => {
+    conResultados()
+    await cargarExplorar()
+
+    const popup = within(marcador('Cascada El Salto').abrirPopup())
+    expect(popup.getByRole('img', { name: 'Foto de Cascada El Salto' })).toHaveAttribute('src', CASCADA_CERRADA.imagen)
+    expect(popup.queryByRole('link')).not.toBeInTheDocument()
+  })
+
+  it('«Ver detalle» de la ventana emergente navega al detalle y recuerda la búsqueda', async () => {
+    simularFetch({
+      [OFERTA]: () => respuestaJson(200, paginaOferta([HOTEL, TOUR_CAFE, CASCADA_CERRADA])),
+      'GET /api/v1/catalogo/servicios/s-hotel': () => respuestaJson(200, DETALLE_HOTEL),
+    })
+    await cargarExplorar('/explorar?texto=hotel')
+
+    const enlace = within(marcador('Hotel Casa Tayrona').abrirPopup()).getByRole('link', { name: 'Ver detalle' })
+    act(() => {
+      enlace.click()
+    })
+    // La navegación va en una transición: la ruta cambia cuando llega la página diferida del detalle.
+    await waitFor(() => expect(ubicacionActual()).toBe('/servicios/s-hotel'))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Hotel Casa Tayrona' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Volver a la búsqueda/ })).toHaveAttribute('href', '/explorar?texto=hotel')
   })
 
   it('usa las teselas de OSM con zoom máximo 19 y su atribución', async () => {
@@ -307,7 +356,7 @@ describe('Exploración WF-05: mapa', () => {
 
     const hotel = screen.getByRole('article', { name: 'Hotel Casa Tayrona' })
     act(() => {
-      within(hotel).getByRole('button', { name: /Ver detalle/ }).focus()
+      within(hotel).getByRole('link', { name: 'Ver detalle' }).focus()
     })
     expect(marcador('Hotel Casa Tayrona').getElement()).toHaveClass('marcador--resaltado')
     expect(marcador('Hotel Casa Tayrona').zIndexOffset).toBeGreaterThan(0)

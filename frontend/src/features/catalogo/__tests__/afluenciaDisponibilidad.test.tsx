@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import i18n from '../../../i18n'
 import {
@@ -27,7 +28,11 @@ describe('Afluencia (RF39) y Disponibilidad (RF11) en las tarjetas', () => {
     ['lista', 'servicio', HOTEL, 'Disponibilidad', 'Availability'],
     ['lista', 'atractivo', CASCADA_CERRADA, 'Afluencia', 'Crowd level'],
   ] as const)('variante %s, %s: muestra «%s» en ES y «%s» en EN', async (variante, _tipo, resultado, es, en) => {
-    render(<TarjetaOferta resultado={resultado as unknown as ResultadoOferta} variante={variante} />)
+    render(
+      <MemoryRouter>
+        <TarjetaOferta resultado={resultado as unknown as ResultadoOferta} variante={variante} />
+      </MemoryRouter>,
+    )
     const datos = datosDe(screen.getByRole('article'))
 
     expect(within(datos).getByText(es)).toBeInTheDocument()

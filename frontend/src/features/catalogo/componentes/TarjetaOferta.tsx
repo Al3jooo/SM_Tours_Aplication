@@ -1,8 +1,11 @@
 import { useId, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link, useLocation } from 'react-router-dom'
 import { IconoAuditiva, IconoMovilidadReducida, IconoVisual } from '../../../shared/components/Iconos'
 import { BotonProximamente } from '../../../shared/components/Proximamente'
+import type { EstadoResumen } from '../../reservas/reservasApi'
 import type { CondicionAccesibilidad, ResultadoOferta } from '../catalogoApi'
+import { rutaDetalle } from '../detalle/navegacionDetalle'
 import { formatearDistancia, formatearPrecio } from '../formato'
 import { etiquetaCategoria } from './etiquetas'
 import { ImagenOferta } from './ImagenOferta'
@@ -15,7 +18,10 @@ const ICONOS_ACCESIBILIDAD: Record<CondicionAccesibilidad, () => ReactNode> = {
 
 /**
  * Tarjeta de un servicio o atractivo: lista de WF-05 ('lista') y destacados de WF-04 ('destacado').
- * Calificación, afluencia y disponibilidad dependen de datos que aún no existen: se muestran como «—».
+ * Calificación (RF17) y afluencia (RF39) dependen de datos que aún no existen: se muestran como «—». La disponibilidad
+ * de los servicios (RF11) sale del resumen de ms-booking para los próximos 7 días; mientras carga, si falla o en las
+ * categorías que no se reservan, también «—». «Ver detalle» lleva a WF-06 en los servicios; en los atractivos sigue
+ * pendiente.
  *
  * En la lista, `onResaltar` avisa cuando el puntero o el foco entran o salen (para resaltar su marcador en el mapa);
  * la tarjeta acepta el foco por programa (tabIndex -1) para cuando se pulsa su marcador.
@@ -25,16 +31,20 @@ export function TarjetaOferta({
   variante,
   resaltada = false,
   onResaltar,
+  disponibilidad = null,
   ref,
 }: {
   resultado: ResultadoOferta
   variante: 'lista' | 'destacado'
   resaltada?: boolean
+  /** Del resumen de ms-booking; null = sin datos. */
+  disponibilidad?: EstadoResumen | null
   onResaltar?: (activa: boolean) => void
   ref?: Ref<HTMLElement>
 }) {
   const { t, i18n } = useTranslation()
   const idTitulo = useId()
+  const ubicacion = useLocation()
   const sinDatos = (
     <>
       <span aria-hidden="true">—</span>
@@ -95,7 +105,11 @@ export function TarjetaOferta({
           <div>
             {/* Según el SRS: afluencia de los atractivos (RF39) y disponibilidad de cupos de los servicios (RF11). */}
             <dt>{t(resultado.tipo === 'Atractivo' ? 'catalogo.tarjeta.afluencia' : 'catalogo.tarjeta.disponibilidad')}</dt>
-            <dd>{sinDatos}</dd>
+            <dd>
+              {resultado.tipo === 'Servicio' && disponibilidad
+                ? t(`catalogo.tarjeta.disponibilidadEstados.${disponibilidad}`)
+                : sinDatos}
+            </dd>
           </div>
         </dl>
 
@@ -114,9 +128,20 @@ export function TarjetaOferta({
           </ul>
         )}
 
-        {/* WF-04 y WF-05 (v2): solo «Ver detalle» (WF-06, pendiente); la reserva se hace desde el detalle (WF-10). */}
+        {/* WF-04 y WF-05 (v2): solo «Ver detalle»; la reserva se hace desde el detalle (WF-06 → WF-10). */}
         <div className="tarjeta-oferta__acciones">
-          <BotonProximamente className="enlace">{t('catalogo.tarjeta.verDetalle')}</BotonProximamente>
+          {resultado.tipo === 'Servicio' ? (
+            <Link
+              className="enlace"
+              to={rutaDetalle(resultado.id)}
+              state={{ volverA: ubicacion.pathname + ubicacion.search }}
+              aria-describedby={idTitulo}
+            >
+              {t('catalogo.tarjeta.verDetalle')}
+            </Link>
+          ) : (
+            <BotonProximamente className="enlace">{t('catalogo.tarjeta.verDetalle')}</BotonProximamente>
+          )}
         </div>
       </div>
     </article>

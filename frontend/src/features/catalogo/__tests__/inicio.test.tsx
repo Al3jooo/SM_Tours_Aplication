@@ -64,20 +64,23 @@ describe('Inicio WF-04', () => {
     expect(solicitudes.some((s) => s.url === DESTACADOS.replace('GET ', ''))).toBe(true)
   })
 
-  // WF-04 v2: los destacados ya no tienen «Reservar»; la reserva se hará desde el detalle (WF-06 → WF-10).
-  it('cada destacado tiene solo «Ver detalle» (deshabilitado), sin «Reservar»', async () => {
+  // WF-04 v2: los destacados no tienen «Reservar»; la reserva se hace desde el detalle (WF-06 → WF-10).
+  it('cada destacado tiene solo «Ver detalle», un enlace a su detalle (WF-06), sin «Reservar»', async () => {
     simularFetch({ [DESTACADOS]: () => respuestaJson(200, paginaOferta([TOUR_CAFE, HOTEL], { tamano: 3 })) })
     renderApp('/')
 
     const destacados = screen.getByRole('region', { name: 'Destacados esta semana' })
     await within(destacados).findByRole('heading', { name: 'Tour de Café en Minca' })
-    for (const tarjeta of within(destacados).getAllByRole('article')) {
-      const botones = within(tarjeta).getAllByRole('button')
-      expect(botones).toHaveLength(1)
-      expect(botones[0]).toHaveAccessibleName(/^Ver detalle/)
-      expect(botones[0]).toHaveAttribute('aria-disabled', 'true')
+    for (const [tarjeta, id] of within(destacados)
+      .getAllByRole('article')
+      .map((articulo, indice) => [articulo, [TOUR_CAFE.id, HOTEL.id][indice]] as const)) {
+      expect(within(tarjeta).queryByRole('button')).not.toBeInTheDocument()
+      const enlaces = within(tarjeta).getAllByRole('link')
+      expect(enlaces).toHaveLength(1)
+      expect(enlaces[0]).toHaveAccessibleName('Ver detalle')
+      expect(enlaces[0]).toHaveAttribute('href', `/servicios/${id}`)
     }
-    expect(within(destacados).queryByRole('button', { name: /Reservar/ })).not.toBeInTheDocument()
+    expect(within(destacados).queryByRole('link', { name: /Reservar/ })).not.toBeInTheDocument()
   })
 
   it('si el catálogo no está disponible, solo los destacados lo indican y la búsqueda sigue funcionando', async () => {

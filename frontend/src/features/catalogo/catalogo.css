@@ -904,13 +904,42 @@
   box-shadow: var(--sombra-2);
 }
 
-/* Gana a .leaflet-popup-content p (margen de 1.3em). */
+/* Ventana emergente (RF23): miniatura de tamaño fijo, nombre y «Ver detalle» en los servicios. */
 .mapa-oferta .popup-oferta {
-  margin: 0;
+  display: grid;
+  gap: var(--espacio-2);
+  justify-items: start;
+  width: 7.5rem;
   color: var(--color-tinta);
   font-family: var(--fuente-texto);
   font-size: var(--texto-sm);
+}
+
+.mapa-oferta .popup-oferta__miniatura {
+  display: block;
+  width: 7.5rem;
+  height: 5rem;
+  border-radius: var(--radio-sm);
+  background: var(--color-arena-200);
+  object-fit: cover;
+}
+
+/* Gana a .leaflet-popup-content p (margen de 1.3em). */
+.mapa-oferta .popup-oferta__nombre {
+  margin: 0;
   font-weight: 600;
+  line-height: var(--interlineado-titulos);
+}
+
+.mapa-oferta .popup-oferta__enlace {
+  color: var(--color-mar-700);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.mapa-oferta .popup-oferta__enlace:hover {
+  color: var(--color-mar-900);
 }
 
 /* Marcadores: el SVG toma el color de la clase (servicio, atractivo o «Tu ubicación»). */

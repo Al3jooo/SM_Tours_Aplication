@@ -174,3 +174,42 @@ export function IconoInfo() {
     </Icono>
   )
 }
+
+/** Reserva Confirmada. */
+export function IconoConfirmada() {
+  return (
+    <Icono width="16" height="16">
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8 12.5 2.75 2.75L16 10" />
+    </Icono>
+  )
+}
+
+/** Reserva Cancelada. */
+export function IconoCancelada() {
+  return (
+    <Icono width="16" height="16">
+      <circle cx="12" cy="12" r="9" />
+      <path d="m9 9 6 6M15 9l-6 6" />
+    </Icono>
+  )
+}
+
+/** Reserva Completada (la actividad ya pasó). */
+export function IconoCompletada() {
+  return (
+    <Icono width="16" height="16">
+      <path d="M5 21V4M5 4h11l-2 4 2 4H5" />
+    </Icono>
+  )
+}
+
+/** Calendario (fechas de una reserva). */
+export function IconoCalendario() {
+  return (
+    <Icono width="18" height="18">
+      <rect x="3.5" y="5" width="17" height="15" rx="2" />
+      <path d="M3.5 10h17M8 3v4M16 3v4" />
+    </Icono>
+  )
+}

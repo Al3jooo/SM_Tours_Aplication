@@ -1,7 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { BotonProximamente } from '../../shared/components/Proximamente'
+import { useDisponibilidadResumen } from '../reservas/useDisponibilidadResumen'
 import type { CriteriosBusqueda, Orden, ResultadoOferta, Ubicacion } from './catalogoApi'
 import { BotonUbicacion } from './componentes/BotonUbicacion'
 import { EstadoCatalogo } from './componentes/EstadoCatalogo'
@@ -10,6 +11,7 @@ import { MapaOferta, claveResultado } from './componentes/MapaOferta'
 import { Paginacion } from './componentes/Paginacion'
 import { TarjetaOferta } from './componentes/TarjetaOferta'
 import { escribirCriterios, leerCriterios, sinMasFiltrosDescartados } from './criteriosUrl'
+import { rutaDetalle } from './detalle/navegacionDetalle'
 import { useBusquedaOferta } from './useBusquedaOferta'
 import { useEsEscritorio } from './useEsEscritorio'
 import { useUbicacion } from './useUbicacion'
@@ -31,6 +33,8 @@ export function ExplorarPage() {
   const { t } = useTranslation()
   const id = useId()
   const [parametros, setParametros] = useSearchParams()
+  const ubicacionRuta = useLocation()
+  const irA = useNavigate()
   const criterios = useMemo(() => leerCriterios(parametros), [parametros])
   const geo = useUbicacion()
   const ubicacion: Ubicacion | undefined = geo.estado === 'disponible' ? geo.ubicacion : undefined
@@ -76,6 +80,11 @@ export function ExplorarPage() {
 
   const pagina = busqueda.estado === 'ok' ? busqueda.pagina : null
   const resultadosMapa = pagina ? pagina.elementos : busqueda.estado === 'error' ? SIN_RESULTADOS : null
+  const disponibilidad = useDisponibilidadResumen(pagina ? pagina.elementos : null)
+
+  // «Ver detalle» del popup del mapa (RF23): como el de la tarjeta, recuerda la búsqueda para volver a ella.
+  const verDetalle = (idServicio: string) =>
+    irA(rutaDetalle(idServicio), { state: { volverA: ubicacionRuta.pathname + ubicacionRuta.search } })
 
   const seleccionarDesdeMapa = (clave: string) => {
     setResaltada(clave)
@@ -217,6 +226,7 @@ export function ExplorarPage() {
                           }}
                           resultado={resultado}
                           variante="lista"
+                          disponibilidad={disponibilidad?.[resultado.id] ?? null}
                           resaltada={resaltada === clave}
                           onResaltar={(activa) =>
                             setResaltada((actual) => (activa ? clave : actual === clave ? null : actual))
@@ -247,6 +257,7 @@ export function ExplorarPage() {
             visible={esEscritorio || vista === 'mapa'}
             resaltada={resaltada}
             onSeleccionar={seleccionarDesdeMapa}
+            onVerDetalle={verDetalle}
           />
           <div className="leyenda-afluencia">
             <p className="leyenda-afluencia__titulo">

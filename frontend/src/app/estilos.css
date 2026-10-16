@@ -470,6 +470,13 @@ svg {
   transition: background-color var(--transicion);
 }
 
+/* «Mis reservas» es un enlace: se ve igual que el botón «Cerrar sesión». */
+.menu-usuario__panel a[role='menuitem'] {
+  display: block;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
 .menu-usuario__panel [role='menuitem']:hover,
 .menu-usuario__panel [role='menuitem']:focus-visible {
   background: var(--color-mar-100);

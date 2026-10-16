@@ -39,6 +39,10 @@ export function alExpirarSesion(oyente: OyenteSesionExpirada): () => void {
 interface OpcionesSolicitud {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   cuerpo?: unknown
+  /** JSON ya armado, que se envía tal cual (p. ej. con un número decimal exacto que JSON.stringify no conserva). */
+  cuerpoTexto?: string
+  /** Cabeceras adicionales (p. ej. Idempotency-Key). */
+  cabeceras?: Record<string, string>
 }
 
 /**
@@ -47,8 +51,9 @@ interface OpcionesSolicitud {
  */
 export async function solicitar<T>(ruta: string, opciones: OpcionesSolicitud = {}): Promise<T> {
   const token = leerToken()
-  const cabeceras: Record<string, string> = { Accept: 'application/json' }
-  if (opciones.cuerpo !== undefined) {
+  const cabeceras: Record<string, string> = { ...opciones.cabeceras, Accept: 'application/json' }
+  const cuerpo = opciones.cuerpoTexto ?? (opciones.cuerpo === undefined ? undefined : JSON.stringify(opciones.cuerpo))
+  if (cuerpo !== undefined) {
     cabeceras['Content-Type'] = 'application/json'
   }
   if (token) {
@@ -60,7 +65,7 @@ export async function solicitar<T>(ruta: string, opciones: OpcionesSolicitud = {
     respuesta = await fetch(ruta, {
       method: opciones.method ?? 'GET',
       headers: cabeceras,
-      body: opciones.cuerpo === undefined ? undefined : JSON.stringify(opciones.cuerpo),
+      body: cuerpo,
     })
   } catch {
     throw new ApiError(0, ERROR_RED, null)

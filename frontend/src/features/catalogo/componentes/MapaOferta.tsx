@@ -1,9 +1,12 @@
+import type { TFunction } from 'i18next'
 import * as L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ResultadoOferta, Ubicacion } from '../catalogoApi'
+import { rutaDetalle } from '../detalle/navegacionDetalle'
 import { CENTRO_SANTA_MARTA } from '../geo'
+import { imagenDeCategoria } from './etiquetas'
 
 /**
  * Política de uso de las teselas de OpenStreetMap (único recurso externo permitido, ver CLAUDE.md): atribución
@@ -18,6 +21,9 @@ const ZOOM_MAXIMO_ENCUADRE = 15
 const ZOOM_UBICACION = 14
 const RELLENO_ENCUADRE: L.PointTuple = [32, 32]
 const DESPLAZAMIENTO_RESALTADO = 500
+/** Miniatura del popup (RF23), 3:2 como las fotos del catálogo: tamaño fijo para que la ventana no salte al cargar. */
+const ANCHO_MINIATURA = 120
+const ALTO_MINIATURA = 80
 
 /** SVG fijos (sin datos de la API). El color sale de la clase del marcador, con los tokens de estilos.css. */
 const SVG_PIN =
@@ -47,17 +53,68 @@ function iconoUbicacion(): L.DivIcon {
   return L.divIcon({ className: 'marcador marcador--ubicacion', html: SVG_UBICACION, iconSize: [24, 24], iconAnchor: [12, 12] })
 }
 
-/** Contenido de la ventana emergente como texto (nunca HTML con datos de la API). */
-function contenidoPopup(texto: string): HTMLElement {
-  const elemento = document.createElement('p')
-  elemento.className = 'popup-oferta'
-  elemento.textContent = texto
-  return elemento
+/**
+ * Ventana emergente de un resultado (RF23): miniatura, nombre y, en los servicios, «Ver detalle». Se arma con nodos y
+ * textContent, nunca con HTML que lleve datos de la API. El enlace es un <a href> real (abre en otra pestaña con las
+ * teclas de siempre); un clic normal navega dentro de la app con `onVerDetalle`.
+ */
+function contenidoPopup(resultado: ResultadoOferta, t: TFunction, onVerDetalle: (id: string) => void): HTMLElement {
+  const contenedor = document.createElement('div')
+  contenedor.className = 'popup-oferta'
+
+  const respaldo = imagenDeCategoria(resultado.categoria, resultado.tipo)
+  const miniatura = document.createElement('img')
+  miniatura.className = 'popup-oferta__miniatura'
+  miniatura.alt = t('mapa.miniatura', { nombre: resultado.nombre })
+  miniatura.width = ANCHO_MINIATURA
+  miniatura.height = ALTO_MINIATURA
+  miniatura.decoding = 'async'
+  miniatura.addEventListener('error', () => {
+    if (miniatura.getAttribute('src') !== respaldo) miniatura.src = respaldo
+  })
+  miniatura.src = resultado.imagen ?? respaldo
+
+  const nombre = document.createElement('p')
+  nombre.className = 'popup-oferta__nombre'
+  nombre.textContent = resultado.nombre
+  contenedor.append(miniatura, nombre)
+
+  if (resultado.tipo === 'Servicio') {
+    const enlace = document.createElement('a')
+    enlace.className = 'popup-oferta__enlace'
+    enlace.href = rutaDetalle(resultado.id)
+    enlace.textContent = t('catalogo.tarjeta.verDetalle')
+    enlace.addEventListener('click', (evento) => {
+      if (evento.button !== 0 || evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.altKey) return
+      evento.preventDefault()
+      onVerDetalle(resultado.id)
+    })
+    contenedor.append(enlace)
+  }
+  return contenedor
 }
 
-function agregarMarcador(capa: L.LayerGroup, posicion: Ubicacion, icono: L.DivIcon, nombre: string, zIndexOffset = 0) {
+/** Ventana emergente solo con un texto (el marcador «Tu ubicación»). */
+function popupTexto(texto: string): HTMLElement {
+  const contenedor = document.createElement('div')
+  contenedor.className = 'popup-oferta'
+  const parrafo = document.createElement('p')
+  parrafo.className = 'popup-oferta__nombre'
+  parrafo.textContent = texto
+  contenedor.append(parrafo)
+  return contenedor
+}
+
+function agregarMarcador(
+  capa: L.LayerGroup,
+  posicion: Ubicacion,
+  icono: L.DivIcon,
+  nombre: string,
+  zIndexOffset = 0,
+  popup?: () => HTMLElement,
+) {
   const marcador = L.marker([posicion.latitud, posicion.longitud], { icon: icono, title: nombre, keyboard: true, zIndexOffset })
-  marcador.bindPopup(contenidoPopup(nombre))
+  if (popup) marcador.bindPopup(popup)
   capa.addLayer(marcador)
   // Leaflet pone el title; el nombre accesible del marcador (role="button") se fija explícitamente.
   marcador.getElement()?.setAttribute('aria-label', nombre)
@@ -82,6 +139,8 @@ interface PropiedadesMapa {
   visible: boolean
   resaltada: string | null
   onSeleccionar: (clave: string) => void
+  /** «Ver detalle» del popup de un servicio. */
+  onVerDetalle?: (idServicio: string) => void
 }
 
 /**
@@ -96,6 +155,7 @@ export function MapaOferta({
   visible,
   resaltada,
   onSeleccionar,
+  onVerDetalle,
 }: PropiedadesMapa) {
   const { t } = useTranslation()
   const id = useId()
@@ -106,9 +166,14 @@ export function MapaOferta({
   const marcadores = useRef(new Map<string, L.Marker>())
   const puntosEncuadre = useRef<L.LatLngTuple[]>([])
   const alSeleccionar = useRef(onSeleccionar)
+  const alVerDetalle = useRef(onVerDetalle)
+  // El popup se arma al abrirse: usa el idioma y el manejador vigentes.
+  const traducir = useRef(t)
 
   useEffect(() => {
     alSeleccionar.current = onSeleccionar
+    alVerDetalle.current = onVerDetalle
+    traducir.current = t
   })
 
   useEffect(() => {
@@ -154,7 +219,9 @@ export function MapaOferta({
     marcadores.current.clear()
     for (const resultado of resultados) {
       const clave = claveResultado(resultado)
-      const marcador = agregarMarcador(capa, resultado.coordenada, iconoResultado(resultado.tipo), resultado.nombre)
+      const marcador = agregarMarcador(capa, resultado.coordenada, iconoResultado(resultado.tipo), resultado.nombre, 0, () =>
+        contenidoPopup(resultado, traducir.current, (idServicio) => alVerDetalle.current?.(idServicio)),
+      )
       marcador.on('click', () => alSeleccionar.current(clave))
       marcadores.current.set(clave, marcador)
     }
@@ -169,7 +236,10 @@ export function MapaOferta({
     const capa = capaUbicacion.current
     if (!capa) return
     capa.clearLayers()
-    if (ubicacion) agregarMarcador(capa, ubicacion, iconoUbicacion(), t('mapa.tuUbicacion'), 1000)
+    if (ubicacion) {
+      const texto = t('mapa.tuUbicacion')
+      agregarMarcador(capa, ubicacion, iconoUbicacion(), texto, 1000, () => popupTexto(texto))
+    }
   }, [ubicacion, t])
 
   useEffect(() => {

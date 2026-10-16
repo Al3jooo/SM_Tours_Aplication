@@ -18,7 +18,7 @@ Table Reserva_Cupo_Dia [headercolor: #F6C9A0] {
 
   indexes {
     (id_reserva, id_inventario) [pk]
-    id_inventario
+    id_inventario [name: 'ix_reserva_cupo_dia_inventario', note: 'V1']
   }
 }
 
@@ -69,6 +69,8 @@ Table Reserva [headercolor: #A8DDB5] {
     (id_turista, clave_idempotencia) [unique, name: 'uq_reserva_turista_clave']
     (id_turista, fecha_creacion)
     (id_prestador, fecha_entrada)
+    (id_turista, fecha_inicio, id_reserva) [name: 'ix_reserva_turista_inicio', note: 'V2; fecha_inicio DESC, id_reserva DESC («Mis reservas», RF12)']
+    fecha_fin [name: 'ix_reserva_confirmada_fin', note: 'V3; índice parcial WHERE estado = \'Confirmada\' (RF52)']
   }
 
   Note: 'CHECK ck_reserva_forma: Alojamiento con id_unidad, nombre_unidad y fecha_salida, sin hora_inicio, cobro por Noche; Tour con hora_inicio, sin unidad ni fecha_salida, cobro por Persona'

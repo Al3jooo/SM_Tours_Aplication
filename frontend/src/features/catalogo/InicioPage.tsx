@@ -8,6 +8,7 @@ import {
   IconoGastronomia,
   IconoTour,
 } from '../../shared/components/Iconos'
+import { useDisponibilidadResumen } from '../reservas/useDisponibilidadResumen'
 import type { Categoria, CriteriosBusqueda } from './catalogoApi'
 import { EstadoCatalogo } from './componentes/EstadoCatalogo'
 import { TarjetaOferta } from './componentes/TarjetaOferta'
@@ -43,6 +44,7 @@ export function InicioPage() {
 
   // Por seguridad, solo servicios: el criterio provisional no filtra por tipo.
   const servicios = destacados.estado === 'ok' ? destacados.pagina.elementos.filter((e) => e.tipo === 'Servicio') : []
+  const disponibilidad = useDisponibilidadResumen(destacados.estado === 'ok' ? servicios : null)
 
   return (
     <div className="inicio">
@@ -108,7 +110,11 @@ export function InicioPage() {
             <ul className="lista-destacados">
               {servicios.map((servicio) => (
                 <li key={servicio.id}>
-                  <TarjetaOferta resultado={servicio} variante="destacado" />
+                  <TarjetaOferta
+                    resultado={servicio}
+                    variante="destacado"
+                    disponibilidad={disponibilidad?.[servicio.id] ?? null}
+                  />
                 </li>
               ))}
             </ul>

@@ -17,7 +17,8 @@
     "espanol": "Spanish",
     "ingles": "English",
     "menuUsuario": "User menu for {{nombre}}",
-    "cerrarSesion": "Sign out"
+    "cerrarSesion": "Sign out",
+    "misReservas": "My bookings"
   },
   "login": {
     "titulo": "Sign in to Samaria360",
@@ -201,7 +202,12 @@
       "distancia": "Distance",
       "accesibilidad": "Accessibility",
       "estado": "Status",
-      "verDetalle": "View details"
+      "verDetalle": "View details",
+      "disponibilidadEstados": {
+        "CON_CUPOS": "Available this week",
+        "AGOTADO": "Sold out for the next 7 days",
+        "SIN_INVENTARIO": "No dates"
+      }
     },
     "busqueda": {
       "cargando": "Searching for places…",
@@ -298,7 +304,8 @@
     "acercar": "Zoom in",
     "alejar": "Zoom out",
     "tuUbicacion": "Your location",
-    "indicacionRueda": "Click or focus the map to zoom with the mouse wheel."
+    "indicacionRueda": "Click or focus the map to zoom with the mouse wheel.",
+    "miniatura": "Photo of {{nombre}}"
   },
   "ubicacion": {
     "centrar": "Center on my location",
@@ -314,5 +321,228 @@
     "selector": "Results view",
     "lista": "List",
     "mapa": "Map"
+  },
+  "detalle": {
+    "volverBusqueda": "Back to search",
+    "cargando": "Loading the service…",
+    "errores": {
+      "noEncontrado": "This service is not available.",
+      "noDisponible": "The catalog is not available right now.",
+      "red": "We could not reach the server. Check your connection.",
+      "otro": "An unexpected error occurred while loading the service."
+    },
+    "foto": "Photo {{numero}} of {{nombre}}",
+    "descripcion": "Description",
+    "datos": "Service details",
+    "reservar": "Check availability and book",
+    "serviciosIncluidos": "Included services",
+    "unidades": "Rooms",
+    "tipoHabitacion": "Type",
+    "habitaciones": "Rooms",
+    "capacidad": "Capacity",
+    "huespedesPorHabitacion_one": "{{count}} guest per room",
+    "huespedesPorHabitacion_other": "{{count}} guests per room",
+    "precioNoche": "{{precio}} per night",
+    "duracion": "Duration",
+    "horas": "{{horas}} h",
+    "puntoEncuentro": "Meeting point",
+    "dificultad": "Difficulty level",
+    "aforoGrupo": "Group size",
+    "personas_one": "{{count}} person",
+    "personas_other": "{{count}} people",
+    "tipoCocina": "Cuisine",
+    "aforoTurno": "Capacity per seating",
+    "menuVegetariano": "Vegetarian option",
+    "si": "Yes",
+    "no": "No",
+    "rangoPrecioPlato": "Price per dish",
+    "tipoEquipo": "Vehicle or equipment",
+    "unidadesDisponibles": "Units available",
+    "condiciones": "Rental conditions"
+  },
+  "reserva": {
+    "titulo": "{{servicio}} – Availability and booking",
+    "volverDetalle": "Back to details",
+    "noReservable": "This service cannot be booked online. See its details.",
+    "buscar": "Search availability",
+    "entrada": "Check-in",
+    "salida": "Check-out",
+    "fecha": "Tour date",
+    "huespedes": "Guests",
+    "personas": "People",
+    "habitaciones": "Rooms",
+    "ayudaVentana": "Availability is published until {{fecha}}.",
+    "ayudaSalida": "14 nights maximum.",
+    "ayudaHabitaciones_one": "Each room fits {{count}} guest.",
+    "ayudaHabitaciones_other": "Each room fits up to {{count}} guests.",
+    "verificar": "Check real-time availability",
+    "disponibilidad": "Availability",
+    "consultadaEn": "Inventory checked at {{hora}}.",
+    "elegirFechas": "Choose your dates and check availability.",
+    "verificando": "Checking availability…",
+    "salidaAjustada": "We moved check-out to {{fecha}} so the stay is valid.",
+    "salidaBorrada": "We cleared check-out: with that check-in there are no nights left within the published dates.",
+    "sinInventario": "There is no published inventory for these dates. Try other dates.",
+    "sinHorarios": "There are no published times for this date. Try another one.",
+    "elegirHabitacion": "Choose your room",
+    "datosUnidad_one": "{{tipo}} · up to {{count}} guest per room",
+    "datosUnidad_other": "{{tipo}} · up to {{count}} guests per room",
+    "precioNoche": "{{precio}} per night",
+    "quedanHabitaciones_one": "{{count}} room left for all your nights.",
+    "quedanHabitaciones_other": "{{count}} rooms left for all your nights.",
+    "sinCupoNoche": "No availability on {{fecha}}.",
+    "agotado": "Sold out",
+    "horario": "Time",
+    "quedanCupos_one": "{{count}} spot left",
+    "quedanCupos_other": "{{count}} spots left",
+    "disponibilidadErrores": {
+      "noDisponible": "We could not check availability: the booking system is not responding.",
+      "red": "We could not reach the server. Check your connection.",
+      "otro": "An unexpected error occurred while checking availability."
+    },
+    "motivos": {
+      "verificar": "Check availability to continue.",
+      "fechasCambiaron": "You changed the dates: check availability again.",
+      "elegirUnidad": "Choose a room with availability.",
+      "elegirHorario": "Choose a time with availability.",
+      "revisarDatos": "Review the highlighted fields.",
+      "sinTotal": "We could not calculate the total: the published price is not in a valid format. Choose another option or come back later."
+    },
+    "soloTuristas": "Only tourists can book. Sign in with a tourist account.",
+    "confirmar": "Confirm booking",
+    "confirmando": "Confirming…",
+    "aceptarPrecio": "Accept the new price and confirm",
+    "errores": {
+      "PRECIO_CAMBIADO": "The price changed: it was {{anterior}}, now it is {{nuevo}}.",
+      "CUPO_AGOTADO": "There is no longer enough availability for your selection. We refreshed the availability.",
+      "FECHA_NO_DISPONIBLE": "One of the dates no longer has published inventory. We refreshed the availability.",
+      "UNIDAD_NO_DISPONIBLE": "That room is no longer available. We refreshed the service and its availability.",
+      "OFERTA_NO_DISPONIBLE": "This service is no longer available for booking.",
+      "CATEGORIA_NO_RESERVABLE": "This service cannot be booked online.",
+      "IDEMPOTENCIA_CONFLICTO": "We could not confirm this request. Review your selection and try again.",
+      "IDEMPOTENCIA_REQUERIDA": "We could not confirm this request. Try again.",
+      "NO_AUTENTICADO": "Your session expired. Sign in again to book.",
+      "DATOS_INVALIDOS": "Review the booking details:",
+      "noDisponible": "The booking system is not available right now. You can retry: it will not be booked twice.",
+      "red": "We could not reach the server. Check your connection and retry: it will not be booked twice.",
+      "GENERICO": "An unexpected error occurred. Try again."
+    },
+    "campos": {
+      "idServicio": "Service",
+      "idUnidad": "Room",
+      "fechaEntrada": "Check-in",
+      "fechaSalida": "Check-out",
+      "horaInicio": "Time",
+      "cantidad": "Rooms",
+      "personas": "People",
+      "precioTotalEsperado": "Total"
+    },
+    "validacion": {
+      "REQUERIDO": "This field is required.",
+      "FORMATO": "Enter a valid value.",
+      "FECHA_PASADA": "That date has passed.",
+      "FUERA_DE_VENTANA": "Availability is only published until {{fecha}}.",
+      "RANGO_INVALIDO": "Check-out must be after check-in.",
+      "MAXIMO_NOCHES": "A stay can be 14 nights at most.",
+      "VALOR_MINIMO": "It must be at least 1.",
+      "EXCEDE_CAPACIDAD": "For {{personas}} guests you need more rooms of this type.",
+      "EXCEDE_AFORO": "The group allows up to {{maximo}} people.",
+      "EXCEDE_CUPO": "Only {{maximo}} left.",
+      "NO_PERMITIDO": "This field does not apply.",
+      "CATEGORIA_NO_RESERVABLE": "This service cannot be booked online."
+    },
+    "resumen": {
+      "titulo": "Booking summary",
+      "servicio": "Service",
+      "habitacion": "Room",
+      "fechas": "Dates",
+      "noches": "Nights",
+      "habitaciones": "Rooms",
+      "huespedes": "Guests",
+      "fecha": "Date",
+      "hora": "Time",
+      "personas": "People",
+      "nNoches_one": "{{count}} night",
+      "nNoches_other": "{{count}} nights",
+      "nHabitaciones_one": "{{count}} room",
+      "nHabitaciones_other": "{{count}} rooms",
+      "nPersonas_one": "{{count}} person",
+      "nPersonas_other": "{{count}} people",
+      "total": "Total",
+      "totalActualizado": "Total (updated price)",
+      "cancelacionGratuita_one": "Free cancellation up to {{count}} hour before the start.",
+      "cancelacionGratuita_other": "Free cancellation up to {{count}} hours before the start."
+    },
+    "informacion": {
+      "titulo": "Important information",
+      "checkIn": "Check-in from {{hora}}.",
+      "checkOut": "Check-out until {{hora}}.",
+      "plazo_one": "You can cancel at no cost up to {{count}} hour before the start; after that, the booking can no longer be cancelled.",
+      "plazo_other": "You can cancel at no cost up to {{count}} hours before the start; after that, the booking can no longer be cancelled."
+    },
+    "confirmacion": {
+      "titulo": "Booking confirmed!",
+      "texto": "Your booking is Confirmed and the spots are already reserved.",
+      "cancelableHasta": "You can cancel it at no cost until {{fecha}}.",
+      "verMisReservas": "View my bookings"
+    }
+  },
+  "misReservas": {
+    "titulo": "My bookings",
+    "apoyo": "Review your bookings, filter by activity date or status, and cancel those still within the deadline.",
+    "filtros": "Filter bookings",
+    "desde": "From",
+    "hasta": "To",
+    "estado": "Status",
+    "estados": {
+      "Confirmada": "Confirmed",
+      "Cancelada": "Cancelled",
+      "Completada": "Completed"
+    },
+    "quitarFiltros": "Clear filters",
+    "resultados": "Bookings",
+    "contador_one": "{{count}} booking",
+    "contador_other": "{{count}} bookings",
+    "cargando": "Loading your bookings…",
+    "sinResultados": "There are no bookings with these filters.",
+    "sinReservas": "You have no bookings yet.",
+    "soloTuristas": "“My bookings” is only for tourist accounts.",
+    "cancelada": "You cancelled the booking for {{servicio}}. The spots were released.",
+    "errores": {
+      "noDisponible": "The booking system is not available right now.",
+      "red": "We could not reach the server. Check your connection.",
+      "otro": "An unexpected error occurred while loading your bookings.",
+      "CANCELACION_FUERA_DE_PLAZO": "It can no longer be cancelled: the start is less than 24 hours away.",
+      "RESERVA_NO_CANCELABLE": "This booking is already completed and cannot be cancelled. We refreshed the list.",
+      "RESERVA_NO_ENCONTRADA": "We could not find this booking.",
+      "ERROR_RED": "We could not reach the server. Check your connection and retry.",
+      "SERVICIO_NO_DISPONIBLE": "The booking system is not available right now. Retry in a few minutes.",
+      "GENERICO": "An unexpected error occurred. Try again."
+    },
+    "validacion": {
+      "FORMATO": "Enter a valid date.",
+      "RANGO_INVALIDO": "“To” cannot be earlier than “From”.",
+      "MAXIMO_DIAS": "The range can be 366 days at most.",
+      "NO_PERMITIDO": "That status does not exist."
+    },
+    "tarjeta": {
+      "estadia": "{{entrada}} → {{salida}} · {{noches}}",
+      "tour": "{{fecha}} · {{hora}}",
+      "huespedes_one": "{{count}} guest",
+      "huespedes_other": "{{count}} guests",
+      "fechas": "Dates",
+      "cantidades": "Quantities",
+      "cancelar": "Cancel booking",
+      "cancelableHasta": "Free cancellation until {{fecha}}.",
+      "fueraDePlazo": "It can no longer be cancelled: the deadline ended on {{fecha}} (24 hours before the start)."
+    },
+    "dialogo": {
+      "titulo": "Cancel this booking?",
+      "texto": "The booking for {{servicio}} will be Cancelled and its spots released. This cannot be undone.",
+      "confirmar": "Yes, cancel",
+      "volver": "No, go back",
+      "cancelando": "Cancelling…",
+      "cerrar": "Close"
+    }
   }
 }

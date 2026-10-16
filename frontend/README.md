@@ -18,7 +18,7 @@ Para usar la app de punta a punta: `docker compose up -d` en la raíz y `./mvnw 
 | Carpeta | Contenido |
 |---|---|
 | `src/app/` | Rutas, diseños de la plataforma y de acceso (encabezado y pie), ruta protegida, **`estilos.css` (tokens)** |
-| `src/features/<caso de uso>/` | Páginas, estado y llamadas de cada caso de uso (p. ej. `auth/`) |
+| `src/features/<caso de uso>/` | Páginas, estado y llamadas de cada caso de uso: `auth/`, `catalogo/` (con `detalle/`, WF-06) y `reservas/` (WF-10 y WF-11) |
 | `src/shared/api/` | Cliente HTTP (`fetch` + token Bearer) y almacenamiento del token |
 | `src/shared/components/` | Componentes reutilizables, iconos e ilustraciones |
 | `src/i18n/` | Textos en `es.json` y `en.json` (RF03, RNF08) |
@@ -53,14 +53,46 @@ Versiones instaladas (`package-lock.json`) y licencias leídas de `node_modules`
 
 Es adecuado para el prototipo; para un despliegue con tráfico real hace falta un proveedor de teselas propio o contratado. En las pruebas, Leaflet se reemplaza por `src/test/leafletSimulado.ts` (jsdom no dibuja mapas), así que no se pide ninguna tesela.
 
-## Reservas (WF-10, iteración siguiente)
+## Reservas (WF-06, WF-10 y WF-11)
 
-El backend ya está (ms-booking); el contrato está en [`docs/sad/api/ms-booking.md`](../docs/sad/api/ms-booking.md). Reglas para la pantalla:
+El backend es ms-booking; el contrato está en [`docs/sad/api/ms-booking.md`](../docs/sad/api/ms-booking.md). Las tres
+pantallas se cargan de forma diferida (cada una en su archivo, como `/explorar`).
 
-- **`Idempotency-Key`:** generar una clave nueva (`crypto.randomUUID()`) por cada intención de reservar y **reutilizarla en los reintentos de esa misma intención** (doble clic, error de red, recarga del botón). Un 201 con `Idempotent-Replayed: true` es la misma reserva, no una nueva. Al cambiar algún dato del pedido (fechas, unidad, personas), se genera otra clave; reutilizarla con otro pedido responde 422 `IDEMPOTENCIA_CONFLICTO`.
-- **Precio:** enviar en `precioTotalEsperado` el total que se muestra. Si responde 409 `PRECIO_CAMBIADO`, mostrar el precio nuevo (`precioTotal`) y pedir confirmación otra vez.
-- **Unidades:** los nombres y precios salen del detalle de ms-catalog; la disponibilidad, de `/api/v1/reservas/disponibilidad` (sin nombres ni precios). Con 409 `UNIDAD_NO_DISPONIBLE`, volver a cargar el detalle.
-- **Tarjetas:** el resumen `/api/v1/reservas/disponibilidad/resumen` se pide una vez por página; si ms-booking no responde, la tarjeta sigue con «—».
+| Ruta | Pantalla | Acceso |
+|---|---|---|
+| `/servicios/:id` | WF-06 mínimo (`features/catalogo/detalle/DetalleServicioPage.tsx`) | Pública |
+| `/servicios/:id/reservar?entrada=&salida=&personas=&unidad=&habitaciones=` (alojamiento) o `?fecha=&hora=&personas=` (tour) | WF-10 (`features/reservas/ReservaPage.tsx`) | Pública; confirmar exige sesión de Turista |
+| `/mis-reservas?desde=&hasta=&estado=&pagina=` | WF-11 (`features/reservas/MisReservasPage.tsx`) | Privada (`RutaProtegida`), solo Turista |
+
+Reglas:
+
+- **Selección en la URL:** WF-10 guarda la selección en la consulta. Si trae fechas válidas, la disponibilidad se consulta
+  al cargar; así, «Confirmar» sin sesión lleva al login y el login vuelve a la misma selección.
+- **`Idempotency-Key`** (`reservas/intentoReserva.ts`):
+  - se guarda en `sessionStorage` (`samaria360.intentoReserva`), asociada al turista y al cuerpo exacto del pedido;
+  - la misma selección reintentada (después de un error de red, un 503 o una recarga) sale con la misma clave;
+  - otra selección o un precio nuevo, con otra;
+  - una respuesta definitiva (201 o 4xx) borra el registro;
+  - si `sessionStorage` falla, el registro vive en memoria mientras la página esté abierta.
+- **Dinero en centavos enteros** (`reservas/dinero.ts`):
+  - los precios del catálogo (número o texto decimal) se aceptan con 2 decimales como máximo, comprobados sobre su texto;
+  - el total se multiplica en enteros;
+  - `precioTotalEsperado` se envía como número decimal exacto (`"precioTotalEsperado":1560003.00`, sin comillas), armado en
+    el cuerpo canónico (`cuerpoReserva`) y enviado tal cual (`cuerpoTexto` de `solicitar`);
+  - un precio con otro formato deja el total sin calcular y «Confirmar» bloqueado con el motivo.
+- **Precio cambiado:** con 409 `PRECIO_CAMBIADO`, se muestran el precio anterior y el nuevo (`precioTotal`) y «Aceptar el
+  nuevo precio y confirmar» envía el nuevo total (con otra clave).
+- **Unidades:** los nombres y precios salen del detalle de ms-catalog; la disponibilidad, de `/api/v1/reservas/disponibilidad`
+  (sin nombres ni precios). El cupo de una unidad es el mínimo de las noches. Con 409 `UNIDAD_NO_DISPONIBLE`, se vuelven a
+  cargar el detalle y la disponibilidad.
+- **Fechas en hora de Santa Marta** (`reservas/fechasBogota.ts`): `hoyBogota()` no depende de la zona del navegador; las
+  fechas del calendario se suman en UTC.
+- **Tarjetas:** `useDisponibilidadResumen` pide `/api/v1/reservas/disponibilidad/resumen` una vez por página, solo para Tour y
+  Alojamiento, de hoy a hoy + 6. Los textos son «Disponible esta semana», «Agotado los próximos 7 días» y «Sin fechas»;
+  mientras carga, si falla o en las demás categorías, «—».
+- **Cancelar (WF-11):** `<dialog>` nativo con `showModal()`. `cancelableHasta` lo calcula ms-booking; pasado ese momento, el
+  botón queda con `aria-disabled` y el motivo. En las pruebas, `src/test/setup.ts` agrega un polyfill mínimo de
+  `showModal()` y `close()` (jsdom no los tiene).
 
 ## Pendientes de pruebas
 
@@ -254,9 +286,20 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Tarjeta de oferta | `.tarjeta-oferta` (`features/catalogo/catalogo.css`) | Imagen con `alt=""` y respaldo por categoría, nombre h3, datos en `<dl>`; «—» con texto «sin datos» para lectores. |
 | Insignia de estado | `.insignia-estado--<EstadoOperativo>` | Abierto: mar-700/mar-100 · Cerrado temporalmente: error/error-fondo · En mantenimiento: café-700/sol-100. |
 | Estado de búsqueda | `EstadoCatalogo` | Carga, vacío, fuera de rango y errores (503, 400, red); el error solo afecta a su región. |
-| Marcador del mapa | `.marcador--servicio`, `--atractivo`, `--ubicacion` | `L.divIcon` con SVG propio que toma el color de la clase: pin atardecer-600 (servicio) o mar-700 (atractivo) con borde blanco; «Tu ubicación» es un círculo sol-400 con borde mar-900. Enfocable, con `title` y `aria-label`; la ventana emergente se arma con `textContent`. |
+| Marcador del mapa | `.marcador--servicio`, `--atractivo`, `--ubicacion` | `L.divIcon` con SVG propio que toma el color de la clase: pin atardecer-600 (servicio) o mar-700 (atractivo) con borde blanco; «Tu ubicación» es un círculo sol-400 con borde mar-900. Enfocable, con `title` y `aria-label`. |
+| Ventana emergente del mapa | `.popup-oferta`, `__miniatura`, `__nombre`, `__enlace` | Miniatura de 7,5 × 5 rem (120 × 80, `object-fit: cover`, fondo arena-200 mientras carga), nombre en negrita y, en los servicios, «Ver detalle» en mar-700 subrayado. Se arma con nodos y `textContent` al abrirse, nunca con HTML de la API. |
 | Resaltado marcador↔tarjeta | `.marcador--resaltado`, `.tarjeta-oferta--resaltada` | Marcador 1,3× y al frente; tarjeta con anillo mar-700 y `--sombra-2`. |
 | Selector de vista | `.vista-selector` | `role="group"` con dos botones `aria-pressed` (mar-700); solo por debajo de 64 rem. |
+| Ficha de detalle (WF-06) | `.detalle__ficha` (`features/catalogo/detalle/detalle.css`) | Superficie con `--sombra-1`; categoría en café-700 versal, h1 mar-900, precio «desde» en atardecer-700; galería 2:1 desde 64 rem; unidades en tarjetas arena. |
+| Grupo con borde | `.reserva__grupo` (`features/reservas/reservas.css`) | `fieldset` con `legend` en Fraunces mar-900: «Buscar disponibilidad», «Elige la habitación», «Horario», filtros de WF-11. |
+| Tarjeta de unidad | `.tarjeta-unidad` | Imagen y cuerpo con el radio (la etiqueta es el nombre); elegida: borde mar-700 con anillo mar-100; sin cupo: fondo arena y el motivo en error. |
+| Opción de horario | `.opcion-horario` | Radio con «08:00 · quedan N cupos»; elegida: mar-100; agotada: arena y «Agotado» en error. |
+| Resumen de reserva | `.resumen-reserva` | Superficie con borde superior atardecer-600 y `--sombra-2`; fijo (`sticky`) desde 64 rem; total en mar-900; aviso de RF44 mar-900 sobre mar-100. |
+| Botón principal bloqueado | `.boton-principal[aria-disabled='true']` | tinta-suave sobre arena con borde: sigue enfocable y su motivo va en `aria-describedby`. |
+| Aviso de un intento | `.aviso-reserva` | error sobre error-fondo con borde izquierdo; `role="alert"` y recibe el foco. |
+| Tarjeta de reserva | `.tarjeta-reserva--<Estado>` | Borde izquierdo mar-700 (Confirmada), error (Cancelada) o café-700 (Completada). |
+| Insignia de reserva | `.insignia-reserva--<Estado>` | Icono y texto: Confirmada mar-700/mar-100 · Cancelada error/error-fondo · Completada café-700/sol-100 (los pares de `.insignia-estado`). |
+| Diálogo | `.dialogo` (`<dialog>` con `showModal()`) | Superficie con `--sombra-3` y fondo mar-900 al 55 %; el foco inicial va a la opción que no destruye nada. |
 | Aviso de ubicación | `.aviso-ubicacion` | `role="status"` siempre presente; mar-900 sobre mar-100 con borde izquierdo mar-700 cuando tiene texto. |
 
 ### Maquetación y responsivo
