@@ -1,4 +1,4 @@
-/* WF-06, detalle mínimo de un servicio. Solo tokens de app/estilos.css (Guía visual de frontend/README.md). */
+/* WF-06, detalle de un servicio. Solo tokens de app/estilos.css (Guía visual de frontend/README.md). */
 
 .detalle,
 .reserva {
@@ -29,8 +29,64 @@
 }
 
 .detalle__encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3) var(--espacio-5);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.detalle__titulo {
   display: grid;
-  gap: var(--espacio-1);
+  flex: 1 1 20rem;
+  gap: var(--espacio-2);
+}
+
+.detalle__subtitulo {
+  margin: 0;
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+/* Favorito y compartir (deshabilitados, RF54). */
+.detalle__acciones-ficha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+}
+
+/* Indicador de accesibilidad (RF27): icono con nombre accesible y su texto visible. */
+.detalle__accesibilidad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2) var(--espacio-4);
+  margin: 0;
+  padding: 0;
+  font-size: var(--texto-sm);
+  list-style: none;
+}
+
+.detalle__accesibilidad li {
+  display: inline-flex;
+  gap: var(--espacio-2);
+  align-items: center;
+  color: var(--color-mar-900);
+  font-weight: 600;
+}
+
+.detalle__icono-accesibilidad {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-mar-100);
+  color: var(--color-mar-700);
+}
+
+.detalle__icono-accesibilidad svg {
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 .detalle__encabezado h1 {
@@ -42,7 +98,6 @@
 }
 
 .detalle__categoria {
-  margin: 0;
   color: var(--color-cafe-700);
   font-size: var(--texto-xs);
   font-weight: 700;
@@ -57,7 +112,10 @@
   font-weight: 700;
 }
 
-/* Galería: 1 grande + hasta 4 miniaturas (WF-06). */
+/*
+ * Galería: 1 grande + hasta 4 miniaturas en fila (WF-06). Excepción a WF-06 (docs/trazabilidad.md): todo el contenido
+ * ocupa el ancho de la tarjeta; la portada, a ancho completo, tiene la altura acotada y la foto se recorta (cover).
+ */
 .detalle__galeria {
   display: grid;
   gap: var(--espacio-3);
@@ -65,8 +123,16 @@
 
 .detalle__portada {
   overflow: hidden;
-  max-width: 48rem;
   border-radius: var(--radio-md);
+}
+
+.detalle__portada .imagen-oferta {
+  height: clamp(12rem, 45vw, 26rem);
+  aspect-ratio: auto;
+}
+
+.detalle__portada .imagen-oferta__foto {
+  object-position: center;
 }
 
 .detalle__miniaturas {
@@ -93,14 +159,65 @@
   gap: var(--espacio-5);
 }
 
-.detalle__cuerpo h2 {
+.detalle__ficha h2 {
   margin: 0 0 var(--espacio-2);
   color: var(--color-mar-900);
   font-size: var(--texto-xl);
 }
 
+.detalle__cuerpo h3 {
+  margin: var(--espacio-4) 0 var(--espacio-2);
+  color: var(--color-mar-900);
+  font-size: var(--texto-lg);
+}
+
+/* Región deshabilitada (estado único, ver .detalle__no-disponible): borde discontinuo y «—» como contenido. */
+.detalle__region-deshabilitada {
+  padding: var(--espacio-4);
+  border: 1.5px dashed var(--color-borde-campo);
+  border-radius: var(--radio-md);
+  background: var(--color-arena);
+}
+
+.detalle__region-deshabilitada h2 {
+  color: var(--color-deshabilitado);
+}
+
+.detalle__region-deshabilitada p {
+  margin: 0;
+}
+
+.detalle__contacto a {
+  color: var(--color-mar-700);
+  overflow-wrap: anywhere;
+}
+
+.detalle__reportar {
+  margin: var(--espacio-3) 0 0;
+}
+
+.detalle__precios {
+  display: grid;
+  gap: var(--espacio-3);
+}
+
+.detalle__precios h2 {
+  margin-bottom: 0;
+}
+
+/*
+ * Texto corrido: la sección ocupa todo el ancho, pero el párrafo se corta en 75ch para que se lea bien (WCAG 1.4.8).
+ * RF58: el horario es texto libre; los saltos de línea del prestador se respetan.
+ */
+.detalle__horario {
+  max-width: 75ch;
+  margin: 0;
+  line-height: var(--interlineado);
+  white-space: pre-line;
+}
+
 .detalle__descripcion {
-  max-width: 46rem;
+  max-width: 75ch;
   margin: 0;
   line-height: var(--interlineado);
 }
@@ -121,6 +238,20 @@
   color: var(--color-mar-900);
   font-size: var(--texto-xs);
   font-weight: 600;
+}
+
+/*
+ * Estado deshabilitado único de WF-06 (función pendiente o dato ausente), sin texto visible de estado. La señal no
+ * depende solo del color (WCAG 1.4.1): borde discontinuo en botones, etiquetas y regiones, y «—» como valor; el
+ * borde (--color-borde-campo) tiene contraste ≥ 3:1 (1.4.11). «No disponible» va solo para lectores de pantalla.
+ */
+.detalle__no-disponible,
+.boton-secundario.detalle__no-disponible,
+.detalle__etiquetas--pendientes li {
+  border: 1.5px dashed var(--color-borde-campo);
+  background: transparent;
+  color: var(--color-deshabilitado);
+  cursor: not-allowed;
 }
 
 .detalle__unidades {
@@ -200,20 +331,4 @@
 
 .detalle__acciones .boton-principal {
   text-decoration: none;
-}
-
-@media (min-width: 64rem) {
-  /* Dos columnas solo si hay miniaturas: con una sola foto, la portada no deja una columna vacía. */
-  .detalle__galeria:has(.detalle__miniaturas) {
-    grid-template-columns: 2fr 1fr;
-    align-items: start;
-  }
-
-  .detalle__galeria:has(.detalle__miniaturas) .detalle__portada {
-    max-width: none;
-  }
-
-  .detalle__miniaturas {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }

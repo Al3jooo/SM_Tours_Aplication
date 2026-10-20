@@ -2,7 +2,7 @@
 
 Fase de Construcción (RUP). Relaciona cada elemento de los wireframes (`docs/wireframes/`, **versión 2 del 12/10/2026**) con su caso de uso, sus requisitos (`docs/srs/`), el endpoint que lo atiende y el componente que lo implementa. Cada caso de uso nuevo agrega sus filas a esta matriz. Lo que cambió al pasar de la v1 a la v2 está en «Cambios de los wireframes v2».
 
-**Estados:** **Implementado** (funciona de punta a punta) · **Deshabilitado** (visible en pantalla, sin funcionalidad, con la marca «Próximamente») · **Pendiente** (aún no aparece en el prototipo).
+**Estados:** **Implementado** (funciona de punta a punta) · **Deshabilitado** (visible en pantalla, sin funcionalidad, con la marca «Próximamente»; en WF-06, sin texto visible y con «No disponible» para lectores de pantalla: ver su sección) · **Pendiente** (aún no aparece en el prototipo).
 
 Rutas de componentes relativas a `frontend/src/`; endpoints de ms-auth bajo `/api/v1/auth`.
 
@@ -112,17 +112,37 @@ CU **Registrarse** ↔ **RF01** (turista, WF-02) y **RF02** (prestador, WF-03). 
 | WF-05 | Resaltado marcador↔tarjeta: pulsar un marcador resalta y enfoca su tarjeta; el puntero o el foco sobre una tarjeta resaltan su marcador | Navegar mapa | RF23 | — | `componentes/MapaOferta.tsx`, `componentes/TarjetaOferta.tsx` | Mejora de diseño |
 | WF-05 | Rueda del mouse en el mapa solo con foco o clic, con la indicación «Haz clic en el mapa o enfócalo para usar la rueda» | Navegar mapa | RF23 | — | `componentes/MapaOferta.tsx` | Mejora de diseño |
 
-### WF-06 — Detalle de un servicio (versión mínima)
+### WF-06 — Detalle de un servicio
 
-`/servicios/:id`, pública, con carga diferida. Solo muestra los datos que existen en el catálogo; lo demás de WF-06 está en «Pendientes».
+`/servicios/:id`, pública, con carga diferida. Todas las regiones de WF-06 aparecen en el orden del wireframe, con esta **política de visibilidad**:
+
+- **Dato presente en `catalog_db`:** se muestra en su región.
+- **Lo que falta** tiene **un único estado deshabilitado**, sea un dato que el servicio no trae (contacto, horario, accesibilidad o descripción) o una función pendiente (calificación, etiquetas, favorito, compartir, alerta de afluencia, WhatsApp, dirección, RNT, «Reportar» y destinos alternativos). El elemento sigue visible, **sin texto visible de estado**. La señal no depende solo del color (WCAG 1.4.1): «—» como valor, o borde discontinuo (`--color-borde-campo`, contraste ≥ 3:1, WCAG 1.4.11) en botones, etiquetas y regiones. Los lectores de pantalla oyen «No disponible» (`solo-lector`), los botones llevan `aria-disabled="true"` y no hacen nada, y las regiones son `role="group"` con `aria-disabled="true"`.
+
+**Desviación del README de wireframes** (que pide «deshabilitado («Próximamente»)»). **Justificación técnica:**
+- un único estado deshabilitado para función pendiente y dato ausente, porque para el turista el efecto es el mismo (el elemento no se puede usar ni tiene valor) y dos variantes visuales obligan a aprender dos señales con el mismo significado;
+- no se anuncian funciones sin fecha comprometida: «Próximamente» promete una entrega que ninguna iteración tiene planificada (RF17, RF39, RF51, RF54 y RF57 están «Por definir»), y en un dato ausente sería falso, porque no depende de una función futura sino del prestador.
+
+**Inconsistencia registrada:** WF-01, WF-04 y WF-05 (y los elementos comunes: navegación «Servicios», pie) conservan «Próximamente» (`shared/components/Proximamente.tsx`). No se modifican en esta corrección; queda en «Pendientes».
 
 | Wireframe | Elemento | Caso de uso | RF/RNF | Endpoint | Componente frontend | Estado |
 |---|---|---|---|---|---|---|
-| WF-06 | Nombre, categoría y precio «desde» (con centavos solo si no son cero) | Consultar detalle de oferta | RF37 | `GET /api/v1/catalogo/servicios/{id}` | `features/catalogo/detalle/DetalleServicioPage.tsx` | Implementado |
+| WF-06 | Nombre y, en el subtítulo, la categoría | Consultar detalle de oferta | RF09 | `GET /api/v1/catalogo/servicios/{id}` | `features/catalogo/detalle/DetalleServicioPage.tsx` | Implementado |
+| WF-06 | Ubicación (dirección textual) y calificación con reseñas en el subtítulo | Consultar detalle de oferta | RF09, RF17 | — | `DetalleServicioPage.tsx` | Deshabilitado (dirección: hallazgo HC2; calificación: RF17) |
+| WF-06 | Indicador de accesibilidad: un icono por condición declarada, con `role="img"` y `aria-label`, más su texto; sin condiciones, «Accesibilidad —» con «No disponible» para lectores de pantalla | Consultar detalle de oferta | RF27 | `GET /servicios/{id}` (`condicionesAccesibilidad`, en el orden de RF27) | `DetalleServicioPage.tsx` | Implementado |
+| WF-06 | Etiquetas «Prestador verificado», «Afluencia en vivo» y «Reserva inmediata» | Consultar detalle de oferta | RF39 | — | `DetalleServicioPage.tsx` | Deshabilitado |
+| WF-06 | Favorito y compartir | Consultar detalle de oferta | RF54 (compartir: sin RF) | — | `DetalleServicioPage.tsx` (`BotonProximamente`) | Deshabilitado |
 | WF-06 | Galería: la primera imagen como portada (con la ilustración de la categoría como respaldo) y hasta 4 miniaturas con texto alternativo | Consultar detalle de oferta | RF48 | `GET /servicios/{id}` (`imagenes`) | `DetalleServicioPage.tsx`, `componentes/ImagenOferta.tsx` | Implementado |
-| WF-06 | Descripción | Consultar detalle de oferta | RF09 | `GET /servicios/{id}` | `DetalleServicioPage.tsx` | Implementado |
-| WF-06 | «Tabla de precios»: en Alojamiento, los servicios incluidos y las unidades (tipo, habitaciones, capacidad y precio por noche); en Tour, duración, punto de encuentro, dificultad y aforo; en Gastronomía y Alquiler de equipos, sus campos | Consultar detalle de oferta | RF10, RF37 | `GET /servicios/{id}` | `DetalleServicioPage.tsx` | Implementado |
-| WF-06 | «Ver disponibilidad y reservar» → WF-10, solo en Tour y Alojamiento (las categorías que se reservan, D2) | Reservar servicio | RF11, RF20 | — | `DetalleServicioPage.tsx` | Implementado |
+| WF-06 | Alerta de afluencia en vivo | Consultar detalle de oferta | RF39 | — | `DetalleServicioPage.tsx` | Deshabilitado |
+| WF-06 | Descripción, con los servicios incluidos (Alojamiento) o los datos de la categoría (Tour, Gastronomía, Alquiler de equipos) | Consultar detalle de oferta | RF09, RF10 | `GET /servicios/{id}` | `DetalleServicioPage.tsx` | Implementado |
+| WF-06 | Información de contacto: teléfono (`tel:`) y correo (`mailto:`) del servicio | Consultar detalle de oferta | RF09, RF43 | `GET /servicios/{id}` (`contacto`) | `DetalleServicioPage.tsx` | Implementado (ver «Riesgo: datos de contacto») |
+| WF-06 | WhatsApp, dirección y registro RNT en el contacto | Consultar detalle de oferta | RF09 | — | `DetalleServicioPage.tsx` | Deshabilitado (hallazgo HC2) |
+| WF-06 | «Reportar información falsa o desactualizada» | — (sin CU propio, hallazgo HC1) | RF57 | — | `DetalleServicioPage.tsx` (`BotonProximamente`) | Deshabilitado |
+| WF-06 | Región «Precio»: precio «desde» (con centavos solo si no son cero) y la tabla (en Alojamiento, las unidades con tipo, habitaciones, capacidad y precio por noche; en Gastronomía, el precio por plato) | Consultar detalle de oferta | RF37 | `GET /servicios/{id}` | `DetalleServicioPage.tsx` | Implementado |
+| WF-06 | «Ver disponibilidad y reservar» → WF-10, en la región «Precio», solo en Tour y Alojamiento (las categorías que se reservan, D2) | Reservar servicio | RF11, RF20 | — | `DetalleServicioPage.tsx` | Implementado |
+| WF-06 | Horarios de atención: el texto libre del prestador, con sus saltos de línea | Consultar detalle de oferta | RF58 | `GET /servicios/{id}` (`horarioAtencion`) | `DetalleServicioPage.tsx` | Implementado (RF58 parcial: ver «RF58 — criterios derivados») |
+| WF-06 | Destinos alternativos con menor afluencia | — (sin CU propio, hallazgo HC1) | RF51 | — | `DetalleServicioPage.tsx` | Deshabilitado |
+| WF-06 | **Excepción a WF-06 (distribución):** todo el contenido (galería, descripción, contacto, precio, horarios y regiones deshabilitadas) ocupa el ancho completo de la tarjeta, en lugar de la columna izquierda del wireframe. La portada va al 100 % con altura acotada (`clamp(12rem, 45vw, 26rem)`, `object-fit: cover`) y las miniaturas en una fila de 4 debajo, como en WF-06; los párrafos de texto corrido (descripción y horario) tienen un tope de 75ch. **Justificación:** aprovecha el ancho en escritorio sin dejar una franja vacía a la derecha de cada región; la altura acotada evita que la portada a 3:2 supere la altura de la ventana (unos 47rem a ancho completo); el tope de 75ch conserva la legibilidad (WCAG 1.4.8 recomienda ≤ 80 caracteres por línea). No cambia la estructura (regiones, orden ni elementos), solo la distribución, que es libre según la guía de diseño visual | Consultar detalle de oferta | RNF04 | — | `features/catalogo/detalle/detalle.css` | Mejora de diseño |
 | WF-06 | «Volver a la búsqueda» con los filtros de origen (`state.volverA`; sin origen, `/explorar`) | Consultar detalle de oferta | RF16 | — | `DetalleServicioPage.tsx`, `detalle/navegacionDetalle.ts` | Mejora de diseño |
 | WF-06 | Estados: carga, 404 `OFERTA_NO_DISPONIBLE` («Este servicio no está disponible», sin reintentar), 503 o red con «Reintentar» | Consultar detalle de oferta | RF16, RF22, RNF01 | `GET /servicios/{id}` | `DetalleServicioPage.tsx` (`ErrorDetalleServicio`) | Implementado |
 
@@ -206,7 +226,7 @@ Pantallas de la plataforma (WF-04 a WF-10) y pantallas de acceso (WF-01 a WF-03)
 |---|---|---|---|---|---|---|
 | WF-04, WF-05 | Búsqueda pública combinada de servicios y atractivos: texto, categoría, «Más filtros» de la categoría, precio máximo, ubicación y distancia, accesibilidad, orden (distancia, precio, nombre) y paginación de 10. Cada filtro de «Más filtros» exige su categoría: sin ella o con otra, 400 `CRITERIOS_INVALIDOS` («tipoCocina requiere categoria=Gastronomia»); un servicio incluido desconocido, 400 con los valores aceptados y el recibido recortado a 40 caracteres. Los textos se comparan completos, sin distinguir mayúsculas pero sí tildes, igual en `PoliticaBusqueda` y en la agregación. **El `precio` de cada servicio es «desde» según los filtros activos:** con filtros de unidad (huéspedes o tipo de habitación), el menor `precioNoche` de las unidades que los cumplen (con el precio máximo, si lo hay); si no, `precioBase`. El orden por precio usa ese mismo valor (`CondicionesUnidad` arma las condiciones del `$elemMatch` y del `$filter`) | Buscar oferta turística | RF10, RF16, RF23, RF37, RF38, RF50, RF61, RNF02 | `GET /api/v1/catalogo/oferta` | `features/catalogo/` (WF-04 y WF-05) | Implementado |
 | WF-05 | Opciones de «Más filtros» de una categoría (servicios publicados de prestadores activos), pública; sin categoría o con una inválida, 400 `CRITERIOS_INVALIDOS`. En Alojamiento, los tipos de habitación y el rango de huéspedes salen de todas las unidades | Buscar oferta turística | RF10, RF16, RF22 | `GET /api/v1/catalogo/filtros?categoria=` | `features/catalogo/opcionesFiltroApi.ts` | Implementado |
-| WF-06, WF-10 | Detalle público de un servicio: `id`, `idPrestador`, `nombreComercial`, `categoria`, `descripcion`, `imagenes` (la primera es la portada), `precioBase` («desde»), `moneda` (COP) y `detalleCategoria`; en Alojamiento, `serviciosIncluidos` y `unidades` (`idUnidad`, `nombre`, `tipoHabitacion`, `numHabitaciones`, `capacidadMaxHuespedes`, `precioNoche`). Solo servicios Publicados de prestadores activos: si no, o con un id que no es un ObjectId, 404 `OFERTA_NO_DISPONIBLE`. Es el endpoint que consulta ms-booking antes de reservar (ADR-007) | Consultar detalle de oferta, Reservar servicio | RF10, RF16, RF22, RF37 | `GET /api/v1/catalogo/servicios/{id}` | `features/catalogo/detalle/detalleApi.ts` (WF-06 y WF-10) | Implementado |
+| WF-06, WF-10 | Detalle público de un servicio: `id`, `idPrestador`, `nombreComercial`, `categoria`, `descripcion`, `imagenes` (la primera es la portada), `precioBase` («desde»), `moneda` (COP) y `detalleCategoria`; en Alojamiento, `serviciosIncluidos` y `unidades` (`idUnidad`, `nombre`, `tipoHabitacion`, `numHabitaciones`, `capacidadMaxHuespedes`, `precioNoche`); `contacto` (`telefono`, `correo`; null si no hay), `condicionesAccesibilidad` (en el orden explícito de RF27: MovilidadReducida, Visual, Auditiva; vacía si no hay) y `horarioAtencion` (texto libre; null si no hay). Solo servicios Publicados de prestadores activos: si no, o con un id que no es un ObjectId, 404 `OFERTA_NO_DISPONIBLE`. Es el endpoint que consulta ms-booking antes de reservar (ADR-007); ms-booking ignora los campos que no usa | Consultar detalle de oferta, Reservar servicio | RF09, RF10, RF16, RF22, RF27, RF37, RF43, RF58 | `GET /api/v1/catalogo/servicios/{id}` | `features/catalogo/detalle/detalleApi.ts` (WF-06 y WF-10) | Implementado |
 
 ### Endpoints de ms-booking
 
@@ -242,7 +262,8 @@ Bajo `/api/v1/reservas`. Contrato completo en [`sad/api/ms-booking.md`](sad/api/
 | **Criterio real de «Destacados esta semana».** Hoy es provisional: `tamano=3&orden=PrecioAscendente`. Que salgan solo servicios depende de la decisión 4 (los resultados sin precio van al final), no de un filtro por tipo; el componente, además, descarta lo que no sea servicio. El equipo debe definir el criterio (p. ej. mejor calificación o una marca de destacado asignada por el gestor); cualquiera de los dos requiere datos que hoy no existen | WF-04 | RF16 | Por definir (equipo) |
 | Banner de avisos del municipio (no existe el modelo de avisos) | WF-04 | RF40 | Por definir |
 | Calificación, afluencia, disponibilidad, «Menor afluencia» y orden por calificación (datos aún no modelados) | WF-04, WF-05 | RF17, RF39, RF51, RF61 | Por definir |
-| **WF-06, lo que la versión mínima no muestra:** calificación y reseñas (RF17), favoritos (RF54), alerta de afluencia (RF39), contacto con teléfono, WhatsApp, dirección, correo y RNT (RF09, RF43), «Reportar información falsa o desactualizada» (RF57), horarios de atención (RF58), destinos alternativos con menor afluencia (RF51), las etiquetas (prestador verificado, aforo en vivo, reserva inmediata) y compartir (sin requisito) | WF-06 | RF17, RF39, RF43, RF51, RF54, RF57, RF58 | Por definir |
+| **WF-06, elementos deshabilitados (estado único «No disponible», sin «Próximamente»):** calificación y reseñas (RF17), favoritos (RF54), alerta de afluencia (RF39), las etiquetas (prestador verificado, afluencia en vivo, reserva inmediata), compartir (sin requisito), «Reportar información falsa o desactualizada» (RF57), destinos alternativos con menor afluencia (RF51), y WhatsApp, dirección y RNT del contacto (hallazgo HC2) | WF-06 | RF09, RF17, RF39, RF51, RF54, RF57 | Por definir |
+| **Inconsistencia del estado deshabilitado:** WF-06 usa el estado único «No disponible» (sin texto visible, «—» o borde discontinuo; ver la sección WF-06), mientras WF-01 («¿Olvidaste tu contraseña?»), WF-04, WF-05 (órdenes «Menor afluencia» y «Calificación», «Ver detalle» de atractivos) y los elementos comunes (navegación «Servicios», enlaces del pie) conservan «Próximamente» (`shared/components/Proximamente.tsx`). Unificar requiere decidir si el criterio de WF-06 se extiende a todo el prototipo y actualizar el README de wireframes | WF-01, WF-04, WF-05, Común | — | Por definir (equipo) |
 | «Ver detalle» de los atractivos: no hay endpoint de detalle de atractivos | WF-04, WF-05, WF-06 | RF06, RF24, RF33 | Con el CU de RF06 |
 | **WF-10, lo que no se muestra:** RNT y datos de verificación del prestador en el título, dirección, impuestos del resumen, imagen y etiquetas por unidad (hoy son del alojamiento), «Notificarme si se libera» y pagos (sin requisito, diferencia 2 de la v2), aire acondicionado y baño privado (fuera del vocabulario, diferencia 4) y la confirmación por correo o WhatsApp (RF30, ms-notificaciones) | WF-10 | RF09, RF30, RF43 | Por definir |
 | Diseño final de WF-11 «Mis reservas»: hoy usa el lenguaje visual de WF-10 | WF-11 | RF12 | Cuando exista el wireframe |
@@ -382,6 +403,34 @@ Decididas por el equipo; se aplican en el caso de uso de ms-catalog (`domain/ser
 | 4 | Al ordenar por precio, los resultados sin precio van al final. | RF61 |
 | 5 | Los atractivos cerrados temporalmente o en mantenimiento sí aparecen, con su estado visible, para que el turista lo sepa y busque una alternativa. | RF33, RF08 |
 | 6 | El filtro de accesibilidad aplica a servicios y atractivos. | RF50 |
+
+## Consultar detalle de oferta — decisiones y hallazgos (WF-06)
+
+**Política de visibilidad.** Ver la sección «WF-06 — Detalle de un servicio»: lo que el catálogo trae se muestra; lo que falta (dato ausente o función pendiente) tiene un único estado deshabilitado, sin texto visible de estado, con «—» o borde discontinuo y «No disponible» para lectores de pantalla. Ninguna región de WF-06 se oculta. La desviación del README de wireframes y su justificación están en esa sección.
+
+**Alerta de afluencia y etiqueta «Afluencia en vivo».** WF-06 dibuja los dos elementos: la etiqueta «Aforo en vivo» junto a «Prestador verificado» y «Reserva inmediata», y la alerta con el texto «Aforo en vivo: 8 de 24 cupos ocupados…». El README los lista por separado (etiquetas y «alerta de afluencia»). Se conservan ambos para no fusionar elementos del wireframe, y la región se titula «Alerta de afluencia» para que no repita el texto de la etiqueta.
+
+**RF58 — criterios derivados.** El SRS no define criterios de verificación por RF (ver HC1); estos se derivan del enunciado («registrar los días y horarios de atención de sus servicios o atractivos como un campo de texto visible en la ficha de detalle»):
+
+| # | Criterio | Estado |
+|---|---|---|
+| C1 | El horario se guarda como campo de texto | Cumple: `horarioAtencion` (`string`) en `servicios` |
+| C2 | Expresa días y horarios | Cumple por contenido; el SRS no pide estructura (WF-06 dibuja filas por concepto; manda el SRS) |
+| C3 | Visible en la ficha de detalle para el Turista | Cumple: región «Horarios de atención» de WF-06, con los saltos de línea del texto |
+| C4 | El Prestador lo registra | Pendiente: WF-08 (Registrar servicio) |
+| C5 | El Gestor lo registra para atractivos | Pendiente: `atractivos` no tiene el campo (HC4) ni hay detalle de atractivos |
+
+Estado de RF58: **parcial** (C1 a C3).
+
+**Riesgo: datos de contacto (Ley 1581 de 2012).** El teléfono y el correo del servicio se publican porque RF09 los captura y RF43 los define como «datos de contacto de atención al público» que «visualizan los turistas». Si el prestador es persona natural, pueden ser datos personales y su publicación requiere autorización previa e informada con esa finalidad (arts. 9 y 12). La casilla de Política de Privacidad del registro (WF-03) existe, pero el texto de la política está pendiente (RF46), así que hoy no se puede verificar que informe esta finalidad. Mitigación: solo se publica el contacto del servicio (no el del usuario de `auth_db`) y solo en servicios visibles; la semilla usa datos ficticios (`.test`). Antes de un despliegue real, la política debe incluir esa finalidad.
+
+**Hallazgos abiertos (no se corrigen en esta iteración):**
+
+| # | Hallazgo | Severidad |
+|---|---|---|
+| HC1 | `docs/casos-de-uso/` está vacía: ningún RF del proyecto tiene caso de uso especificado (flujos, precondiciones, postcondiciones) ni pruebas de aceptación, como exige la sección 4 del SRS. Los CU solo existen como nombres en esta matriz y en el índice de wireframes. En WF-06, RF57, RF54 y RF51 no tienen CU propio, y el índice de WF-06 no lista RF09, RF27 ni RF43, cuyos datos muestra | Hallazgo Crítico |
+| HC2 | WF-06 pide RNT y dirección. El RNT vive en `auth_db.prestador`, sin endpoint público ni réplica en `catalog_db`; `servicios` solo guarda coordenadas. Mostrarlos requiere una composición entre servicios que el SAD no define (falta un ADR: réplica como `prestadorActivo` o composición de API) | Hallazgo Crítico |
+| HC4 | RF58 incluye atractivos, pero `atractivos` no tiene campo de horario | Hallazgo |
 
 ## Pendientes para el SAD (modelo NoSQL)
 

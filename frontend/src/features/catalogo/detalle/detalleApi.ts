@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ApiError, servicioNoDisponible, solicitar } from '../../../shared/api/httpClient'
+import type { CondicionAccesibilidad } from '../catalogoApi'
 
 /**
  * Contrato de GET /api/v1/catalogo/servicios/{id} (ms-catalog, RespuestaServicio): solo servicios Publicados de
@@ -25,6 +26,12 @@ interface BaseDetalle {
   /** Precio «desde» (RF37); en un alojamiento, el menor precio por noche de sus unidades. */
   precioBase: number | string | null
   moneda: string
+  /** Contacto de atención al público del servicio (RF09, RF43); null si no hay. */
+  contacto: { telefono: string | null; correo: string | null } | null
+  /** Las declaradas (RF27), en el orden de RF27; vacía si no hay. */
+  condicionesAccesibilidad: CondicionAccesibilidad[]
+  /** Días y horarios como texto libre (RF58); null si no hay. */
+  horarioAtencion: string | null
 }
 
 export type DetalleServicio = BaseDetalle &

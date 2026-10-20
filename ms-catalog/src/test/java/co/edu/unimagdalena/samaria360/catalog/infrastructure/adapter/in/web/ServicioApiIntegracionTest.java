@@ -24,7 +24,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 /**
  * Detalle público de un servicio (WF-06, WF-10, ADR-007) contra MongoDB con la semilla y las migraciones: los
- * alojamientos traen sus unidades (D1) y los servicios no visibles no existen (RF16, RF22).
+ * alojamientos traen sus unidades (D1), todos traen contacto, accesibilidad y horario (RF09, RF27, RF58) y los servicios
+ * no visibles no existen (RF16, RF22).
  */
 @PruebaIntegracion
 class ServicioApiIntegracionTest {
@@ -46,7 +47,8 @@ class ServicioApiIntegracionTest {
         assertThat(resultado.getResponse().getStatus()).isEqualTo(200);
         String json = cuerpo(resultado);
         assertThat(claves(json)).containsExactly("id", "idPrestador", "nombreComercial", "categoria", "descripcion",
-                "imagenes", "precioBase", "moneda", "detalleCategoria");
+                "imagenes", "precioBase", "moneda", "detalleCategoria", "contacto", "condicionesAccesibilidad",
+                "horarioAtencion");
         assertThat((String) JsonPath.read(json, "$.descripcion")).contains("Parque de los Novios");
         assertThat((List<String>) JsonPath.read(json, "$.imagenes")).isNotEmpty()
                 .allSatisfy(imagen -> assertThat(imagen).startsWith("/"));
@@ -68,6 +70,25 @@ class ServicioApiIntegracionTest {
         assertThat(unidades.get(1)).containsEntry("tipoHabitacion", "Suite")
                 .containsEntry("numHabitaciones", 3).containsEntry("capacidadMaxHuespedes", 4);
         assertThat(decimal(unidades.get(1).get("precioNoche"))).isEqualByComparingTo("260000");
+    }
+
+    @Test
+    void traeElContactoLaAccesibilidadYElHorarioDeLaFicha() throws Exception {
+        String json = cuerpo(consultar(idDe("Hotel Casa Tayrona")));
+
+        assertThat(JsonPath.<Map<String, Object>>read(json, "$.contacto"))
+                .containsExactly(Map.entry("telefono", "+57 300 000 0101"),
+                        Map.entry("correo", "reservas@casatayrona.test"));
+        assertThat((List<String>) JsonPath.read(json, "$.condicionesAccesibilidad")).containsExactly("MovilidadReducida");
+        assertThat((String) JsonPath.read(json, "$.horarioAtencion")).isEqualTo("Recepción 24 horas");
+    }
+
+    @Test
+    void laAccesibilidadVaEnElOrdenDeRf27OVacia() throws Exception {
+        assertThat((List<String>) JsonPath.read(cuerpo(consultar(idDe("Mercado Gastronómico La Plaza"))),
+                "$.condicionesAccesibilidad")).containsExactly("MovilidadReducida", "Auditiva");
+        assertThat((List<String>) JsonPath.read(cuerpo(consultar(idDe("Cabañas El Roble"))),
+                "$.condicionesAccesibilidad")).isEmpty();
     }
 
     @Test
