@@ -1,5 +1,6 @@
 package co.edu.unimagdalena.samaria360.catalog.infrastructure.adapter.in.web.dto;
 
+import co.edu.unimagdalena.samaria360.catalog.domain.model.CondicionAccesibilidad;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleAlojamiento;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleAlquilerEquipo;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleCategoria;
@@ -14,17 +15,29 @@ import java.util.List;
  * Detalle público de un servicio (WF-06, WF-10 y la consulta de ms-booking, ADR-007). Solo datos públicos: nada del
  * estado interno de publicación.
  *
- * @param descripcion      texto público del servicio (WF-06); puede ser null
- * @param imagenes         rutas de las imágenes; la primera es la portada (RF48)
- * @param precioBase       precio «desde» (RF37); en un alojamiento, el menor precio por noche de sus unidades
- * @param detalleCategoria la forma depende de la categoría; en Alojamiento trae las unidades (D1)
+ * @param descripcion               texto público del servicio (WF-06); puede ser null
+ * @param imagenes                  rutas de las imágenes; la primera es la portada (RF48)
+ * @param precioBase                precio «desde» (RF37); en un alojamiento, el menor precio por noche de sus unidades
+ * @param detalleCategoria          la forma depende de la categoría; en Alojamiento trae las unidades (D1)
+ * @param contacto                  teléfono y correo de atención al público del servicio (RF09, RF43); null si no hay
+ * @param condicionesAccesibilidad  las declaradas (RF27), en el orden de {@link #ORDEN_ACCESIBILIDAD}; vacía si no hay
+ * @param horarioAtencion           días y horarios como texto libre (RF58); null si no hay
  */
 public record RespuestaServicio(String id, String idPrestador, String nombreComercial, String categoria,
                                 String descripcion, List<String> imagenes, BigDecimal precioBase, String moneda,
-                                Object detalleCategoria) {
+                                Object detalleCategoria, Contacto contacto, List<String> condicionesAccesibilidad,
+                                String horarioAtencion) {
 
     /** Los precios del prototipo están en pesos colombianos. */
     public static final String MONEDA = "COP";
+
+    /** Orden de presentación explícito, el de RF27; no depende de la declaración del enum. */
+    static final List<CondicionAccesibilidad> ORDEN_ACCESIBILIDAD = List.of(CondicionAccesibilidad.MovilidadReducida,
+            CondicionAccesibilidad.Visual, CondicionAccesibilidad.Auditiva);
+
+    /** Ambos opcionales, como en el esquema. */
+    public record Contacto(String telefono, String correo) {
+    }
 
     public record Alojamiento(List<String> serviciosIncluidos, List<Unidad> unidades) {
     }
@@ -46,7 +59,12 @@ public record RespuestaServicio(String id, String idPrestador, String nombreCome
     public static RespuestaServicio de(ServicioComercial servicio) {
         return new RespuestaServicio(servicio.getId().orElseThrow(), servicio.getPrestadorId().toString(),
                 servicio.getNombreComercial(), servicio.getCategoria().name(), servicio.getDescripcion().orElse(null),
-                servicio.getImagenes(), servicio.getPrecioBase().orElse(null), MONEDA, detalle(servicio.getDetalle()));
+                servicio.getImagenes(), servicio.getPrecioBase().orElse(null), MONEDA, detalle(servicio.getDetalle()),
+                servicio.getContacto().map(contacto -> new Contacto(contacto.telefono(), contacto.correo()))
+                        .orElse(null),
+                ORDEN_ACCESIBILIDAD.stream().filter(servicio.getCondicionesAccesibilidad()::contains)
+                        .map(CondicionAccesibilidad::name).toList(),
+                servicio.getHorarioAtencion().orElse(null));
     }
 
     private static Object detalle(DetalleCategoria detalle) {

@@ -171,6 +171,9 @@ export const DETALLE_HOTEL = {
       },
     ],
   },
+  contacto: { telefono: '+57 300 000 0101', correo: 'reservas@casatayrona.test' },
+  condicionesAccesibilidad: ['MovilidadReducida', 'Visual'],
+  horarioAtencion: 'Recepción 24 horas\nCheck-in desde las 3:00 p. m.',
 }
 
 export const DETALLE_TOUR = {
@@ -183,6 +186,9 @@ export const DETALLE_TOUR = {
   precioBase: 80000,
   moneda: 'COP',
   detalleCategoria: { puntoEncuentro: 'Iglesia de Minca', duracionHoras: 4, nivelDificultad: 'Media', aforoMaxGrupo: 12 },
+  contacto: { telefono: '+57 300 000 0301', correo: 'tours@cafeminca.test' },
+  condicionesAccesibilidad: ['Auditiva'],
+  horarioAtencion: 'Salidas diarias a las 8:00 a. m. y 1:00 p. m.',
 }
 
 export const DETALLE_RESTAURANTE = {
@@ -195,6 +201,10 @@ export const DETALLE_RESTAURANTE = {
   precioBase: 45000,
   moneda: 'COP',
   detalleCategoria: { tipoCocina: 'Caribeña', aforoMaxTurno: 40, menuVegetariano: true, rangoPrecioPlato: '$30.000 – $60.000' },
+  // Sin contacto, accesibilidad ni horario: sus regiones aparecen deshabilitadas.
+  contacto: null,
+  condicionesAccesibilidad: [],
+  horarioAtencion: null,
 }
 
 // ------------------------------------------------------------------ ms-booking (/api/v1/reservas)

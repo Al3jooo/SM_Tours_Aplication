@@ -14,7 +14,7 @@ import { renderApp, ubicacionActual } from '../../../test/renderApp'
 
 const DETALLE = 'GET /api/v1/catalogo/servicios'
 
-describe('Detalle de un servicio (WF-06, versión mínima)', () => {
+describe('Detalle de un servicio (WF-06)', () => {
   it('un alojamiento muestra sus datos, sus unidades y «Ver disponibilidad y reservar»', async () => {
     simularFetch({ [`${DETALLE}/s-hotel`]: () => respuestaJson(200, DETALLE_HOTEL) })
     renderApp('/servicios/s-hotel')
@@ -22,13 +22,15 @@ describe('Detalle de un servicio (WF-06, versión mínima)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Hotel Casa Tayrona' })).toBeInTheDocument()
     const ficha = screen.getByRole('article', { name: 'Hotel Casa Tayrona' })
     expect(within(ficha).getByText('Alojamiento')).toHaveClass('detalle__categoria')
-    expect(screen.getByText(/^Desde \$\s150\.000$/)).toBeInTheDocument()
-    expect(screen.getByText('Alojamiento boutique cerca del Parque de los Novios.')).toBeInTheDocument()
 
-    const incluidos = screen.getByRole('region', { name: 'Servicios incluidos' })
+    const descripcion = screen.getByRole('region', { name: 'Descripción' })
+    expect(within(descripcion).getByText('Alojamiento boutique cerca del Parque de los Novios.')).toBeInTheDocument()
+    const incluidos = within(descripcion).getByRole('list', { name: 'Servicios incluidos' })
     expect(within(incluidos).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['WiFi', 'Desayuno'])
 
-    const unidades = screen.getByRole('region', { name: 'Habitaciones' })
+    const precio = screen.getByRole('region', { name: 'Precio' })
+    expect(within(precio).getByText(/^Desde \$\s150\.000$/)).toBeInTheDocument()
+    const unidades = within(precio).getByRole('list', { name: 'Habitaciones' })
     expect(within(unidades).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
       'Doble',
       'Suite familiar',
@@ -36,36 +38,139 @@ describe('Detalle de un servicio (WF-06, versión mínima)', () => {
     // El precio llega como texto con centavos: se muestra exacto.
     expect(within(unidades).getByText(/260\.000,50 por noche/)).toBeInTheDocument()
     expect(within(unidades).getByText('4 huéspedes por habitación')).toBeInTheDocument()
-    // La segunda imagen es una miniatura con texto alternativo.
-    expect(screen.getByRole('img', { name: 'Foto 2 de Hotel Casa Tayrona' })).toBeInTheDocument()
-
-    expect(screen.getByRole('link', { name: 'Ver disponibilidad y reservar' })).toHaveAttribute(
+    // «Ver disponibilidad y reservar» va en la región «Precio», como en WF-06.
+    expect(within(precio).getByRole('link', { name: 'Ver disponibilidad y reservar' })).toHaveAttribute(
       'href',
       '/servicios/s-hotel/reservar',
     )
+    // La segunda imagen es una miniatura con texto alternativo.
+    expect(screen.getByRole('img', { name: 'Foto 2 de Hotel Casa Tayrona' })).toBeInTheDocument()
+  })
+
+  it('las regiones siguen el orden de WF-06', async () => {
+    simularFetch({ [`${DETALLE}/s-hotel`]: () => respuestaJson(200, DETALLE_HOTEL) })
+    renderApp('/servicios/s-hotel')
+
+    const ficha = await screen.findByRole('article', { name: 'Hotel Casa Tayrona' })
+    expect(within(ficha).getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'Alerta de afluencia',
+      'Descripción',
+      'Información de contacto',
+      'Precio',
+      'Horarios de atención',
+      'Destinos alternativos con menor afluencia',
+    ])
+  })
+
+  it('muestra el contacto, el horario (RF58) y la accesibilidad con nombre accesible (RF27)', async () => {
+    simularFetch({ [`${DETALLE}/s-hotel`]: () => respuestaJson(200, DETALLE_HOTEL) })
+    renderApp('/servicios/s-hotel')
+
+    const contacto = await screen.findByRole('region', { name: 'Información de contacto' })
+    expect(within(contacto).getByRole('link', { name: '+57 300 000 0101' })).toHaveAttribute('href', 'tel:+573000000101')
+    expect(within(contacto).getByRole('link', { name: 'reservas@casatayrona.test' })).toHaveAttribute(
+      'href',
+      'mailto:reservas@casatayrona.test',
+    )
+
+    const horarios = screen.getByRole('region', { name: 'Horarios de atención' })
+    expect(horarios).toHaveTextContent('Recepción 24 horas')
+    expect(horarios).toHaveTextContent('Check-in desde las 3:00 p. m.')
+
+    const accesibilidad = screen.getByRole('list', { name: 'Accesibilidad' })
+    expect(within(accesibilidad).getByRole('img', { name: 'Movilidad reducida' })).toHaveAttribute(
+      'aria-label',
+      'Movilidad reducida',
+    )
+    // En el orden de RF27, como llega del servidor.
+    expect(within(accesibilidad).getAllByRole('img').map((icono) => icono.getAttribute('aria-label'))).toEqual([
+      'Movilidad reducida',
+      'Discapacidad visual',
+    ])
+  })
+
+  it('lo pendiente aparece deshabilitado, sin texto visible de estado y con «No disponible» para lectores', async () => {
+    simularFetch({ [`${DETALLE}/s-hotel`]: () => respuestaJson(200, DETALLE_HOTEL) })
+    const { usuario } = renderApp('/servicios/s-hotel')
+
+    const ficha = await screen.findByRole('article', { name: 'Hotel Casa Tayrona' })
+    expect(within(ficha).queryByText(/Próximamente/)).not.toBeInTheDocument()
+
+    for (const nombre of ['Guardar en favoritos', 'Compartir', 'Reportar información falsa o desactualizada']) {
+      // jsdom une el texto del span solo-lector sin el espacio inicial; un navegador lo conserva.
+      const boton = screen.getByRole('button', { name: new RegExp(`^${nombre} ?\\(No disponible\\)$`) })
+      expect(boton).toHaveAttribute('aria-disabled', 'true')
+      expect(within(boton).getByText(/No disponible/)).toHaveClass('solo-lector')
+      // Pulsarlo no hace nada: la ruta no cambia.
+      await usuario.click(boton)
+      expect(ubicacionActual()).toBe('/servicios/s-hotel')
+    }
+    for (const nombre of ['Alerta de afluencia', 'Destinos alternativos con menor afluencia']) {
+      const region = screen.getByRole('group', { name: nombre })
+      expect(region).toHaveAttribute('aria-disabled', 'true')
+      expect(within(region).getByText('No disponible')).toHaveClass('solo-lector')
+      expect(within(region).getByText('—')).toHaveAttribute('aria-hidden', 'true')
+    }
+    const etiquetas = screen.getByRole('list', { name: 'Etiquetas del servicio' })
+    expect(within(etiquetas).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      'Prestador verificado (No disponible)',
+      'Afluencia en vivo (No disponible)',
+      'Reserva inmediata (No disponible)',
+    ])
+
+    // Ubicación y calificación del subtítulo, y WhatsApp, dirección y RNT del contacto: «—» + «No disponible».
+    expect(screen.getByText('Ubicación')).toHaveTextContent('Ubicación —No disponible')
+    expect(screen.getByText('Calificación y reseñas')).toHaveTextContent('Calificación y reseñas —No disponible')
+    const contacto = screen.getByRole('region', { name: 'Información de contacto' })
+    for (const campo of ['WhatsApp', 'Dirección', 'Registro RNT']) {
+      const valor = within(contacto).getByText(campo).nextElementSibling as HTMLElement
+      expect(valor).toHaveTextContent('—No disponible')
+      expect(within(valor).getByText('No disponible')).toHaveClass('solo-lector')
+    }
   })
 
   it('un tour muestra duración, punto de encuentro, dificultad y aforo', async () => {
     simularFetch({ [`${DETALLE}/s-tour-cafe`]: () => respuestaJson(200, DETALLE_TOUR) })
     renderApp('/servicios/s-tour-cafe')
 
-    const datos = await screen.findByRole('region', { name: 'Datos del servicio' })
-    expect(within(datos).getByText('4 h')).toBeInTheDocument()
-    expect(within(datos).getByText('Iglesia de Minca')).toBeInTheDocument()
-    expect(within(datos).getByText('Media')).toBeInTheDocument()
-    expect(within(datos).getByText('12 personas')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ver disponibilidad y reservar' })).toBeInTheDocument()
+    const descripcion = await screen.findByRole('region', { name: 'Descripción' })
+    expect(within(descripcion).getByRole('heading', { level: 3, name: 'Datos del servicio' })).toBeInTheDocument()
+    expect(within(descripcion).getByText('4 h')).toBeInTheDocument()
+    expect(within(descripcion).getByText('Iglesia de Minca')).toBeInTheDocument()
+    expect(within(descripcion).getByText('Media')).toBeInTheDocument()
+    expect(within(descripcion).getByText('12 personas')).toBeInTheDocument()
+    const precio = screen.getByRole('region', { name: 'Precio' })
+    expect(within(precio).getByText(/^Desde \$\s80\.000$/)).toBeInTheDocument()
+    expect(within(precio).getByRole('link', { name: 'Ver disponibilidad y reservar' })).toBeInTheDocument()
   })
 
-  it('una categoría que no se reserva (Gastronomía) no tiene botón de reserva, y lo que falta no se muestra', async () => {
+  it('una categoría que no se reserva (Gastronomía) no tiene botón de reserva; lo que falta queda deshabilitado', async () => {
     simularFetch({ [`${DETALLE}/s-restaurante`]: () => respuestaJson(200, DETALLE_RESTAURANTE) })
     renderApp('/servicios/s-restaurante')
 
-    const datos = await screen.findByRole('region', { name: 'Datos del servicio' })
-    expect(within(datos).getByText('Caribeña')).toBeInTheDocument()
-    expect(within(datos).getByText('Sí')).toBeInTheDocument()
+    const descripcion = await screen.findByRole('region', { name: 'Descripción' })
+    expect(within(descripcion).getByText('Caribeña')).toBeInTheDocument()
+    expect(within(descripcion).getByText('Sí')).toBeInTheDocument()
+    // Sin descripción: el mismo estado deshabilitado, no una región ausente.
+    expect(within(descripcion).getByText('No disponible')).toHaveClass('solo-lector')
+
+    const precio = screen.getByRole('region', { name: 'Precio' })
+    expect(within(precio).getByText('$30.000 – $60.000')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /reservar/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Descripción' })).not.toBeInTheDocument()
+
+    // Sin contacto, horario ni accesibilidad: visibles, con el mismo estado deshabilitado que lo pendiente.
+    const contacto = screen.getByRole('region', { name: 'Información de contacto' })
+    expect(within(contacto).queryByRole('link')).not.toBeInTheDocument()
+    expect(within(contacto).getByText('Teléfono').parentElement).toHaveTextContent('Teléfono—No disponible')
+    expect(within(contacto).getByText('Correo').parentElement).toHaveTextContent('Correo—No disponible')
+    const horarios = screen.getByRole('group', { name: 'Horarios de atención' })
+    expect(horarios).toHaveAttribute('aria-disabled', 'true')
+    expect(within(horarios).getByText('No disponible')).toHaveClass('solo-lector')
+    expect(screen.getByText('Accesibilidad')).toHaveTextContent('Accesibilidad —No disponible')
+    expect(screen.queryByRole('list', { name: 'Accesibilidad' })).not.toBeInTheDocument()
+    // El encabezado y el pie (fuera de WF-06) sí conservan «Próximamente».
+    const ficha = screen.getByRole('article', { name: 'Mirador Gourmet' })
+    expect(within(ficha).queryByText(/Próximamente|Sin información/)).not.toBeInTheDocument()
   })
 
   it('«Volver a la búsqueda» conserva los filtros de la búsqueda de origen', async () => {

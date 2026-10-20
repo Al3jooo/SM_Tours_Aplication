@@ -1,6 +1,7 @@
-import { useId } from 'react'
+import { useId, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams } from 'react-router-dom'
+import { ICONOS_ACCESIBILIDAD } from '../../../shared/components/Iconos'
 import { centavos, formatearCentavos } from '../../reservas/dinero'
 import { CATEGORIAS_RESERVABLES } from '../../reservas/reservasApi'
 import { ImagenOferta } from '../componentes/ImagenOferta'
@@ -15,9 +16,14 @@ import './detalle.css'
 const MAXIMO_MINIATURAS = 4
 
 /**
- * WF-06, versión mínima (pública): solo los datos que existen en el catálogo. Calificación, favoritos, afluencia,
- * contacto, «Reportar», horarios y destinos alternativos no se muestran: son pendientes de docs/trazabilidad.md.
- * «Ver disponibilidad y reservar» (WF-10) aparece solo en las categorías que se reservan (Tour y Alojamiento).
+ * WF-06 (pública), con todas sus regiones en el orden del wireframe. Política de visibilidad (docs/trazabilidad.md):
+ * - lo que trae el catálogo (contacto, accesibilidad, horario de RF58 y precios) se muestra;
+ * - lo que falta, sea un dato que el servicio no trae o una función pendiente (calificación RF17, etiquetas, favorito
+ *   RF54, compartir, alerta de afluencia RF39, WhatsApp, dirección y RNT, «Reportar» RF57 y destinos alternativos RF51),
+ *   tiene un único estado deshabilitado: sin texto visible de estado, con una señal que no depende del color («—» como
+ *   valor o borde discontinuo) y «No disponible» solo para lectores de pantalla (WCAG 1.4.1). Los botones llevan
+ *   aria-disabled y no hacen nada.
+ * «Ver disponibilidad y reservar» (WF-10) solo aparece en las categorías que se reservan (Tour y Alojamiento).
  */
 export function DetalleServicioPage() {
   const { t } = useTranslation()
@@ -61,21 +67,110 @@ export function ErrorDetalleServicio({ error, onReintentar }: { error: ErrorDeta
   )
 }
 
+/** Valor deshabilitado: «—» a la vista y «No disponible» para lectores de pantalla. */
+function NoDisponible() {
+  const { t } = useTranslation()
+  return (
+    <span className="deshabilitado">
+      <span aria-hidden="true">—</span>
+      <span className="solo-lector">{t('detalle.noDisponible')}</span>
+    </span>
+  )
+}
+
+/** Acción deshabilitada: borde discontinuo, aria-disabled (sigue siendo enfocable) y sin acción. */
+function BotonNoDisponible({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
+  return (
+    <button
+      type="button"
+      className="boton-secundario detalle__no-disponible"
+      aria-disabled="true"
+      onClick={(evento) => evento.preventDefault()}
+    >
+      {children}
+      <span className="solo-lector"> ({t('detalle.noDisponible')})</span>
+    </button>
+  )
+}
+
+/** Región de WF-06 visible pero deshabilitada (role="group", que admite aria-disabled), con «—» como contenido. */
+function RegionDeshabilitada({ id, titulo }: { id: string; titulo: string }) {
+  return (
+    <section role="group" aria-labelledby={id} aria-disabled="true" className="detalle__region-deshabilitada">
+      <h2 id={id}>{titulo}</h2>
+      <p>
+        <NoDisponible />
+      </p>
+    </section>
+  )
+}
+
 function FichaServicio({ servicio, volverA }: { servicio: DetalleServicio; volverA: string | null }) {
   const { t, i18n } = useTranslation()
   const idTitulo = useId()
   const precio = centavos(servicio.precioBase)
   const [portada, ...resto] = servicio.imagenes
   const miniaturas = resto.slice(0, MAXIMO_MINIATURAS)
+  const { contacto, condicionesAccesibilidad, horarioAtencion } = servicio
+  const datoContacto = (etiqueta: string, valor?: ReactNode) => (
+    <div key={etiqueta}>
+      <dt>{etiqueta}</dt>
+      <dd>{valor ?? <NoDisponible />}</dd>
+    </div>
+  )
 
   return (
     <article className="detalle__ficha" aria-labelledby={idTitulo}>
       <header className="detalle__encabezado">
-        <p className="detalle__categoria">{etiquetaCategoria(t, servicio.categoria)}</p>
-        <h1 id={idTitulo}>{servicio.nombreComercial}</h1>
-        {precio !== null && (
-          <p className="detalle__precio">{t('catalogo.tarjeta.desde', { precio: formatearCentavos(precio, i18n.language) })}</p>
-        )}
+        <div className="detalle__titulo">
+          <h1 id={idTitulo}>{servicio.nombreComercial}</h1>
+          <p className="detalle__subtitulo">
+            <span className="detalle__categoria">{etiquetaCategoria(t, servicio.categoria)}</span>
+            <span aria-hidden="true"> · </span>
+            <span>
+              {t('detalle.ubicacion')} <NoDisponible />
+            </span>
+            <span aria-hidden="true"> · </span>
+            <span>
+              {t('detalle.calificacion')} <NoDisponible />
+            </span>
+          </p>
+          {condicionesAccesibilidad.length > 0 ? (
+            <ul className="detalle__accesibilidad" aria-label={t('detalle.accesibilidad')}>
+              {condicionesAccesibilidad.map((condicion) => {
+                const Icono = ICONOS_ACCESIBILIDAD[condicion]
+                const etiqueta = t(`catalogo.accesibilidad.${condicion}`)
+                return (
+                  <li key={condicion}>
+                    <span className="detalle__icono-accesibilidad" role="img" aria-label={etiqueta} title={etiqueta}>
+                      <Icono />
+                    </span>
+                    <span aria-hidden="true">{etiqueta}</span>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <p className="detalle__accesibilidad">
+              {t('detalle.accesibilidad')} <NoDisponible />
+            </p>
+          )}
+          <ul className="detalle__etiquetas detalle__etiquetas--pendientes" aria-label={t('detalle.etiquetas')}>
+            {[t('detalle.prestadorVerificado'), t('detalle.afluenciaEnVivo'), t('detalle.reservaInmediata')].map(
+              (etiqueta) => (
+                <li key={etiqueta} className="detalle__no-disponible">
+                  {etiqueta}
+                  <span className="solo-lector"> ({t('detalle.noDisponible')})</span>
+                </li>
+              ),
+            )}
+          </ul>
+        </div>
+        <div className="detalle__acciones-ficha">
+          <BotonNoDisponible>{t('detalle.favorito')}</BotonNoDisponible>
+          <BotonNoDisponible>{t('detalle.compartir')}</BotonNoDisponible>
+        </div>
       </header>
 
       <div className="detalle__galeria">
@@ -100,73 +195,133 @@ function FichaServicio({ servicio, volverA }: { servicio: DetalleServicio; volve
         )}
       </div>
 
+      <RegionDeshabilitada id={`${idTitulo}-afluencia`} titulo={t('detalle.alertaAfluencia')} />
+
       <div className="detalle__cuerpo">
-        {servicio.descripcion && (
-          <section aria-labelledby={`${idTitulo}-descripcion`}>
-            <h2 id={`${idTitulo}-descripcion`}>{t('detalle.descripcion')}</h2>
+        <section aria-labelledby={`${idTitulo}-descripcion`}>
+          <h2 id={`${idTitulo}-descripcion`}>{t('detalle.descripcion')}</h2>
+          {servicio.descripcion ? (
             <p className="detalle__descripcion">{servicio.descripcion}</p>
+          ) : (
+            <p>
+              <NoDisponible />
+            </p>
+          )}
+          <DatosCategoria servicio={servicio} idTitulo={idTitulo} />
+        </section>
+
+        <section aria-labelledby={`${idTitulo}-contacto`}>
+          <h2 id={`${idTitulo}-contacto`}>{t('detalle.contacto')}</h2>
+          <dl className="detalle__datos detalle__contacto">
+            {datoContacto(
+              t('detalle.telefono'),
+              contacto?.telefono ? (
+                <a href={`tel:${contacto.telefono.replace(/\s+/g, '')}`}>{contacto.telefono}</a>
+              ) : undefined,
+            )}
+            {datoContacto(t('detalle.whatsapp'))}
+            {datoContacto(t('detalle.direccion'))}
+            {datoContacto(
+              t('detalle.correo'),
+              contacto?.correo ? <a href={`mailto:${contacto.correo}`}>{contacto.correo}</a> : undefined,
+            )}
+            {datoContacto(t('detalle.rnt'))}
+          </dl>
+          <p className="detalle__reportar">
+            <BotonNoDisponible>{t('detalle.reportar')}</BotonNoDisponible>
+          </p>
+        </section>
+
+        <section aria-labelledby={`${idTitulo}-precio`} className="detalle__precios">
+          <h2 id={`${idTitulo}-precio`}>{t('detalle.precio')}</h2>
+          {precio !== null && (
+            <p className="detalle__precio">
+              {t('catalogo.tarjeta.desde', { precio: formatearCentavos(precio, i18n.language) })}
+            </p>
+          )}
+          <TablaPrecios servicio={servicio} />
+          {CATEGORIAS_RESERVABLES.includes(servicio.categoria) && (
+            <p className="detalle__acciones">
+              <Link className="boton-principal" to={rutaReserva(servicio.id)} state={volverA ? { volverA } : undefined}>
+                {t('detalle.reservar')}
+              </Link>
+            </p>
+          )}
+        </section>
+
+        {horarioAtencion ? (
+          <section aria-labelledby={`${idTitulo}-horarios`}>
+            <h2 id={`${idTitulo}-horarios`}>{t('detalle.horarios')}</h2>
+            <p className="detalle__horario">{horarioAtencion}</p>
           </section>
+        ) : (
+          <RegionDeshabilitada id={`${idTitulo}-horarios`} titulo={t('detalle.horarios')} />
         )}
-        <DatosCategoria servicio={servicio} idTitulo={idTitulo} />
       </div>
 
-      {CATEGORIAS_RESERVABLES.includes(servicio.categoria) && (
-        <p className="detalle__acciones">
-          <Link className="boton-principal" to={rutaReserva(servicio.id)} state={volverA ? { volverA } : undefined}>
-            {t('detalle.reservar')}
-          </Link>
-        </p>
-      )}
+      <RegionDeshabilitada id={`${idTitulo}-alternativos`} titulo={t('detalle.alternativos')} />
     </article>
   )
 }
 
-function DatosCategoria({ servicio, idTitulo }: { servicio: DetalleServicio; idTitulo: string }) {
-  const { t, i18n } = useTranslation()
-  const dato = (etiqueta: string, valor: string) => (
+function dato(etiqueta: string, valor: string) {
+  return (
     <div key={etiqueta}>
       <dt>{etiqueta}</dt>
       <dd>{valor}</dd>
     </div>
   )
+}
+
+/** Región «Precio» de WF-06: las unidades con su precio por noche (Alojamiento) o el precio por plato (Gastronomía). */
+function TablaPrecios({ servicio }: { servicio: DetalleServicio }) {
+  const { t, i18n } = useTranslation()
+
+  if (servicio.categoria === 'Gastronomia') {
+    const { rangoPrecioPlato } = servicio.detalleCategoria
+    return rangoPrecioPlato ? <dl className="detalle__datos">{dato(t('detalle.rangoPrecioPlato'), rangoPrecioPlato)}</dl> : null
+  }
+  if (servicio.categoria !== 'Alojamiento') return null
+
+  return (
+    <ul className="detalle__unidades" aria-label={t('detalle.unidades')}>
+      {servicio.detalleCategoria.unidades.map((unidad) => {
+        const precio = centavos(unidad.precioNoche)
+        return (
+          <li key={unidad.idUnidad} className="detalle__unidad">
+            <h3>{unidad.nombre}</h3>
+            <dl>
+              {dato(t('detalle.tipoHabitacion'), unidad.tipoHabitacion)}
+              {dato(t('detalle.habitaciones'), String(unidad.numHabitaciones))}
+              {dato(t('detalle.capacidad'), t('detalle.huespedesPorHabitacion', { count: unidad.capacidadMaxHuespedes }))}
+            </dl>
+            {precio !== null && (
+              <p className="detalle__unidad-precio">
+                {t('detalle.precioNoche', { precio: formatearCentavos(precio, i18n.language) })}
+              </p>
+            )}
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+/** Dentro de la Descripción (WF-06): los servicios incluidos del alojamiento o los datos de la categoría (RF10). */
+function DatosCategoria({ servicio, idTitulo }: { servicio: DetalleServicio; idTitulo: string }) {
+  const { t, i18n } = useTranslation()
 
   if (servicio.categoria === 'Alojamiento') {
-    const { serviciosIncluidos, unidades } = servicio.detalleCategoria
+    const { serviciosIncluidos } = servicio.detalleCategoria
+    if (serviciosIncluidos.length === 0) return null
     return (
       <>
-        {serviciosIncluidos.length > 0 && (
-          <section aria-labelledby={`${idTitulo}-incluidos`}>
-            <h2 id={`${idTitulo}-incluidos`}>{t('detalle.serviciosIncluidos')}</h2>
-            <ul className="detalle__etiquetas">
-              {serviciosIncluidos.map((incluido) => (
-                <li key={incluido}>{t(`catalogo.serviciosIncluidos.${incluido}`, { defaultValue: incluido })}</li>
-              ))}
-            </ul>
-          </section>
-        )}
-        <section aria-labelledby={`${idTitulo}-unidades`}>
-          <h2 id={`${idTitulo}-unidades`}>{t('detalle.unidades')}</h2>
-          <ul className="detalle__unidades">
-            {unidades.map((unidad) => {
-              const precio = centavos(unidad.precioNoche)
-              return (
-                <li key={unidad.idUnidad} className="detalle__unidad">
-                  <h3>{unidad.nombre}</h3>
-                  <dl>
-                    {dato(t('detalle.tipoHabitacion'), unidad.tipoHabitacion)}
-                    {dato(t('detalle.habitaciones'), String(unidad.numHabitaciones))}
-                    {dato(t('detalle.capacidad'), t('detalle.huespedesPorHabitacion', { count: unidad.capacidadMaxHuespedes }))}
-                  </dl>
-                  {precio !== null && (
-                    <p className="detalle__unidad-precio">
-                      {t('detalle.precioNoche', { precio: formatearCentavos(precio, i18n.language) })}
-                    </p>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        </section>
+        <h3 id={`${idTitulo}-incluidos`}>{t('detalle.serviciosIncluidos')}</h3>
+        <ul className="detalle__etiquetas" aria-labelledby={`${idTitulo}-incluidos`}>
+          {serviciosIncluidos.map((incluido) => (
+            <li key={incluido}>{t(`catalogo.serviciosIncluidos.${incluido}`, { defaultValue: incluido })}</li>
+          ))}
+        </ul>
       </>
     )
   }
@@ -185,7 +340,6 @@ function DatosCategoria({ servicio, idTitulo }: { servicio: DetalleServicio; idT
     if (restaurante.menuVegetariano !== null) {
       datos.push([t('detalle.menuVegetariano'), t(restaurante.menuVegetariano ? 'detalle.si' : 'detalle.no')])
     }
-    if (restaurante.rangoPrecioPlato) datos.push([t('detalle.rangoPrecioPlato'), restaurante.rangoPrecioPlato])
   } else {
     const alquiler = servicio.detalleCategoria
     datos.push([t('detalle.tipoEquipo'), alquiler.tipoVehiculoEquipo])
@@ -194,9 +348,11 @@ function DatosCategoria({ servicio, idTitulo }: { servicio: DetalleServicio; idT
   }
 
   return (
-    <section aria-labelledby={`${idTitulo}-datos`}>
-      <h2 id={`${idTitulo}-datos`}>{t('detalle.datos')}</h2>
-      <dl className="detalle__datos">{datos.map(([etiqueta, valor]) => dato(etiqueta, valor))}</dl>
-    </section>
+    <>
+      <h3 id={`${idTitulo}-datos`}>{t('detalle.datos')}</h3>
+      <dl className="detalle__datos" aria-labelledby={`${idTitulo}-datos`}>
+        {datos.map(([etiqueta, valor]) => dato(etiqueta, valor))}
+      </dl>
+    </>
   )
 }

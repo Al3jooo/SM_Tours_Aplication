@@ -1,20 +1,14 @@
-import { useId, type ReactNode, type Ref } from 'react'
+import { useId, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
-import { IconoAuditiva, IconoMovilidadReducida, IconoVisual } from '../../../shared/components/Iconos'
+import { ICONOS_ACCESIBILIDAD } from '../../../shared/components/Iconos'
 import { BotonProximamente } from '../../../shared/components/Proximamente'
 import type { EstadoResumen } from '../../reservas/reservasApi'
-import type { CondicionAccesibilidad, ResultadoOferta } from '../catalogoApi'
+import type { ResultadoOferta } from '../catalogoApi'
 import { rutaDetalle } from '../detalle/navegacionDetalle'
 import { formatearDistancia, formatearPrecio } from '../formato'
 import { etiquetaCategoria } from './etiquetas'
 import { ImagenOferta } from './ImagenOferta'
-
-const ICONOS_ACCESIBILIDAD: Record<CondicionAccesibilidad, () => ReactNode> = {
-  MovilidadReducida: IconoMovilidadReducida,
-  Visual: IconoVisual,
-  Auditiva: IconoAuditiva,
-}
 
 /**
  * Tarjeta de un servicio o atractivo: lista de WF-05 ('lista') y destacados de WF-04 ('destacado').

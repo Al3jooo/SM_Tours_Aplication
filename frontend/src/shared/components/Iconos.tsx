@@ -139,6 +139,16 @@ export function IconoAuditiva() {
   )
 }
 
+/**
+ * Icono de cada condición de accesibilidad, por su clave del catálogo (CONDICIONES_ACCESIBILIDAD). Lo usan las tarjetas
+ * (WF-04, WF-05) y el detalle (WF-06); si el catálogo agrega una condición, TypeScript falla donde se indexa.
+ */
+export const ICONOS_ACCESIBILIDAD = {
+  MovilidadReducida: IconoMovilidadReducida,
+  Visual: IconoVisual,
+  Auditiva: IconoAuditiva,
+} as const
+
 export function IconoUbicacion() {
   return (
     <Icono>
