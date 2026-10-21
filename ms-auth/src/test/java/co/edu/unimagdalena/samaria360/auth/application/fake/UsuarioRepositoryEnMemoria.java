@@ -7,6 +7,7 @@ import co.edu.unimagdalena.samaria360.auth.domain.model.Usuario;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.UUID;
 
 /**
@@ -61,6 +62,12 @@ public class UsuarioRepositoryEnMemoria implements UsuarioRepositoryPort {
     }
 
     @Override
+    public OptionalLong buscarVersionCuenta(UUID id) {
+        Usuario usuario = usuarios.get(id);
+        return usuario == null ? OptionalLong.empty() : OptionalLong.of(usuario.getVersionCuenta());
+    }
+
+    @Override
     public void guardar(Usuario usuario) {
         llamadasGuardar++;
         usuarios.put(usuario.getId(), copiar(usuario));
@@ -77,6 +84,6 @@ public class UsuarioRepositoryEnMemoria implements UsuarioRepositoryPort {
 
     private static Usuario copiar(Usuario u) {
         return new Usuario(u.getId(), u.getCorreo(), u.getContrasenaHash(), u.getRol(), u.getEstadoCuenta(),
-                u.getIntentosFallidos(), u.getBloqueadoHasta().orElse(null));
+                u.getIntentosFallidos(), u.getBloqueadoHasta().orElse(null), u.getVersionCuenta());
     }
 }

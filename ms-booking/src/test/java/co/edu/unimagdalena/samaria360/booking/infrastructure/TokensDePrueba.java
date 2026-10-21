@@ -30,26 +30,51 @@ public final class TokensDePrueba {
         return new JWKSet(LLAVE.toPublicJWK()).toString();
     }
 
+    /** Token de turista sin el claim {@code ver} (anterior a ADR-008): cuenta como 0. */
     public static String turista(UUID id) {
-        return firmar(id, "Turista");
+        return firmar(id, "Turista", null);
+    }
+
+    /** Token de turista con el claim {@code ver} (DEC-29). */
+    public static String turista(UUID id, long ver) {
+        return firmar(id, "Turista", ver);
+    }
+
+    /** JWT de servicio como el del relevo de ms-auth (ADR-008). */
+    public static String servicio(String audiencia) {
+        JWTClaimsSet datos = new JWTClaimsSet.Builder()
+                .subject("ms-auth")
+                .issuer("samaria360-auth")
+                .claim("rol", "SERVICIO")
+                .audience(java.util.List.of(audiencia))
+                .issueTime(new Date())
+                .expirationTime(Date.from(Instant.now().plusSeconds(300)))
+                .build();
+        return firmar(datos);
     }
 
     public static String prestador(UUID id) {
-        return firmar(id, "Prestador");
+        return firmar(id, "Prestador", null);
     }
 
     public static String bearer(String token) {
         return "Bearer " + token;
     }
 
-    private static String firmar(UUID sujeto, String rol) {
-        JWTClaimsSet datos = new JWTClaimsSet.Builder()
+    private static String firmar(UUID sujeto, String rol, Long ver) {
+        JWTClaimsSet.Builder datos = new JWTClaimsSet.Builder()
                 .subject(sujeto.toString())
                 .issuer("samaria360-auth")
                 .claim("rol", rol)
                 .issueTime(new Date())
-                .expirationTime(Date.from(Instant.now().plusSeconds(3600)))
-                .build();
+                .expirationTime(Date.from(Instant.now().plusSeconds(3600)));
+        if (ver != null) {
+            datos.claim("ver", ver);
+        }
+        return firmar(datos.build());
+    }
+
+    private static String firmar(JWTClaimsSet datos) {
         SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(LLAVE.getKeyID()).build(), datos);
         try {
             jwt.sign(new RSASSASigner(LLAVE));

@@ -51,6 +51,10 @@ public class UsuarioEntity {
     @Column(name = "bloqueado_hasta")
     private Instant bloqueadoHasta;
 
+    // Solo lectura: la sube el UPDATE condicional del Administrador (CuentasAdminJdbcAdapter), nunca el login.
+    @Column(name = "version_cuenta", nullable = false, insertable = false, updatable = false)
+    private long versionCuenta;
+
     protected UsuarioEntity() {
     }
 
@@ -102,6 +106,10 @@ public class UsuarioEntity {
 
     public void setEstadoCuenta(EstadoCuenta estadoCuenta) {
         this.estadoCuenta = estadoCuenta;
+    }
+
+    public long getVersionCuenta() {
+        return versionCuenta;
     }
 
     public Instant getBloqueadoHasta() {

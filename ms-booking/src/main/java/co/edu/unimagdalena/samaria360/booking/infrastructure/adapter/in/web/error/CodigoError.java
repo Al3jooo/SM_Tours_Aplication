@@ -8,6 +8,8 @@ public enum CodigoError {
     DATOS_INVALIDOS,
     IDEMPOTENCIA_REQUERIDA,
     NO_AUTENTICADO,
+    /** Token de antes de un cambio de estado o de rol de la cuenta: su claim ver es menor que la versión conocida (DEC-29). */
+    SESION_INVALIDADA,
     ACCESO_DENEGADO,
     OFERTA_NO_DISPONIBLE,
     UNIDAD_NO_DISPONIBLE,

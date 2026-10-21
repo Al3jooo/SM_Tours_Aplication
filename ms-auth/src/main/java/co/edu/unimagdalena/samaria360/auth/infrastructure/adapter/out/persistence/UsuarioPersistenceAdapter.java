@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.UUID;
 
 @Component
@@ -46,6 +47,11 @@ public class UsuarioPersistenceAdapter implements UsuarioRepositoryPort {
     @Override
     public Optional<EstadoValidacion> buscarEstadoValidacion(UUID id) {
         return repositorio.buscarEstadoValidacion(id).map(EstadoValidacion::desdeTexto);
+    }
+
+    @Override
+    public OptionalLong buscarVersionCuenta(UUID id) {
+        return repositorio.buscarVersionCuenta(id).map(OptionalLong::of).orElseGet(OptionalLong::empty);
     }
 
     /** Dentro de la transacción, findById devuelve la entidad ya cargada sin otro SELECT. */

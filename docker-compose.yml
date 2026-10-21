@@ -119,7 +119,9 @@ services:
       POSTGRES_PORT: "5432"
       POSTGRES_USER: ${POSTGRES_USER:?Falta POSTGRES_USER en .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
-      JWT_EXPIRACION_MINUTOS: ${JWT_EXPIRACION_MINUTOS:-60}
+      # Relevo de cuentas hacia los endpoints internos de ms-catalog y ms-booking (ADR-008): URI, no secretos.
+      CATALOG_INTERNO_URI: http://ms-catalog:8082
+      BOOKING_INTERNO_URI: http://ms-booking:8083
       JWT_LLAVE_PRIVADA: /run/secrets/jwt_llave_privada
       JWT_LLAVE_PUBLICA: /run/secrets/jwt_llave_publica
     # Llaves montadas como archivos de solo lectura en /run/secrets/; nunca se copian a la imagen.

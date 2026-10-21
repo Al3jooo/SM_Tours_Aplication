@@ -1,11 +1,14 @@
 package co.edu.unimagdalena.samaria360.booking.infrastructure.adapter.in.web.error;
 
+import co.edu.unimagdalena.samaria360.booking.infrastructure.config.ValidadorVersionSesion;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -30,7 +33,22 @@ public class ProblemDetailAuthenticationEntryPoint implements AuthenticationEntr
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
         bearer.commence(request, response, authException);
-        Problemas.escribir(request, response, json, Problemas.crear(HttpStatus.UNAUTHORIZED,
-                CodigoError.NO_AUTENTICADO, "Se requiere un token de acceso válido"));
+        ProblemDetail problema = sesionInvalidada(authException)
+                ? Problemas.crear(HttpStatus.UNAUTHORIZED, CodigoError.SESION_INVALIDADA,
+                        "La cuenta cambió después de iniciar sesión: inicia sesión de nuevo")
+                : Problemas.crear(HttpStatus.UNAUTHORIZED, CodigoError.NO_AUTENTICADO,
+                        "Se requiere un token de acceso válido");
+        Problemas.escribir(request, response, json, problema);
+    }
+
+    /** El validador de {@code ver} deja el código {@code sesion_invalidada} en la causa del error (DEC-29). */
+    private static boolean sesionInvalidada(AuthenticationException error) {
+        for (Throwable causa = error; causa != null; causa = causa.getCause()) {
+            if (causa instanceof JwtValidationException validacion && validacion.getErrors().stream()
+                    .anyMatch(e -> ValidadorVersionSesion.SESION_INVALIDADA.equals(e.getErrorCode()))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

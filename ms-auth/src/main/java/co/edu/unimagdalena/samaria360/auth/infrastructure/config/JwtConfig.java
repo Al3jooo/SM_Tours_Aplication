@@ -1,5 +1,7 @@
 package co.edu.unimagdalena.samaria360.auth.infrastructure.config;
 
+import co.edu.unimagdalena.samaria360.auth.application.port.in.VerificarSesionUseCase;
+import co.edu.unimagdalena.samaria360.auth.infrastructure.adapter.out.security.ValidadorVersionSesion;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -10,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.converter.RsaKeyConverters;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -55,13 +58,15 @@ public class JwtConfig {
         return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(llaveJwt)));
     }
 
-    /** Valida firma RS256, exp/nbf e iss. */
+    /** Valida firma RS256, exp/nbf e iss y, después, el claim ver contra version_cuenta (DEC-29). */
     @Bean
-    public JwtDecoder jwtDecoder(RSAKey llaveJwt, JwtPropiedades propiedades) throws JOSEException {
+    public JwtDecoder jwtDecoder(RSAKey llaveJwt, JwtPropiedades propiedades, VerificarSesionUseCase sesiones)
+            throws JOSEException {
         NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(llaveJwt.toRSAPublicKey())
                 .signatureAlgorithm(SignatureAlgorithm.RS256)
                 .build();
-        decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(propiedades.emisor()));
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefaultWithIssuer(propiedades.emisor()), new ValidadorVersionSesion(sesiones)));
         return decoder;
     }
 

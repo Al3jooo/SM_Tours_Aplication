@@ -4,7 +4,7 @@ Contrato del CU «Reservar servicio» (RF11, RF18, RF20, RF32, RF37, RF44) para 
 
 ## Convenciones
 
-- **Autenticación:** `Authorization: Bearer <JWT de ms-auth>`. Reservar, consultar y cancelar exigen el rol **Turista**; el turista es el `sub` del token. La disponibilidad es pública.
+- **Autenticación:** `Authorization: Bearer <JWT de ms-auth>`. Reservar, consultar y cancelar exigen el rol **Turista**; el turista es el `sub` del token. La disponibilidad es pública. Todo Bearer que llegue, también a un endpoint público, se valida: un token con el claim `ver` menor que la versión de la cuenta recibe **401 `SESION_INVALIDADA`** ([ADR-008](../adr/ADR-008-sincronizacion-estado-cuentas.md)); sin fila para la cuenta, o sin `ver`, se acepta.
 - **Fechas:** `aaaa-mm-dd`; horas: `hh:mm` (la respuesta usa `hh:mm:ss`); instantes: ISO 8601 en UTC (`2030-03-30T13:00:00Z`). Todo se interpreta en la hora de Santa Marta (`America/Bogota`).
 - **Dinero:** COP, número decimal.
 - **Errores:** ProblemDetail (RFC 9457) con `codigo` estable, como ms-auth y ms-catalog. `DATOS_INVALIDOS` lleva `campos`: un código por campo con el nombre JSON, nunca textos.
@@ -108,6 +108,10 @@ En un tour, `unidades` va vacío y `horarios` trae `{fecha, hora, cuposTotales, 
 
 Una tarea de ms-booking pasa de `Confirmada` a `Completada` las reservas cuya `fechaFin` ya pasó, con un UPDATE condicional idempotente. Corre al arrancar y después cada 15 minutos (`samaria360.completar-reservas.cada`): una reserva queda Completada a más tardar 15 minutos después de terminar. No tiene endpoint.
 
+## Endpoint interno de cuentas (ADR-008)
+
+`PUT /internal/v1/cuentas/{id}` · no pasa por el API Gateway · solo un JWT de servicio de ms-auth con `aud = ms-booking`. Guarda la proyección de la cuenta (tabla `cuenta`, V4) con un *upsert* que solo avanza si la versión es mayor; responde 204 se aplique o no. Contrato completo en [`ms-auth.md`](ms-auth.md). Consultar, cancelar y la disponibilidad no la consultan: solo el validador del JWT.
+
 ## Códigos de error
 
 | Código | HTTP | Cuándo |
@@ -115,6 +119,7 @@ Una tarea de ms-booking pasa de `Confirmada` a `Completada` las reservas cuya `f
 | `DATOS_INVALIDOS` | 400 | `campos` con: `REQUERIDO`, `FORMATO`, `VALOR_MINIMO`, `NO_PERMITIDO`, `FECHA_PASADA`, `RANGO_INVALIDO`, `MAXIMO_NOCHES`, `MAXIMO_DIAS`, `MAXIMO_ELEMENTOS`, `EXCEDE_CAPACIDAD`, `EXCEDE_AFORO`, `CATEGORIA_NO_RESERVABLE`. `idUnidad` es `REQUERIDO` en un alojamiento y `NO_PERMITIDO` en un tour. Un cuerpo que no es JSON también es `DATOS_INVALIDOS`, sin `campos` |
 | `IDEMPOTENCIA_REQUERIDA` | 400 | Falta `Idempotency-Key` o no es un UUID |
 | `NO_AUTENTICADO` | 401 | Sin token o con uno inválido |
+| `SESION_INVALIDADA` | 401 | El token es de antes de un cambio de estado de la cuenta (`ver` menor que la versión conocida, DEC-29): hay que iniciar sesión de nuevo |
 | `ACCESO_DENEGADO` | 403 | El rol no es Turista |
 | `RESERVA_NO_ENCONTRADA` | 404 | No existe o es de otro turista |
 | `OFERTA_NO_DISPONIBLE` | 409 | El servicio no existe, no está Publicado o el prestador está inactivo |

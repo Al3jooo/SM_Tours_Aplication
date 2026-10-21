@@ -14,6 +14,11 @@ spring:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/auth_db
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
+  task:
+    scheduling:
+      # Uno por destino del relevo: un destino caído no retrasa al otro.
+      pool:
+        size: 2
   jpa:
     open-in-view: false
     hibernate:
@@ -27,7 +32,16 @@ samaria360:
     # Rutas relativas a la carpeta del servicio (ms-auth/)
     llave-privada: ${JWT_LLAVE_PRIVADA:../infra/keys/jwt-privada.pem}
     llave-publica: ${JWT_LLAVE_PUBLICA:../infra/keys/jwt-publica.pem}
-    expiracion: ${JWT_EXPIRACION_MINUTOS:60}m
+    # DEC-29 (ADR-008): 15 minutos fijos. Es el techo de la ventana en que un token viejo sigue valiendo si el relevo o
+    # un servicio fallan; no es un parámetro de despliegue.
+    expiracion: 15m
+  # Relevo del outbox de cuentas hacia ms-catalog y ms-booking (ADR-008). Las URI van en Compose, no son secretos.
+  outbox:
+    habilitado: true
+    cada: PT1S
+    destinos:
+      ms-catalog: ${CATALOG_INTERNO_URI:http://localhost:8082}
+      ms-booking: ${BOOKING_INTERNO_URI:http://localhost:8083}
 
 # Swagger solo en dev (ver documento de perfil dev más abajo)
 springdoc:

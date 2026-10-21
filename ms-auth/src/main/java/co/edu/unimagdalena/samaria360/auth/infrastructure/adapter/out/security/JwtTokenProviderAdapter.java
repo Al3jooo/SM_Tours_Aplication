@@ -15,11 +15,13 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-/** JWT RS256 con claims iss, sub (id_usuario), rol, iat y exp; el kid coincide con el del JWKS. */
+/** JWT RS256 con claims iss, sub (id_usuario), rol, ver, iat y exp; el kid coincide con el del JWKS. */
 @Component
 public class JwtTokenProviderAdapter implements TokenProviderPort {
 
     public static final String CLAIM_ROL = "rol";
+    /** Versión de la cuenta al iniciar sesión (DEC-29): los servicios rechazan el token si ya hubo un cambio. */
+    public static final String CLAIM_VERSION = "ver";
 
     private final JwtEncoder encoder;
     private final JwtPropiedades propiedades;
@@ -41,6 +43,7 @@ public class JwtTokenProviderAdapter implements TokenProviderPort {
                 .issuer(propiedades.emisor())
                 .subject(usuario.getId().toString())
                 .claim(CLAIM_ROL, usuario.getRol().name())
+                .claim(CLAIM_VERSION, usuario.getVersionCuenta())
                 .issuedAt(emitidoEn)
                 .expiresAt(expiraEn)
                 .build();

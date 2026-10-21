@@ -23,6 +23,8 @@ samaria360:
     # JWKS de ms-auth para validar los JWT de los endpoints protegidos (la búsqueda es pública).
     jwk-set-uri: ${AUTH_JWKS_URI:http://localhost:8081/api/v1/auth/.well-known/jwks.json}
     emisor: samaria360-auth
+    # aud de los tokens de servicio que ms-auth usa en /internal/** (ADR-008)
+    audiencia: ms-catalog
 
 # Swagger solo en dev (ver documento de perfil dev más abajo)
 springdoc:

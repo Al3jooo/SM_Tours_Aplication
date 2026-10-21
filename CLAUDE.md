@@ -15,6 +15,7 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
   - inicio de sesión y registro de turistas y prestadores (`ms-auth`: RF15, RF01, RF02);
   - vista principal del catálogo (`ms-catalog`);
   - el CU «Reservar servicio» (`ms-booking`: RF11, RF18, RF20, RF32, RF37, RF44), con RF12 del lado del turista («Mis reservas» con filtros) y RF52 (Confirmada → Completada automática) ya implementados;
+  - el CU «Administrar cuentas» (`ms-auth`, con proyecciones en `ms-catalog` y `ms-booking`: RF28, RF22 y RF62; WF-12, propuesto por arquitectura y pendiente de validación). La parte de backend y documentos está hecha; la pantalla WF-12 es la sesión B. RF45 no se implementa, pero el diseño le sirve ([CU](docs/casos-de-uso/CU-administrar-cuentas.md), [ADR-008](docs/sad/adr/ADR-008-sincronizacion-estado-cuentas.md));
   - las pantallas de reservas, con carga diferida: WF-06 mínimo (`/servicios/:id`), WF-10 (`/servicios/:id/reservar`, la selección vive en la URL) y WF-11 «Mis reservas» (`/mis-reservas`, privada, solo turistas; pendiente de diseño), más la disponibilidad de las tarjetas y la miniatura del popup del mapa (RF23).
 - **Fuera de alcance:** chatbot real, notificaciones (el aviso por correo del registro llega con RF34; RF13, RF30 y RF63, con ms-notificaciones), analítica, y en reservas RF12 del lado del prestador y RF19. No implementarlos aunque parezcan fáciles.
 - Si una regla de negocio no está definida en el SRS (`docs/srs/`), **preguntar**; no inventarla.
@@ -42,7 +43,8 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
   - la numeración es compartida entre las dos carpetas;
   - el esquema y los **datos de referencia** (p. ej. V10, catálogo de roles) van en `src/main/resources/db/migration`;
   - la **semilla** (datos de prueba, solo perfiles dev y test) va en `src/main/resources/db/semilla`.
-- Tablas de `auth_db` (modelo lógico del SAD): `Rol`, `Usuario`, `Turista`, `Turista_Categoria_Interes`, `Prestador`, `Gestor`, `Administrador`, `Token_Recuperacion`. Las tablas de reservas pertenecen a `reservas_db` y **no** van en ms-auth.
+- Tablas de `auth_db` (modelo lógico del SAD): `Rol`, `Usuario`, `Turista`, `Turista_Categoria_Interes`, `Prestador`, `Gestor`, `Administrador`, `Token_Recuperacion`, y el outbox de «Administrar cuentas» (`outbox_evento`, `outbox_entrega`; V13). Las tablas de reservas pertenecen a `reservas_db` y **no** van en ms-auth.
+- Migraciones de «Administrar cuentas»: V11 (`prestador.motivo_rechazo`, `revisado_en`, `revisado_por`; rellena los Rechazados anteriores antes del CHECK), V12 (`usuario.version_cuenta`), V13 (outbox) y, solo semilla, V14. El estado del prestador es **derivado** de `estado_validacion` y `estado_cuenta` (`EstadoAdministrativo`: Pendiente, Rechazado, Activo, Inactivo); el turista desactivado (RF62) guarda `estado_cuenta = 'Desactivado'` y el prestador inactivo (RF22), `'Inactivo'` (DEC-43, DEC-44).
 - Identificadores de usuario: tipo nativo PostgreSQL `uuid` ↔ `java.util.UUID`.
 - `estado_cuenta` es un enum de PostgreSQL (`CREATE TYPE`). Mapear con `@Enumerated(EnumType.STRING)` + `@JdbcTypeCode(SqlTypes.NAMED_ENUM)`.
 - Fechas con hora: `timestamptz` ↔ `Instant`. Obtener la hora actual siempre a través de un `RelojPort`, para poder probar el bloqueo sin esperar 15 minutos.
@@ -52,8 +54,10 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
   3. con la contraseña correcta: 403 `CUENTA_INACTIVA` si `estado_cuenta` no es Activo (RF22, RF62); 403 `CUENTA_PENDIENTE_VALIDACION` o `CUENTA_RECHAZADA` si es un prestador sin validar (RF02, RF28). En esos 403 no se emite token y el conteo vuelve a 0;
   4. el acceso solo se registra al emitir el token.
 - **RNF05:** contraseñas con BCrypt (`spring-security-crypto`), detrás de `PasswordHasherPort`.
-- **JWT RS256** con `NimbusJwtEncoder`. Claims: `sub` = id_usuario, `rol`, `iss` y `exp`; ms-catalog y ms-booking validan la firma, `iss` y `exp` con el JWKS (ADR-005). La clave pública se publica en `GET /api/v1/auth/.well-known/jwks.json`. Las llaves se leen de las rutas en `JWT_LLAVE_PRIVADA` / `JWT_LLAVE_PUBLICA` (ver `.env.example`).
+- **JWT RS256** con `NimbusJwtEncoder`. Claims: `sub` = id_usuario, `rol`, **`ver`** (= `usuario.version_cuenta` al iniciar sesión), `iss`, `iat` y `exp`. **El token vence a los 15 minutos** (fijo en `application.yml`, DEC-29; ya no hay `JWT_EXPIRACION_MINUTOS`). ms-catalog y ms-booking validan la firma, `iss` y `exp` con el JWKS (ADR-005) y además `ver`: con `ver` menor que la versión de su proyección, 401 `SESION_INVALIDADA`; sin fila, aceptan; un token sin `ver` cuenta como 0. ms-auth compara con su propia tabla. Un Bearer que llegue a un endpoint público también se valida. La clave pública se publica en `GET /api/v1/auth/.well-known/jwks.json`. Las llaves se leen de las rutas en `JWT_LLAVE_PRIVADA` / `JWT_LLAVE_PUBLICA` (ver `.env.example`).
 - Endpoints del prototipo: `POST /api/v1/auth/login`, `GET /api/v1/auth/me`, `POST /api/v1/auth/registro/turista`, `POST /api/v1/auth/registro/prestador` y `GET /api/v1/auth/paises` (los tres últimos, públicos).
+- **Administrar cuentas (RF28, RF22, RF62):** `/api/v1/auth/admin/**`, solo el rol Administrador (contrato en `docs/sad/api/ms-auth.md`): listar prestadores (`estado`, `q`) y turistas, detalle del prestador, `POST …/prestadores/{id}/validacion` (Aprobar, o Rechazar con justificación de 1 a 500 caracteres), `…/inactivacion`, `…/turistas/{id}/desactivacion` y `…/reactivacion`. Páginas de 10, `pagina` desde 0. Cada cambio es un UPDATE condicional del estado y la versión esperados más `version_cuenta + 1` y el INSERT del evento `CuentaActualizada`, **en una transacción** (DEC-26); si el estado ya cambió, 409 `ESTADO_CAMBIADO` (DEC-39).
+- **Relevo del outbox** (`RelevoCuentasProgramador`, `samaria360.outbox.cada`, 1 s; un hilo por destino): toma las entregas con `FOR UPDATE SKIP LOCKED` (solo la última versión por usuario), las envía a `PUT /internal/v1/cuentas/{id}` de ms-catalog y ms-booking (`CATALOG_INTERNO_URI` y `BOOKING_INTERNO_URI`, en Compose) con un **JWT de servicio** (`sub = ms-auth`, `rol = SERVICIO`, `aud` = el destino, `exp` de 5 min) y reintenta con espera creciente; un destino caído no bloquea al otro. El supuesto de orden está en ADR-008.
 - **Registro (RF01, RF02):** respuesta uniforme `202 {"estado":"RECIBIDO"}`, exista o no el correo, con BCrypt siempre y sin inicio de sesión automático ([ADR-006](docs/sad/adr/ADR-006-registro-sin-enumeracion.md)). `DATOS_INVALIDOS` lleva en `campos` un código por campo, con los nombres JSON (nunca textos). Decisiones D1 a D6 en `docs/trazabilidad.md`.
 - `Token_Recuperacion` guarda solo `token_hash` (SHA-256), nunca el token en claro.
 
@@ -74,6 +78,7 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
   - las aplica el servicio de un solo uso `mongo-migraciones` (`aplicar.js`, registro en la colección `migraciones`), igual en un volumen nuevo que en uno existente;
   - `docs/sad/modelo-nosql/*.schema.json` describe la última versión; `MigracionesMongoTest` lo verifica;
   - el `oneOf` de `detalleCategoria` discrimina por `categoria` en el nivel superior.
+- **Proyección `cuentas`** (M003; `docs/sad/modelo-nosql/cuentas.schema.json`, ADR-008): el estado y la versión de las cuentas de **todos** los roles. `PUT /internal/v1/cuentas/{id}` solo acepta un JWT con `rol = SERVICIO` y `aud = ms-catalog` (403 con un token de usuario, 401 con otra `aud`); *upsert* idempotente que solo avanza si `version` es mayor (204 también si se ignora). Si la cuenta es de un Prestador, primero fija `servicios.prestadorActivo = (estado == Activo)` (índice `prestador`, M004) y después guarda la proyección; si algo falla, el relevo reintenta. Dos `SecurityFilterChain`: `/internal/**` y la pública (con el validador de `ver`).
 
 ## ms-booking (Java 17, Spring Boot 3.5.16, PostgreSQL `reservas_db`)
 
@@ -87,6 +92,7 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
   - Regla del cruce: la actividad aparece si `fecha_inicio < (hasta + 1 día) 00:00` y `fecha_fin > desde 00:00`, en Bogotá.
   - Máximo 366 días; orden `fecha_inicio` descendente con `id_reserva` como desempate.
 - **RF52:** `CompletarReservasProgramador` pasa de Confirmada a Completada las reservas con `fecha_fin` vencida, con un UPDATE condicional idempotente, al arrancar y cada 15 minutos (`samaria360.completar-reservas.cada`).
+- **Proyección `cuenta`** (V4, ADR-008): `PUT /internal/v1/cuentas/{id}` con el mismo contrato y el mismo validador de `ver` que ms-catalog (`aud = ms-booking`); sin eventos que publicar (D7 precisada en ADR-008). Consultar, cancelar y la disponibilidad no cambian ni llaman al catálogo.
 - **Índices** (además de los de V1): V2 `ix_reserva_turista_inicio` (`id_turista, fecha_inicio DESC, id_reserva DESC`, para `/mias`) y V3 `ix_reserva_confirmada_fin` (parcial, `fecha_fin WHERE estado = 'Confirmada'`, para RF52).
 - El generador de inventario demo (D5) solo corre con `INVENTARIO_DEMO_HABILITADO=true` (Docker Compose). Es un sustituto temporal de RF19.
 
@@ -95,6 +101,8 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 - Único punto de entrada (diagrama de despliegue del SAD). Spring Cloud 2025.0.3 sobre el mismo parent de Boot; starter `spring-cloud-starter-gateway-server-webflux` y propiedades con el prefijo `spring.cloud.gateway.server.webflux.*`.
 - Prefijos de rutas: `/api/v1/auth/**`, `/api/v1/catalogo/**`, `/api/v1/reservas/**`, `/api/v1/chatbot/**`, `/api/v1/analytics/**`. Implementados: auth (`AUTH_URI`), catálogo (`CATALOG_URI`) y reservas (`BOOKING_URI`); las rutas llegan sin reescribir. CORS permite `Idempotency-Key` y expone `Idempotent-Replayed` y `Location`.
 - **No valida el JWT**: reenvía `Authorization` sin cambios y cada servicio lo valida con el JWKS de ms-auth (ADR-005). No agregar Spring Security al gateway.
+- **No enruta `/internal/**`** (los endpoints internos de ms-catalog y ms-booking solo los alcanza el relevo de ms-auth, ADR-008): no agregar una ruta que los exponga. Lo prueba `EnrutamientoTest`.
+- `RutaSeguraWebFilter` rechaza rutas no normalizadas (`.`, `..`, `%2e`, `%2f`, `%5c`, `\`) con 400 `RUTA_INVALIDA` antes de enrutar.
 - Resiliencia: 2 s de conexión, 5 s de respuesta, circuit breaker por ruta (Resilience4j, solo 502/503/504 lo abren; en reservas, solo 502/504, para que el 503 propio de ms-booking con `servicio: ms-catalog` llegue tal cual) con fallback ProblemDetail 503 `codigo: SERVICIO_NO_DISPONIBLE` y `servicio`.
 - Transversal: CORS global (`CORS_ORIGENES`) y `X-Correlation-Id` (se genera si falta o no es válido, se reenvía y se devuelve).
 - **No tiene dominio: no aplica la estructura hexagonal ni ArchUnit.** Paquete `co.edu.unimagdalena.samaria360.gateway` con `config/`.
@@ -155,8 +163,8 @@ Los wireframes (`docs/wireframes/`) son una guía de **estructura**, no de esté
 ## Modelo de datos (leer antes de tocar bases de datos)
 - El modelo conceptual y el modelo lógico (`docs/sad/diagramas/modelo-logico.dbml`) están **unificados en un solo diagrama por petición del profesor**. Esa unificación es un requisito académico: no representa una base única. No propongas separarlos ni simplificarlos.
 - En la arquitectura son **dos microservicios con dos bases PostgreSQL distintas**:
-  - **ms-auth → `auth_db`**: `rol`, `usuario`, `turista`, `prestador`, `gestor`, `administrador`, `token_recuperacion`, `turista_categoria_interes`.
-  - **ms-booking → `reservas_db`**: `reserva`, `inventario_cupo`, `reserva_cupo_dia`.
+  - **ms-auth → `auth_db`**: `rol`, `usuario`, `turista`, `prestador`, `gestor`, `administrador`, `token_recuperacion`, `turista_categoria_interes`, `outbox_evento`, `outbox_entrega`.
+  - **ms-booking → `reservas_db`**: `reserva`, `inventario_cupo`, `reserva_cupo_dia`, `cuenta` (proyección del estado de las cuentas: la llena el endpoint interno que llama el relevo de ms-auth; ms-auth nunca escribe en `reservas_db`; la colección equivalente de `catalog_db` es `cuentas`).
 - Ningún servicio lee ni escribe la base de otro. No crees tablas de reservas en `auth_db` ni tablas de autenticación en `reservas_db`.
 - El servicio de un solo uso `postgres-bases` (Compose) crea en cada arranque las bases que falten (`infra/postgres/asegurar-bases.sql`), también en volúmenes creados antes; `infra/postgres/init/` solo corre con el volumen vacío.
 - Las relaciones del diagrama que cruzan bases son **referencias lógicas sin llave foránea física**, y la integridad la valida la aplicación:

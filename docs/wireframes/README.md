@@ -32,6 +32,7 @@
 | WF-09-registrar-atractivo.png | Registrar atractivo turístico | Registrar atractivo | RF06, RF07, RF24, RF27, RF33 | No |
 | WF-10-disponibilidad-reserva.png | Disponibilidad y reserva **(nuevo)** | Reservar servicio | RF11, RF20, RF37, RF44 | **Sí** (sin RNT, impuestos, pagos ni «Notificarme si se libera») |
 | — (WF-11, sin imagen) | Mis reservas **(pendiente de diseño)** | Reservar servicio | RF12, RF18, RF44, RF52 | Sí (diseño provisional) |
+| WF-12-administrar-cuentas.puml (+ `.png` y `.svg`) | Administrar cuentas **(nuevo)** | Administrar cuentas | RF28, RF22, RF62 | **Sí** (sin la reactivación del prestador). **Propuesto por arquitectura, pendiente de validación del equipo** |
 
 ## WF-01 — Inicio de sesión
 
@@ -104,6 +105,23 @@ Título «<Servicio> – Disponibilidad y reserva» con datos de verificación y
 **Estado: pendiente de diseño.** No tiene imagen todavía: el diseño final lo hace quien hizo los wireframes y, cuando exista, la pantalla se ajusta a él. Mientras tanto, el prototipo usa el mismo lenguaje visual de WF-10 (tarjetas, tokens y botones). Se llega desde el menú del avatar («Mis reservas», solo para turistas).
 
 Contenido: **lista de reservas** del turista, con el servicio y la unidad tal como se reservaron, las fechas, las cantidades y el total; **filtros** por rango de fechas de la actividad y por estado (RF12); el **estado** de cada reserva (Confirmada, Cancelada o Completada — RF52); y la acción **Cancelar**, con confirmación, solo en las Confirmadas y hasta 24 horas antes del inicio (RF18, RF44).
+
+## WF-12 — Administrar cuentas (nuevo)
+
+**Estado: propuesto por arquitectura, pendiente de validación del equipo (DEC-36).** No lo dibujó quien hizo los wireframes: es un wireframe en PlantUML Salt (`WF-12-administrar-cuentas.puml`, con su `.png` y su `.svg`). Cuando el equipo lo valide o lo rediseñe, la pantalla se ajusta a ese diseño. Pantalla privada del **Administrador**; se llega desde el menú del avatar. Cada diagrama del `.puml` se exporta a su propio archivo: `WF-12-administrar-cuentas` (la primera pantalla), `_001`, `_002` y `_003`.
+
+Contenido (CU «Administrar cuentas», `docs/casos-de-uso/CU-administrar-cuentas.md`):
+- **Pestañas «Prestadores por validar (n)», «Prestadores» y «Turistas».** Cada una con buscador (nombre, correo o RNT en los prestadores; nombre o correo en los turistas), filtro de estado, tabla y paginación de 10 (DEC-41).
+- **Por validar (RF28):** representante legal, RNT, correo corporativo y fecha de registro; **Revisar** abre el detalle del prestador (representante, razón social opcional, RNT, correo, teléfono, políticas aceptadas y estado) con **Aprobar → Activo** y **Rechazar**. Rechazar abre un diálogo con la **justificación obligatoria** (máximo 500 caracteres, con contador y error por campo; «Confirmar rechazo» deshabilitado si está vacía).
+- **Prestadores (RF22):** **Inactivar** a un prestador Activo; **Ver motivo** en un Rechazado. «Reactivar» aparece **deshabilitado** en un Inactivo: RF22 no define la reactivación (DEC-37); queda como pendiente.
+- **Turistas (RF62):** **Desactivar** y **Reactivar**.
+- **Confirmación** de Desactivar, Reactivar e Inactivar, **sin motivo** (DEC-38): solo el rechazo del prestador lo exige (RF28).
+- **Región de estado** (`aria-live`): éxito, lista vacía y el 409 `ESTADO_CAMBIADO` («La cuenta cambió de estado; se recargó la lista», DEC-39).
+
+Cambios respecto del contenido propuesto, por lo que el modelo guarda (DEC-45 y DEC-44):
+- **Se quitó «País» del detalle del prestador:** RF02 no lo captura (solo el turista tiene país de origen, RF01).
+- **«Políticas aceptadas» muestra «Sí · fecha»**, sin hora: el modelo guarda un booleano y el día del registro (decisión D6 de «Registrarse»).
+- **El turista desactivado se muestra «Desactivado»**, no «Inactivo»: «Inactivo» es el estado de RF22, del prestador (DEC-44).
 
 ## Diferencias detectadas en la v2 (pendientes de resolver antes de implementar esas pantallas)
 

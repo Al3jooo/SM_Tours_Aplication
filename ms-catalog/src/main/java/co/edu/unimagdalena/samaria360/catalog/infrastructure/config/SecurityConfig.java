@@ -1,17 +1,22 @@
 package co.edu.unimagdalena.samaria360.catalog.infrastructure.config;
 
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.VerificarSesionUseCase;
 import co.edu.unimagdalena.samaria360.catalog.infrastructure.adapter.in.web.error.ProblemDetailAccessDeniedHandler;
 import co.edu.unimagdalena.samaria360.catalog.infrastructure.adapter.in.web.error.ProblemDetailAuthenticationEntryPoint;
 import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -22,21 +27,57 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * API sin estado con token Bearer emitido por ms-auth. La búsqueda, sus opciones de filtro y el detalle de un servicio
  * son públicos (WF-04, WF-05, WF-06); los endpoints protegidos que vengan validan el JWT con el JWKS de ms-auth.
+ * <p>
+ * Dos cadenas (ADR-008): {@code /internal/**} solo para el JWT de servicio de ms-auth ({@code rol = SERVICIO},
+ * {@code aud = ms-catalog}); todo lo demás, para tokens de usuario cuyo claim {@code ver} no sea menor que la versión de
+ * la proyección {@code cuentas} (DEC-29).
  */
 @Configuration
 public class SecurityConfig {
 
-    /** El JWKS se descarga al validar el primer token: el servicio arranca aunque ms-auth no esté disponible. */
+    /** Tokens de usuario: firma, iss, exp y, después, {@code ver}. */
     @Bean
-    public JwtDecoder jwtDecoder(SeguridadPropiedades propiedades) {
+    public JwtDecoder jwtDecoder(SeguridadPropiedades propiedades, VerificarSesionUseCase sesiones) {
+        return decoder(propiedades, new ValidadorVersionSesion(sesiones));
+    }
+
+    /** El JWKS se descarga al validar el primer token: el servicio arranca aunque ms-auth no esté disponible. */
+    private static JwtDecoder decoder(SeguridadPropiedades propiedades, OAuth2TokenValidator<Jwt> adicional) {
         NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(propiedades.jwkSetUri())
                 .jwsAlgorithm(SignatureAlgorithm.RS256)
                 .build();
-        decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(propiedades.emisor()));
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefaultWithIssuer(propiedades.emisor()), adicional));
         return decoder;
     }
 
+    /** Endpoints internos: solo el JWT de servicio de ms-auth. Un token de usuario recibe 403; una {@code aud} ajena, 401. */
     @Bean
+    @Order(1)
+    public SecurityFilterChain cadenaInterna(HttpSecurity http, SeguridadPropiedades propiedades,
+                                             ProblemDetailAuthenticationEntryPoint entryPoint,
+                                             ProblemDetailAccessDeniedHandler accesoDenegado) throws Exception {
+        JwtDecoder decoderDeServicio = decoder(propiedades, new ValidadorTokenServicio(propiedades.audiencia()));
+        http
+                .securityMatcher("/internal/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(acceso -> acceso.anyRequest().hasRole("SERVICIO"))
+                .oauth2ResourceServer(servidor -> servidor
+                        .jwt(jwt -> jwt.decoder(decoderDeServicio).jwtAuthenticationConverter(conversorDeRol()))
+                        .authenticationEntryPoint(entryPoint)
+                        .accessDeniedHandler(accesoDenegado))
+                .exceptionHandling(errores -> errores
+                        .authenticationEntryPoint(entryPoint)
+                        .accessDeniedHandler(accesoDenegado));
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain cadenaDeSeguridad(HttpSecurity http, Environment entorno, JwtDecoder jwtDecoder,
                                                  ProblemDetailAuthenticationEntryPoint entryPoint,
                                                  ProblemDetailAccessDeniedHandler accesoDenegado) throws Exception {
@@ -67,7 +108,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /** Claim {@code rol: Gestor} → authority {@code ROLE_Gestor} (RNF06). */
+    /** Claim {@code rol: Gestor} → authority {@code ROLE_Gestor}; {@code rol: SERVICIO} → {@code ROLE_SERVICIO} (RNF06). */
     private static JwtAuthenticationConverter conversorDeRol() {
         JwtGrantedAuthoritiesConverter autoridades = new JwtGrantedAuthoritiesConverter();
         autoridades.setAuthoritiesClaimName("rol");
