@@ -77,12 +77,14 @@ export interface FiltrosReservas {
 }
 
 export function consultarDisponibilidad(servicio: string, desde: string, hasta: string): Promise<Disponibilidad> {
-  return solicitar<Disponibilidad>(`${BASE}/disponibilidad?${new URLSearchParams({ servicio, desde, hasta })}`)
+  return solicitar<Disponibilidad>(`${BASE}/disponibilidad?${new URLSearchParams({ servicio, desde, hasta })}`, {
+    publica: true,
+  })
 }
 
 export function consultarResumen(ids: string[], desde: string, hasta: string): Promise<Record<string, EstadoResumen>> {
   const consulta = new URLSearchParams({ servicios: ids.join(','), desde, hasta })
-  return solicitar<Record<string, EstadoResumen>>(`${BASE}/disponibilidad/resumen?${consulta}`)
+  return solicitar<Record<string, EstadoResumen>>(`${BASE}/disponibilidad/resumen?${consulta}`, { publica: true })
 }
 
 /** Pedido de una reserva, con el total en centavos (ver dinero.ts). */

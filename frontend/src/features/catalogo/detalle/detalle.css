@@ -171,7 +171,7 @@
   font-size: var(--texto-lg);
 }
 
-/* Región deshabilitada (estado único, ver .detalle__no-disponible): borde discontinuo y «—» como contenido. */
+/* Región deshabilitada (estado único DEC-22, ver .detalle__no-disponible y .boton-no-disponible en estilos.css): borde discontinuo y «—» como contenido. */
 .detalle__region-deshabilitada {
   padding: var(--espacio-4);
   border: 1.5px dashed var(--color-borde-campo);
@@ -246,7 +246,6 @@
  * borde (--color-borde-campo) tiene contraste ≥ 3:1 (1.4.11). «No disponible» va solo para lectores de pantalla.
  */
 .detalle__no-disponible,
-.boton-secundario.detalle__no-disponible,
 .detalle__etiquetas--pendientes li {
   border: 1.5px dashed var(--color-borde-campo);
   background: transparent;

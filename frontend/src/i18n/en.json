@@ -4,7 +4,10 @@
     "cargando": "Loading…",
     "saltarAlContenido": "Skip to content",
     "cerrarAviso": "Dismiss notice",
-    "sinDatos": "no data"
+    "sinDatos": "no data",
+    "noDisponible": "Not available",
+    "sinPermisoTitulo": "No permission",
+    "sinPermiso": "Your account does not have permission to view this page."
   },
   "encabezado": {
     "inicio": "Samaria360, go to home",
@@ -18,7 +21,8 @@
     "ingles": "English",
     "menuUsuario": "User menu for {{nombre}}",
     "cerrarSesion": "Sign out",
-    "misReservas": "My bookings"
+    "misReservas": "My bookings",
+    "administrarCuentas": "Manage accounts"
   },
   "login": {
     "titulo": "Sign in to Samaria360",
@@ -169,7 +173,8 @@
     "avisoExpirada": "Your session expired.",
     "iniciarDeNuevo": "Sign in again",
     "avisoInactiva": "Your account is not active.",
-    "iniciarSesion": "Sign in"
+    "iniciarSesion": "Sign in",
+    "avisoInvalidada": "Your session was closed because your account status or permissions changed."
   },
   "catalogo": {
     "categorias": {
@@ -564,6 +569,132 @@
       "volver": "No, go back",
       "cancelando": "Cancelling…",
       "cerrar": "Close"
+    }
+  },
+  "admin": {
+    "titulo": "Manage accounts",
+    "apoyo": "Validate registered providers and manage the status of provider and tourist accounts.",
+    "pestanasEtiqueta": "Account type",
+    "pestanas": {
+      "pendientes": "Providers to validate",
+      "pendientesContador": "Providers to validate ({{n}})",
+      "prestadores": "Providers",
+      "turistas": "Tourists"
+    },
+    "buscar": "Search",
+    "buscarPrestadores": "Name, email or RNT",
+    "buscarTuristas": "Name or email",
+    "estado": "Status",
+    "todos": "All",
+    "botonBuscar": "Search",
+    "resultados": "Accounts",
+    "contador_one": "{{count}} account",
+    "contador_other": "{{count}} accounts",
+    "cargando": "Loading accounts…",
+    "paginaDe": "Page {{actual}} of {{total}}",
+    "columnas": {
+      "representante": "Legal representative",
+      "rnt": "RNT",
+      "correoCorporativo": "Business email",
+      "registrado": "Registered",
+      "estado": "Status",
+      "accion": "Action",
+      "nombre": "Name",
+      "correo": "Email",
+      "pais": "Country"
+    },
+    "estados": {
+      "Pendiente": "Pending validation",
+      "Activo": "Active",
+      "Rechazado": "Rejected",
+      "Inactivo": "Inactive",
+      "Desactivado": "Deactivated"
+    },
+    "acciones": {
+      "revisar": "Review",
+      "inactivar": "Deactivate",
+      "verMotivo": "View reason",
+      "reactivar": "Reactivate",
+      "desactivar": "Deactivate"
+    },
+    "vacio": {
+      "pendientes": "There are no providers pending validation.",
+      "prestadores": "There are no registered providers.",
+      "turistas": "There are no registered tourists.",
+      "conFiltros": "No account matches the search or the filter."
+    },
+    "detalle": {
+      "titulo": "Provider details",
+      "cerrar": "Close details",
+      "cargando": "Loading details…",
+      "representante": "Legal representative",
+      "razonSocial": "Company name",
+      "rnt": "RNT",
+      "correo": "Business email",
+      "telefono": "Phone",
+      "politicas": "Policies accepted",
+      "politicasSi": "Yes · {{fecha}}",
+      "politicasNo": "No",
+      "estado": "Status",
+      "aprobar": "Approve → Active",
+      "rechazar": "Reject"
+    },
+    "rechazo": {
+      "titulo": "Reject provider “{{nombre}}”",
+      "definitivo": "This decision is final: the provider will not be able to sign in and the rejection cannot be undone from the system.",
+      "etiqueta": "Justification (required)",
+      "contador": "{{n}} of {{maximo}} characters",
+      "confirmar": "Confirm rejection",
+      "errores": {
+        "REQUERIDO": "Write the justification for the rejection.",
+        "LONGITUD_MAXIMA": "The justification can have at most {{maximo}} characters."
+      }
+    },
+    "confirmacion": {
+      "inactivar": {
+        "titulo": "Deactivate provider",
+        "texto": "Deactivate the account of {{nombre}}? Their services will no longer be published in searches and they will not be able to sign in. The provider cannot be reactivated from the system.",
+        "confirmar": "Deactivate"
+      },
+      "desactivar": {
+        "titulo": "Deactivate tourist",
+        "texto": "Deactivate the account of {{nombre}}? They will not be able to sign in and their open sessions will be closed.",
+        "confirmar": "Deactivate"
+      },
+      "reactivar": {
+        "titulo": "Reactivate tourist",
+        "texto": "Reactivate the account of {{nombre}}? They will be able to sign in again.",
+        "confirmar": "Reactivate"
+      }
+    },
+    "motivo": {
+      "titulo": "Reason for rejecting {{nombre}}",
+      "sinMotivo": "No reason was recorded."
+    },
+    "dialogo": {
+      "cancelar": "Cancel",
+      "cerrar": "Close",
+      "enviando": "Saving…"
+    },
+    "exito": {
+      "aprobado": "{{nombre}} was approved: the account is now Active.",
+      "rechazado": "{{nombre}} was rejected.",
+      "inactivado": "The account of {{nombre}} was deactivated.",
+      "desactivado": "The account of {{nombre}} was deactivated.",
+      "reactivado": "The account of {{nombre}} was reactivated."
+    },
+    "errores": {
+      "ESTADO_CAMBIADO": "The account status changed; the list was reloaded.",
+      "CUENTA_NO_ENCONTRADA": "The account no longer exists; the list was reloaded.",
+      "ERROR_RED": "Could not connect to the server. Check your connection and retry.",
+      "SERVICIO_NO_DISPONIBLE": "The accounts service is not available right now. Retry in a few minutes.",
+      "GENERICO": "An unexpected error occurred. Please try again."
+    },
+    "erroresLista": {
+      "noDisponible": "The accounts service is not available right now.",
+      "red": "Could not connect to the server. Check your connection.",
+      "otro": "An unexpected error occurred while loading the accounts.",
+      "sinPermiso": "Your account does not have permission to view this page."
     }
   }
 }

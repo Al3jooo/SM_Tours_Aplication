@@ -1,20 +1,32 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ApiError, alExpirarSesion } from '../../shared/api/httpClient'
-import { borrarToken, guardarToken, leerToken } from '../../shared/api/tokenSesion'
+import { borrarToken, guardarToken, leerToken, leerVencimiento } from '../../shared/api/tokenSesion'
 import { consultarUsuarioActual, iniciarSesion as solicitarInicioSesion } from './authApi'
 import { LIMITE_VALIDACION_MS, SesionContext, type AvisoSesion, type EstadoSesion, type ValorSesion } from './SesionContext'
 
-/** 401 → la sesión expiró; 403 → la cuenta dejó de estar activa. Otros errores no cierran la sesión. */
+/**
+ * 401 SESION_INVALIDADA → la cuenta cambió después de iniciar sesión (DEC-49); otro 401 → la sesión expiró;
+ * 403 → la cuenta dejó de estar activa. Otros errores no cierran la sesión.
+ */
 function avisoPara(error: unknown): AvisoSesion | null {
   if (!(error instanceof ApiError)) return null
-  if (error.status === 401) return 'expirada'
+  if (error.status === 401) return error.codigo === 'SESION_INVALIDADA' ? 'invalidada' : 'expirada'
   if (error.status === 403) return 'inactiva'
   return null
 }
 
+/** El token guardado tiene un vencimiento conocido y ya pasó (DEC-48). */
+function tokenVencido(): boolean {
+  const vencimiento = leerVencimiento()
+  return vencimiento !== null && vencimiento <= Date.now()
+}
+
+/** setTimeout no admite esperas mayores (~24,8 días): si el vencimiento queda más lejos, se revisa de nuevo al llegar. */
+const ESPERA_MAXIMA_MS = 2_147_483_647
+
 export function SesionProvider({ children }: { children: ReactNode }) {
   const [sesion, setSesion] = useState<EstadoSesion>(() =>
-    leerToken() ? { estado: 'cargando' } : { estado: 'anonimo' },
+    leerToken() && !tokenVencido() ? { estado: 'cargando' } : { estado: 'anonimo' },
   )
   const [aviso, setAviso] = useState<AvisoSesion | null>(null)
 
@@ -26,6 +38,12 @@ export function SesionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = leerToken()
     if (!token) {
+      return
+    }
+    // Un token guardado que ya venció no se valida con /me: se descarta con el aviso de sesión expirada.
+    if (tokenVencido()) {
+      borrarToken()
+      setAviso('expirada')
       return
     }
     let vigente = true
@@ -65,9 +83,46 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     [],
   )
 
+  // Vencimiento proactivo por expiraEn (DEC-48): un temporizador hasta el vencimiento y una revisión al volver a la
+  // pestaña (los navegadores retrasan los temporizadores de las pestañas en segundo plano). Cada revisión vuelve a leer
+  // el vencimiento guardado: si cambió (un nuevo inicio de sesión guardó otro token), se reprograma con el valor nuevo y
+  // no se borra nada; la sesión se cierra solo si el vencimiento guardado ya pasó.
+  const autenticado = sesion.estado === 'autenticado'
+  useEffect(() => {
+    if (!autenticado) return
+    let temporizador: ReturnType<typeof setTimeout> | undefined
+    const revisar = () => {
+      clearTimeout(temporizador)
+      const vencimiento = leerVencimiento()
+      if (vencimiento === null || !leerToken()) return
+      const restante = vencimiento - Date.now()
+      if (restante <= 0) {
+        borrarToken()
+        setSesion({ estado: 'anonimo' })
+        setAviso('expirada')
+        return
+      }
+      temporizador = setTimeout(revisar, Math.min(restante, ESPERA_MAXIMA_MS))
+    }
+    const alCambiarVisibilidad = () => {
+      if (document.visibilityState === 'visible') revisar()
+    }
+    revisar()
+    document.addEventListener('visibilitychange', alCambiarVisibilidad)
+    window.addEventListener('focus', revisar)
+    return () => {
+      clearTimeout(temporizador)
+      document.removeEventListener('visibilitychange', alCambiarVisibilidad)
+      window.removeEventListener('focus', revisar)
+    }
+  }, [autenticado])
+
   const iniciarSesion = useCallback(async (correo: string, contrasena: string) => {
-    const { token } = await solicitarInicioSesion(correo, contrasena)
-    guardarToken(token)
+    const { token, expiraEn } = await solicitarInicioSesion(correo, contrasena)
+    // Si expiraEn ya pasó según el reloj de este equipo (adelantado más que la vigencia del token), no se usa: el cierre
+    // lo dará el 401. Con el reloj adelantado k minutos (k < 15), la sesión se cierra k minutos antes (DEC-48).
+    const vencimiento = Date.parse(expiraEn)
+    guardarToken(token, vencimiento > Date.now() ? vencimiento : null)
     try {
       const usuario = await consultarUsuarioActual()
       setSesion({ estado: 'autenticado', usuario })

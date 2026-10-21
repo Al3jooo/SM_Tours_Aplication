@@ -514,45 +514,6 @@
   color: var(--color-cafe-700);
 }
 
-/* Diálogo nativo (<dialog> con showModal): el navegador atrapa el foco y cierra con Esc. */
-.dialogo {
-  width: min(32rem, calc(100% - 2 * var(--espacio-4)));
-  padding: var(--espacio-5);
-  border: 0;
-  border-radius: var(--radio-md);
-  background: var(--color-superficie);
-  box-shadow: var(--sombra-3);
-  color: var(--color-tinta);
-}
-
-.dialogo::backdrop {
-  background: rgb(7 59 68 / 55%);
-}
-
-.dialogo h2 {
-  margin: 0 0 var(--espacio-2);
-  color: var(--color-mar-900);
-  font-size: var(--texto-xl);
-}
-
-.dialogo p {
-  margin: 0 0 var(--espacio-3);
-}
-
-.dialogo__error {
-  padding: var(--espacio-2) var(--espacio-3);
-  border-left: 4px solid var(--color-error);
-  background: var(--color-error-fondo);
-  color: var(--color-error);
-}
-
-.dialogo__acciones {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--espacio-3);
-}
-
 @media (min-width: 64rem) {
   .reserva__cuerpo {
     grid-template-columns: minmax(0, 1fr) 22rem;

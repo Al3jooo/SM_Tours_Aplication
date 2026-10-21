@@ -26,6 +26,10 @@ const ReservaPage = lazy(() => import('../features/reservas/ReservaPage').then((
 const MisReservasPage = lazy(() =>
   import('../features/reservas/MisReservasPage').then((m) => ({ default: m.MisReservasPage })),
 )
+/** «Administrar cuentas» (WF-12): diferida y solo para el Administrador (DEC-51). */
+const AdministrarCuentasPage = lazy(() =>
+  import('../features/admin/AdministrarCuentasPage').then((m) => ({ default: m.AdministrarCuentasPage })),
+)
 
 /** Una página diferida: estado de carga mientras llega y aviso con «Reintentar» si la descarga falla. */
 function Diferida({ children }: { children: ReactNode }) {
@@ -39,7 +43,8 @@ function Diferida({ children }: { children: ReactNode }) {
 /**
  * El router (BrowserRouter o MemoryRouter en pruebas) lo aporta quien monta la App.
  * Inicio (WF-04), exploración (WF-05), detalle (WF-06) y reserva (WF-10) son públicas, con el diseño de la plataforma
- * (confirmar una reserva pide la sesión dentro de WF-10); «Mis reservas» (WF-11) es privada. El inicio de sesión
+ * (confirmar una reserva pide la sesión dentro de WF-10); «Mis reservas» (WF-11) es privada y «Administrar cuentas»
+ * (WF-12), privada y solo para el Administrador. El inicio de sesión
  * (WF-01) y el registro (WF-02, WF-03) usan el diseño de acceso.
  */
 export function App() {
@@ -78,6 +83,16 @@ export function App() {
               element={
                 <Diferida>
                   <MisReservasPage />
+                </Diferida>
+              }
+            />
+          </Route>
+          <Route element={<RutaProtegida rol="Administrador" />}>
+            <Route
+              path="/admin/cuentas"
+              element={
+                <Diferida>
+                  <AdministrarCuentasPage />
                 </Diferida>
               }
             />

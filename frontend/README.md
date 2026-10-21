@@ -18,9 +18,9 @@ Para usar la app de punta a punta: `docker compose up -d` en la raíz y `./mvnw 
 | Carpeta | Contenido |
 |---|---|
 | `src/app/` | Rutas, diseños de la plataforma y de acceso (encabezado y pie), ruta protegida, **`estilos.css` (tokens)** |
-| `src/features/<caso de uso>/` | Páginas, estado y llamadas de cada caso de uso: `auth/`, `catalogo/` (con `detalle/`, WF-06) y `reservas/` (WF-10 y WF-11) |
-| `src/shared/api/` | Cliente HTTP (`fetch` + token Bearer) y almacenamiento del token |
-| `src/shared/components/` | Componentes reutilizables, iconos e ilustraciones |
+| `src/features/<caso de uso>/` | Páginas, estado y llamadas de cada caso de uso: `auth/`, `catalogo/` (con `detalle/`, WF-06), `reservas/` (WF-10 y WF-11) y `admin/` (WF-12) |
+| `src/shared/api/` | Cliente HTTP (`fetch` + token Bearer solo en las llamadas autenticadas, DEC-47) y almacenamiento del token y su vencimiento |
+| `src/shared/components/` | Componentes reutilizables (entre ellos `Paginacion`, `BotonNoDisponible` y `SinPermiso`), iconos e ilustraciones |
 | `src/i18n/` | Textos en `es.json` y `en.json` (RF03, RNF08) |
 
 ## Dependencias
@@ -94,6 +94,30 @@ Reglas:
   botón queda con `aria-disabled` y el motivo. En las pruebas, `src/test/setup.ts` agrega un polyfill mínimo de
   `showModal()` y `close()` (jsdom no los tiene).
 
+## Sesión y Administrar cuentas (WF-12)
+
+**Sesión (DEC-47 a DEC-50, `docs/trazabilidad.md`).** El token vence a los 15 minutos (DEC-29).
+- Las funciones de API de endpoints públicos pasan `publica: true` a `solicitar`: salen sin `Authorization` y su respuesta
+  nunca cierra la sesión. Son el login, el registro, los países, la oferta, los filtros, el detalle y la disponibilidad.
+- Una petición autenticada con 401, o con 403 `CUENTA_INACTIVA`, cierra la sesión. Un 403 por rol (`ACCESO_DENEGADO`) no
+  la cierra.
+- El login guarda `expiraEn` en `sessionStorage` (`samaria360.expiraEn`). `SesionProvider` cierra la sesión al llegar a esa
+  hora, con un temporizador y una revisión al volver a la pestaña; antes de cerrar, vuelve a leer el valor guardado. Si el
+  reloj del equipo va adelantado, la sesión se cierra antes; si va atrasado, la cierra el 401.
+- Avisos: «Tu sesión expiró», «Tu sesión se cerró porque cambió el estado o los permisos de tu cuenta»
+  (`SESION_INVALIDADA`) y «Tu cuenta no está activa». En una ruta privada, el login muestra el aviso.
+
+**WF-12** (`features/admin/`; contrato en [`docs/sad/api/ms-auth.md`](../docs/sad/api/ms-auth.md)):
+
+| Ruta | Pantalla | Acceso |
+|---|---|---|
+| `/admin/cuentas?pestana=&estado=&q=&pagina=` | WF-12 (`AdministrarCuentasPage.tsx`), diferida | Privada, solo el Administrador (`RutaProtegida rol="Administrador"`); otro rol ve «Sin permiso» |
+
+- La página de la URL empieza en 1 y la de la API, en 0 (páginas de 10).
+- La justificación del rechazo se cuenta y se envía sin los espacios de los extremos (1 a 500, `justificacion.ts`).
+- Después de validar o inactivar se recarga la página actual. Después de desactivar o reactivar, la fila se reemplaza en su
+  sitio. Un 409 o un 404 avisan en la región de estado y recargan la lista.
+
 ## Pendientes de pruebas
 
 Las pruebas no hacen peticiones de red reales. Una guardia en `src/test/setup.ts` hace fallar cualquier prueba que
@@ -118,7 +142,7 @@ con el stack de Docker detenido, en una PC Windows del equipo (octubre de 2026).
 | `inicioSesion.test.tsx` › un 400 muestra el mensaje de datos inválidos | 2,5 s | 23 pulsaciones de `usuario.type`. |
 | `inicioSesion.test.tsx` › un 403 muestra el mensaje de cuenta inactiva | 2,2 s | 34 pulsaciones de `usuario.type`. |
 
-En la app no hay temporizadores ni debounce. El costo es del tecleo: cada pulsación de `usuario.type` espera un
+En la app no hay debounce; el único temporizador es el del vencimiento de la sesión, que solo corre con la sesión iniciada. El costo es del tecleo: cada pulsación de `usuario.type` espera un
 `setTimeout(0)` de user-event (`delay: 0` por defecto) y re-renderiza el formulario. A eso se suma el primer render
 y la carga diferida de la primera prueba de cada archivo. Las pruebas de `inicioSesion` que no son la primera, con el
 mismo tecleo, tardan de 2,0 a 2,5 s: el tecleo pesa unos 2 s, y el primer render del archivo, entre 1 y 2 s.
@@ -152,7 +176,7 @@ Siempre a través de los tokens `var(--color-…)`; nunca hex sueltos en los com
 | `--color-superficie` | `#FFFFFF` | Tarjetas, menús, campos; texto sobre mar-700, mar-900 y atardecer | — |
 | `--color-borde` | `#E2D9CA` | Separadores y contornos decorativos de tarjetas | Borde de campos (no llega a 3:1) |
 | `--color-borde-campo` | `#7C8D91` | Borde de campos de formulario | Texto |
-| `--color-deshabilitado` | `#5C6D71` | Elementos «Próximamente», placeholder | Elementos activos |
+| `--color-deshabilitado` | `#5C6D71` | Elementos deshabilitados («No disponible», DEC-22, y los «Próximamente» que quedan), placeholder | Elementos activos |
 | `--color-mar-900` | `#073B44` | Fondo del pie, avatar, títulos destacados | Botones de acción |
 | `--color-mar-700` | `#0B6574` | Enlaces, pestaña e idioma activos, navegación activa, **foco** | Botón principal (es del atardecer) |
 | `--color-mar-500` | `#1497A6` | **Solo decorativo**: olas, ilustraciones | Texto o bordes con significado |
@@ -275,7 +299,8 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Tarjeta | `.tarjeta`, `.tarjeta__titulo`, `.tarjeta__cuerpo` | Superficie, `--radio-md`, `--sombra-2`, título en Fraunces. |
 | Aviso informativo | `.aviso-intentos` | arena-200 con borde izquierdo atardecer-600 e icono. |
 | Mensaje de error | `.login__error` | Región `aria-live` siempre presente; el contenido es error sobre error-fondo con borde izquierdo. |
-| Fuera de alcance | `BotonProximamente` + `.insignia-proximamente` | `aria-disabled` (sigue siendo enfocable), color deshabilitado e insignia sol-100 / café-700. Nunca `disabled` ni texto sin la insignia o el tooltip. |
+| Fuera de alcance (pantallas nuevas) | `BotonNoDisponible` + `.boton-no-disponible` (`shared/components/`, `estilos.css`) | Estado único de DEC-22: borde discontinuo `--color-borde-campo`, color deshabilitado, `aria-disabled` (sigue enfocable), sin acción y «No disponible» solo para lectores de pantalla. Nunca `disabled`. WF-06 y WF-12. |
+| Fuera de alcance (pantallas anteriores) | `BotonProximamente` + `.insignia-proximamente` | `aria-disabled` (sigue siendo enfocable), color deshabilitado e insignia sol-100 / café-700. Se conserva en WF-01, WF-04, WF-05 y los elementos comunes hasta que el equipo unifique (pendiente en `docs/trazabilidad.md`). |
 | Carga | `.estado-carga` | `role="status"` y `aria-busy`, con indicador giratorio decorativo. |
 | Botón secundario | `.boton-secundario` (en `estilos.css`, como `.boton-principal`) | Píldora con borde mar-700 sobre superficie: acciones de apoyo (Reintentar, Quitar filtros). |
 | Chip de filtro | `.chip` | mar-900 sobre mar-100, removible; `aria-label` que diga qué filtro quita. |
@@ -299,7 +324,12 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Aviso de un intento | `.aviso-reserva` | error sobre error-fondo con borde izquierdo; `role="alert"` y recibe el foco. |
 | Tarjeta de reserva | `.tarjeta-reserva--<Estado>` | Borde izquierdo mar-700 (Confirmada), error (Cancelada) o café-700 (Completada). |
 | Insignia de reserva | `.insignia-reserva--<Estado>` | Icono y texto: Confirmada mar-700/mar-100 · Cancelada error/error-fondo · Completada café-700/sol-100 (los pares de `.insignia-estado`). |
-| Diálogo | `.dialogo` (`<dialog>` con `showModal()`) | Superficie con `--sombra-3` y fondo mar-900 al 55 %; el foco inicial va a la opción que no destruye nada. |
+| Diálogo | `.dialogo` (`<dialog>` con `showModal()`, en `estilos.css`) | Superficie con `--sombra-3` y fondo mar-900 al 55 %; el foco inicial va a la opción que no destruye nada (o al campo de texto, en el rechazo de WF-12) y vuelve al botón que lo abrió. WF-11 y WF-12. |
+| Pestañas de una página | `.pestanas-cuentas` (`features/admin/admin.css`) | `tablist` WAI-ARIA: botones `role="tab"` con `aria-selected`, tabindex itinerante y ← → Inicio Fin; pestaña activa en mar-700 con barra inferior. Distintas de `PestanasAcceso`, que cambian de página. |
+| Tabla adaptable | `TablaCuentas`, `.tabla-cuentas` | Superficie con encabezado arena. Por debajo de 40 rem, cada fila es una tarjeta y cada celda muestra su columna (`data-etiqueta`). Los roles ARIA explícitos conservan la semántica de tabla. |
+| Insignia de cuenta | `.insignia-cuenta--<Estado>` | Pendiente café-700/sol-100 · Activo mar-700/mar-100 · Rechazado error/error-fondo · Inactivo y Desactivado tinta-suave sobre superficie con borde discontinuo. |
+| Aviso de la región de estado | `.aviso-cuentas` | mar-900 sobre mar-100 con borde izquierdo mar-700, dentro de una región `aria-live` siempre presente (éxito, 409, 404). |
+| Sin permiso | `SinPermiso`, `.sin-permiso` | h1 y mensaje `role="alert"`; no cierra la sesión. |
 | Aviso de ubicación | `.aviso-ubicacion` | `role="status"` siempre presente; mar-900 sobre mar-100 con borde izquierdo mar-700 cuando tiene texto. |
 
 ### Maquetación y responsivo
@@ -318,4 +348,4 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 4. Recorrido completo con teclado y foco visible en cada elemento.
 5. Decoración con `aria-hidden`; sin fotos sin licencia.
 6. Sin scroll horizontal a 360 px; animaciones respetan `prefers-reduced-motion`.
-7. Los elementos del wireframe fuera de alcance usan `BotonProximamente` y figuran como pendientes en `docs/trazabilidad.md`.
+7. Los elementos del wireframe fuera de alcance usan el estado único de DEC-22 (`BotonNoDisponible`, o «—» con «No disponible» para lectores de pantalla) y figuran como pendientes en `docs/trazabilidad.md`.

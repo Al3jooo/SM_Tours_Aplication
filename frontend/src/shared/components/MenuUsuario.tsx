@@ -6,13 +6,20 @@ import { iniciales } from './iniciales'
 export interface UsuarioEncabezado {
   nombreVisible: string
   correo: string
-  /** «Mis reservas» (WF-11) solo aparece para el rol Turista. */
+  /** «Mis reservas» (WF-11) solo aparece para el Turista y «Administrar cuentas» (WF-12), para el Administrador. */
   rol?: string
 }
 
+/** La pantalla propia de cada rol en el menú (ruta y clave i18n). */
+const OPCION_POR_ROL: Record<string, { ruta: string; texto: string }> = {
+  Turista: { ruta: '/mis-reservas', texto: 'encabezado.misReservas' },
+  Administrador: { ruta: '/admin/cuentas', texto: 'encabezado.administrarCuentas' },
+}
+
 /**
- * Avatar con iniciales y menú: «Mis reservas» (solo turistas, WF-11) y «Cerrar sesión» (RF55). Accesible con
- * teclado: Enter abre y lleva el foco a la primera opción, Escape cierra y devuelve el foco al avatar.
+ * Avatar con iniciales y menú: la pantalla del rol («Mis reservas» del turista, WF-11; «Administrar cuentas» del
+ * Administrador, WF-12) y «Cerrar sesión» (RF55). Accesible con teclado: Enter abre y lleva el foco a la primera
+ * opción, Escape cierra y devuelve el foco al avatar.
  */
 export function MenuUsuario({ usuario, onCerrarSesion }: { usuario: UsuarioEncabezado; onCerrarSesion: () => void }) {
   const { t } = useTranslation()
@@ -21,7 +28,7 @@ export function MenuUsuario({ usuario, onCerrarSesion }: { usuario: UsuarioEncab
   const contenedor = useRef<HTMLDivElement>(null)
   const boton = useRef<HTMLButtonElement>(null)
   const primeraOpcion = useRef<HTMLElement>(null)
-  const esTurista = usuario.rol === 'Turista'
+  const opcionRol = usuario.rol ? OPCION_POR_ROL[usuario.rol] : undefined
 
   useEffect(() => {
     if (!abierto) return
@@ -69,21 +76,21 @@ export function MenuUsuario({ usuario, onCerrarSesion }: { usuario: UsuarioEncab
           <p className="menu-usuario__nombre">{usuario.nombreVisible}</p>
           <p className="menu-usuario__correo">{usuario.correo}</p>
           <ul id={idMenu} role="menu" aria-label={usuario.nombreVisible}>
-            {esTurista && (
+            {opcionRol && (
               <li role="none">
                 <Link
                   ref={primeraOpcion as RefObject<HTMLAnchorElement>}
-                  to="/mis-reservas"
+                  to={opcionRol.ruta}
                   role="menuitem"
                   onClick={() => setAbierto(false)}
                 >
-                  {t('encabezado.misReservas')}
+                  {t(opcionRol.texto)}
                 </Link>
               </li>
             )}
             <li role="none">
               <button
-                ref={esTurista ? undefined : (primeraOpcion as RefObject<HTMLButtonElement>)}
+                ref={opcionRol ? undefined : (primeraOpcion as RefObject<HTMLButtonElement>)}
                 type="button"
                 role="menuitem"
                 onClick={() => {

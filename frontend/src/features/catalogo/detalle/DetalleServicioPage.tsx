@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams } from 'react-router-dom'
+import { BotonNoDisponible } from '../../../shared/components/BotonNoDisponible'
 import { ICONOS_ACCESIBILIDAD } from '../../../shared/components/Iconos'
 import { centavos, formatearCentavos } from '../../reservas/dinero'
 import { CATEGORIAS_RESERVABLES } from '../../reservas/reservasApi'
@@ -75,22 +76,6 @@ function NoDisponible() {
       <span aria-hidden="true">—</span>
       <span className="solo-lector">{t('detalle.noDisponible')}</span>
     </span>
-  )
-}
-
-/** Acción deshabilitada: borde discontinuo, aria-disabled (sigue siendo enfocable) y sin acción. */
-function BotonNoDisponible({ children }: { children: ReactNode }) {
-  const { t } = useTranslation()
-  return (
-    <button
-      type="button"
-      className="boton-secundario detalle__no-disponible"
-      aria-disabled="true"
-      onClick={(evento) => evento.preventDefault()}
-    >
-      {children}
-      <span className="solo-lector"> ({t('detalle.noDisponible')})</span>
-    </button>
   )
 }
 

@@ -24,5 +24,7 @@ export interface OpcionesFiltro {
 }
 
 export function consultarOpcionesFiltro(categoria: Categoria): Promise<OpcionesFiltro> {
-  return solicitar<OpcionesFiltro>(`/api/v1/catalogo/filtros?categoria=${encodeURIComponent(categoria)}`)
+  return solicitar<OpcionesFiltro>(`/api/v1/catalogo/filtros?categoria=${encodeURIComponent(categoria)}`, {
+    publica: true,
+  })
 }
