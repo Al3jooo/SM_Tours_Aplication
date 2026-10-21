@@ -128,7 +128,9 @@ class IniciarSesionIntegracionTest {
 
     @Test
     void unPrestadorRechazadoNoIniciaSesion() {
-        jdbc.update("UPDATE prestador SET estado_validacion = 'Rechazado' WHERE id_usuario = ?", ID_PRESTADOR);
+        // V11: un prestador Rechazado exige su justificación (RF28).
+        jdbc.update("UPDATE prestador SET estado_validacion = 'Rechazado', motivo_rechazo = 'Documentos incompletos'"
+                + " WHERE id_usuario = ?", ID_PRESTADOR);
 
         assertThatThrownBy(() -> iniciarSesion.iniciarSesion(
                 new ComandoInicioSesion(CORREO_PRESTADOR, CONTRASENA_SEMILLA)))

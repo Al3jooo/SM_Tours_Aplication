@@ -1,19 +1,25 @@
 package co.edu.unimagdalena.samaria360.booking.infrastructure.config;
 
+import co.edu.unimagdalena.samaria360.booking.application.port.in.ActualizarCuentaUseCase;
 import co.edu.unimagdalena.samaria360.booking.application.port.in.CancelarReservaUseCase;
 import co.edu.unimagdalena.samaria360.booking.application.port.in.ReservarServicioUseCase;
+import co.edu.unimagdalena.samaria360.booking.application.port.in.VerificarSesionUseCase;
 import co.edu.unimagdalena.samaria360.booking.application.port.out.CatalogoPort;
+import co.edu.unimagdalena.samaria360.booking.application.port.out.CuentaRepositoryPort;
 import co.edu.unimagdalena.samaria360.booking.application.port.out.InventarioPort;
 import co.edu.unimagdalena.samaria360.booking.application.port.out.RelojPort;
 import co.edu.unimagdalena.samaria360.booking.application.port.out.ReservaRepositoryPort;
+import co.edu.unimagdalena.samaria360.booking.application.service.ActualizarCuentaService;
 import co.edu.unimagdalena.samaria360.booking.application.service.AsegurarInventarioDemoService;
 import co.edu.unimagdalena.samaria360.booking.application.service.CancelarReservaService;
 import co.edu.unimagdalena.samaria360.booking.application.service.CompletarReservasService;
 import co.edu.unimagdalena.samaria360.booking.application.service.ConsultarReservasService;
 import co.edu.unimagdalena.samaria360.booking.application.service.DisponibilidadService;
 import co.edu.unimagdalena.samaria360.booking.application.service.ReservarServicioService;
+import co.edu.unimagdalena.samaria360.booking.application.service.VerificarSesionService;
 import co.edu.unimagdalena.samaria360.booking.domain.model.HorarioReservas;
 import co.edu.unimagdalena.samaria360.booking.domain.service.PoliticaReserva;
+import co.edu.unimagdalena.samaria360.booking.domain.service.PoliticaSesion;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -78,6 +84,22 @@ public class BeanConfig {
     @Bean
     public CompletarReservasService completarReservasService(ReservaRepositoryPort reservas, RelojPort reloj) {
         return new CompletarReservasService(reservas, reloj);
+    }
+
+    @Bean
+    public PoliticaSesion politicaSesion() {
+        return new PoliticaSesion();
+    }
+
+    @Bean
+    public VerificarSesionUseCase verificarSesionUseCase(CuentaRepositoryPort cuentas, PoliticaSesion politica) {
+        return new VerificarSesionService(cuentas, politica);
+    }
+
+    /** ADR-008: la proyección de cuentas es un solo UPSERT condicional; la transacción la abre el repositorio. */
+    @Bean
+    public ActualizarCuentaUseCase actualizarCuentaUseCase(CuentaRepositoryPort cuentas, RelojPort reloj) {
+        return new ActualizarCuentaService(cuentas, reloj);
     }
 
     @Bean

@@ -41,4 +41,8 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, UUID>
     /** Vacío si el usuario no es prestador. */
     @Query(value = "SELECT estado_validacion FROM prestador WHERE id_usuario = :id", nativeQuery = true)
     Optional<String> buscarEstadoValidacion(@Param("id") UUID id);
+
+    /** Versión de la cuenta, leída de la base en cada llamada (el claim {@code ver} se compara con ella). */
+    @Query(value = "SELECT version_cuenta FROM usuario WHERE id_usuario = :id", nativeQuery = true)
+    Optional<Long> buscarVersionCuenta(@Param("id") UUID id);
 }

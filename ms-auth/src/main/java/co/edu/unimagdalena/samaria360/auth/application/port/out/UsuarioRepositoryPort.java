@@ -4,6 +4,7 @@ import co.edu.unimagdalena.samaria360.auth.domain.model.EstadoValidacion;
 import co.edu.unimagdalena.samaria360.auth.domain.model.Usuario;
 
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.UUID;
 
 public interface UsuarioRepositoryPort {
@@ -21,6 +22,9 @@ public interface UsuarioRepositoryPort {
 
     /** Estado de validación si el usuario es prestador (RF02, RF28); vacío para los demás roles. */
     Optional<EstadoValidacion> buscarEstadoValidacion(UUID id);
+
+    /** {@code usuario.version_cuenta}; vacío si el usuario no existe (DEC-29). */
+    OptionalLong buscarVersionCuenta(UUID id);
 
     /** Persiste {@code intentos_fallidos} y {@code bloqueado_hasta}. */
     void guardar(Usuario usuario);

@@ -7,7 +7,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @param jwkSetUri JWKS de ms-auth
  * @param emisor    claim {@code iss} esperado
+ * @param audiencia {@code aud} que deben llevar los tokens de servicio de los endpoints internos (ADR-008)
  */
 @ConfigurationProperties("samaria360.seguridad")
-public record SeguridadPropiedades(String jwkSetUri, String emisor) {
+public record SeguridadPropiedades(String jwkSetUri, String emisor, String audiencia) {
 }

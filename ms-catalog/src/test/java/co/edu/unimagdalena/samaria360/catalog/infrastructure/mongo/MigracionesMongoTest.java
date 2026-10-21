@@ -46,8 +46,10 @@ class MigracionesMongoTest {
     private static final Path ESQUEMAS = Path.of("../docs/sad/modelo-nosql");
     private static final Path VALIDADOR_M001 =
             MongoDePrueba.MIGRACIONES.resolve("esquema/M001__servicios.v2.schema.json");
+    private static final Path VALIDADOR_M003 =
+            MongoDePrueba.MIGRACIONES.resolve("esquema/M003__cuentas.v1.schema.json");
     private static final List<String> MIGRACIONES = List.of("M001__unidades-alojamiento",
-            "M002__semilla-suite-casa-tayrona");
+            "M002__semilla-suite-casa-tayrona", "M003__cuentas", "M004__indice-servicios-prestador");
     private static final int VALIDACION_DOCUMENTO_FALLIDA = 121;
 
     @Container
@@ -99,7 +101,7 @@ class MigracionesMongoTest {
     // ------------------------------------------------------------------ validador v2
 
     @ParameterizedTest
-    @ValueSource(strings = {"servicios", "atractivos"})
+    @ValueSource(strings = {"servicios", "atractivos", "cuentas"})
     void despuesDeLasMigracionesElValidadorEsElDeDocs(String coleccion) throws IOException {
         Document esperado = Document.parse(Files.readString(ESQUEMAS.resolve(coleccion + ".schema.json")));
 
@@ -113,6 +115,68 @@ class MigracionesMongoTest {
     void laCopiaDelValidadorDeM001EsLaUltimaVersion() throws IOException {
         assertThat(Document.parse(Files.readString(VALIDADOR_M001)))
                 .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("servicios.schema.json"))));
+    }
+
+    /** Mientras no exista una migración posterior que cambie cuentas, la copia de M003 es la última versión. */
+    @Test
+    void laCopiaDelValidadorDeM003EsLaUltimaVersion() throws IOException {
+        assertThat(Document.parse(Files.readString(VALIDADOR_M003)))
+                .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("cuentas.schema.json"))));
+    }
+
+    // ------------------------------------------------------------------ cuentas (M003) y su índice (M004)
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Pendiente", "Activo", "Rechazado", "Inactivo", "Desactivado"})
+    void laColeccionCuentasAceptaCadaEstadoDerivado(String estado) {
+        MongoCollection<Document> cuentas = nuevo.getCollection("cuentas");
+        Document cuenta = cuenta("00000000-0000-4000-8000-0000000000e1", "Prestador", estado, 1L);
+
+        cuentas.insertOne(cuenta);
+        cuentas.deleteOne(Filters.eq("_id", cuenta.getString("_id")));
+    }
+
+    @Test
+    void laColeccionCuentasRechazaLoQueNoSeaUnaProyeccionValida() {
+        MongoCollection<Document> cuentas = nuevo.getCollection("cuentas");
+        String id = "00000000-0000-4000-8000-0000000000e2";
+
+        assertRechazado(cuentas, cuenta(id, "Prestador", "Suspendido", 1L));
+        assertRechazado(cuentas, cuenta(id, "Visitante", "Activo", 1L));
+        assertRechazado(cuentas, cuenta(id, "Prestador", "Activo", 0L));
+        assertRechazado(cuentas, cuenta(id, "Prestador", "Activo", 1)); // int32: la versión es long
+        assertRechazado(cuentas, cuenta("no-es-un-uuid", "Prestador", "Activo", 1L));
+        assertRechazado(cuentas, cuenta(id, "Prestador", "Activo", 1L).append("otro", "campo"));
+        assertRechazado(cuentas, cuenta(id, "Prestador", "Activo", 1L).append("actualizadoEn", "ayer"));
+    }
+
+    @Test
+    void elUpsertCondicionalIgnoraUnaVersionIgualOMenor() {
+        MongoCollection<Document> cuentas = nuevo.getCollection("cuentas");
+        String id = "00000000-0000-4000-8000-0000000000e3";
+        cuentas.insertOne(cuenta(id, "Turista", "Desactivado", 5L));
+
+        assertThatThrownBy(() -> cuentas.updateOne(
+                Filters.and(Filters.eq("_id", id), Filters.lt("version", 5L)),
+                // Como CuentaMongoAdapter: el $set lleva todos los campos, para que el documento del upsert sea válido.
+                new Document("$set", new Document("rol", "Turista").append("estadoCuenta", "Activo")
+                        .append("version", 5L).append("actualizadoEn", new java.util.Date())),
+                new com.mongodb.client.model.UpdateOptions().upsert(true)))
+                .isInstanceOf(MongoWriteException.class)
+                .satisfies(e -> assertThat(((MongoWriteException) e).getError().getCode()).isEqualTo(11000));
+        assertThat(cuentas.find(Filters.eq("_id", id)).first().getString("estadoCuenta")).isEqualTo("Desactivado");
+        cuentas.deleteOne(Filters.eq("_id", id));
+    }
+
+    @Test
+    void m004CreaElIndiceDeServiciosPorPrestadorEnVolumenNuevoYExistente() {
+        for (MongoDatabase base : List.of(nuevo, existente)) {
+            assertThat(base.getCollection("servicios").listIndexes().into(new java.util.ArrayList<>()))
+                    .anySatisfy(indice -> {
+                        assertThat(indice.getString("name")).isEqualTo("prestador");
+                        assertThat(indice.get("key", Document.class)).isEqualTo(new Document("prestadorId", 1));
+                    });
+        }
     }
 
     @Test
@@ -201,7 +265,8 @@ class MigracionesMongoTest {
         ExecResult segunda = MongoDePrueba.migrar(EXISTENTE, true);
 
         MongoDePrueba.exigirExito("aplicar.js", segunda);
-        assertThat(segunda.getStdout()).contains("ya aplicada: M001", "ya aplicada: M002");
+        assertThat(segunda.getStdout()).contains("ya aplicada: M001", "ya aplicada: M002", "ya aplicada: M003",
+                "ya aplicada: M004");
         assertThat(documentos(existente, "servicios")).isEqualTo(antes);
         assertThat(idsMigraciones(existente)).containsExactlyElementsOf(MIGRACIONES);
     }
@@ -251,11 +316,24 @@ class MigracionesMongoTest {
         servicios.deleteOne(Filters.eq("_id", v1SinPrecio.getObjectId("_id")));
         MongoDePrueba.exigirExito("aplicar.js", MongoDePrueba.migrar(ERRORES, false));
 
-        assertThat(idsMigraciones(errores)).containsExactly("M001__unidades-alojamiento");
+        assertThat(idsMigraciones(errores)).containsExactly("M001__unidades-alojamiento", "M003__cuentas",
+                "M004__indice-servicios-prestador");
         assertThat(unidadesDe(errores, "Hotel Casa Tayrona")).hasSize(1);
     }
 
     // ------------------------------------------------------------------ auxiliares
+
+    private static Document cuenta(String id, String rol, String estado, Object version) {
+        return new Document("_id", id).append("rol", rol).append("estadoCuenta", estado)
+                .append("version", version).append("actualizadoEn", new java.util.Date());
+    }
+
+    private static void assertRechazado(MongoCollection<Document> coleccion, Document documento) {
+        assertThatThrownBy(() -> coleccion.insertOne(documento))
+                .isInstanceOf(MongoWriteException.class)
+                .satisfies(e -> assertThat(((MongoWriteException) e).getError().getCode())
+                        .isEqualTo(VALIDACION_DOCUMENTO_FALLIDA));
+    }
 
     private static Document opciones(MongoDatabase base, String coleccion) {
         return base.listCollections().filter(Filters.eq("name", coleccion)).first().get("options", Document.class);

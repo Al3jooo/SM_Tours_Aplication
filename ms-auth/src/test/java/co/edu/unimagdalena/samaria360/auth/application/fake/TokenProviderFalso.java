@@ -9,7 +9,7 @@ import java.time.Instant;
 
 public class TokenProviderFalso implements TokenProviderPort {
 
-    public static final Duration VIGENCIA = Duration.ofMinutes(60);
+    public static final Duration VIGENCIA = Duration.ofMinutes(15);
 
     private int llamadas;
 

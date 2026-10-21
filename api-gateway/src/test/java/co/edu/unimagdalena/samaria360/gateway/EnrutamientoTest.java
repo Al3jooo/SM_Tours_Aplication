@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -12,6 +13,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import java.net.URI;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,6 +45,9 @@ class EnrutamientoTest {
 
     @Autowired
     private WebTestClient cliente;
+
+    @LocalServerPort
+    private int puerto;
 
     @BeforeEach
     void limpiar() {
@@ -156,6 +161,59 @@ class EnrutamientoTest {
         assertThat(AUTH.solicitudes()).isEmpty();
         assertThat(CATALOGO.solicitudes()).isEmpty();
         assertThat(RESERVAS.solicitudes()).isEmpty();
+    }
+
+    /** ADR-008: los endpoints internos de ms-catalog y ms-booking no se exponen; solo los alcanza el relevo de ms-auth. */
+    @Test
+    void lasRutasInternasNoSeEnrutanANingunServicio() {
+        for (String ruta : new String[]{"/internal/v1/cuentas/00000000-0000-4000-8000-000000000001",
+                "/internal/v1/cuentas", "/api/v1/internal/v1/cuentas/1", "/internal/", "/internal"}) {
+            cliente.put().uri(ruta).contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer servicio").bodyValue("{\"rol\":\"Turista\"}")
+                    .exchange().expectStatus().value(estado -> assertThat(estado).as(ruta).isGreaterThanOrEqualTo(400));
+        }
+        cliente.put().uri("/internal/v1/cuentas/1").exchange().expectStatus().isNotFound();
+        cliente.get().uri("/internal/v1/cuentas/1").exchange().expectStatus().isNotFound();
+
+        assertThat(AUTH.solicitudes().stream().filter(s -> s.uri().contains("internal")).toList()).isEmpty();
+        assertThat(CATALOGO.solicitudes().stream().filter(s -> s.uri().contains("internal")).toList()).isEmpty();
+        assertThat(RESERVAS.solicitudes().stream().filter(s -> s.uri().contains("internal")).toList()).isEmpty();
+    }
+
+    /**
+     * N8 (ADR-008): una ruta no normalizada se rechaza antes de enrutar. Sin esto, «/api/v1/reservas/../../internal/…»
+     * coincide con el prefijo de reservas y llega tal cual a ms-booking. Se usa una URI absoluta para que el cliente
+     * envíe la ruta sin normalizarla ni recodificar el «%».
+     */
+    @Test
+    void unaRutaConPuntosOSeparadoresCodificadosEs400SinLlegarANingunServicio() {
+        for (String ruta : new String[]{
+                "/api/v1/reservas/../../internal/v1/cuentas/x",
+                "/api/v1/reservas/./disponibilidad",
+                "/api/v1/reservas/%2e%2e/%2e%2e/internal/v1/cuentas/x",
+                "/api/v1/reservas/%2E%2E/%2E%2E/internal/v1/cuentas/x",
+                "/api/v1/reservas/..%2f..%2finternal/v1/cuentas/x",
+                "/api/v1/reservas/..%5c..%5cinternal/v1/cuentas/x"}) {
+            cliente.put().uri(URI.create("http://localhost:" + puerto + ruta))
+                    .contentType(MediaType.APPLICATION_JSON).bodyValue("{\"rol\":\"Turista\"}")
+                    .exchange()
+                    .expectStatus().isBadRequest()
+                    .expectHeader().contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                    .expectHeader().exists(CORRELACION)
+                    .expectBody().jsonPath("$.codigo").isEqualTo("RUTA_INVALIDA")
+                    .jsonPath("$.status").isEqualTo(400);
+        }
+
+        assertThat(AUTH.solicitudes()).isEmpty();
+        assertThat(CATALOGO.solicitudes()).isEmpty();
+        assertThat(RESERVAS.solicitudes()).isEmpty();
+    }
+
+    @Test
+    void unSegmentoQueSoloEmpiezaConPuntoSigueSiendoValido() {
+        cliente.get().uri("/api/v1/auth/.well-known/jwks.json").exchange().expectStatus().isOk();
+
+        assertThat(AUTH.ultima().uri()).isEqualTo("/api/v1/auth/.well-known/jwks.json");
     }
 
     @Test

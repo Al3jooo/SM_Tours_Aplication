@@ -1,6 +1,6 @@
 # ADR-005 — API Gateway como único punto de entrada, sin validar el JWT en el borde
 
-- **Estado:** Aceptada
+- **Estado:** Aceptada (ampliada por [ADR-008](ADR-008-sincronizacion-estado-cuentas.md): los servicios validan también el claim `ver`)
 - **Fecha:** 2026-10-11
 - **Fase:** Elaboración (RUP), prototipo arquitectónico ejecutable
 - **Componente:** `api-gateway` (Spring Cloud Gateway 4.3.5, WebFlux; Spring Cloud 2025.0.3 sobre Spring Boot 3.5.16)

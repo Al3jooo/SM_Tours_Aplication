@@ -36,6 +36,15 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
                 "El servicio no existe o no está disponible");
     }
 
+    /** Cuerpo de un endpoint interno con campos inválidos: un código por campo, con el nombre JSON (nunca textos). */
+    @ExceptionHandler(DatosInvalidosException.class)
+    ProblemDetail datosInvalidos(DatosInvalidosException ex) {
+        ProblemDetail problema = Problemas.crear(HttpStatus.BAD_REQUEST, CodigoError.DATOS_INVALIDOS,
+                "Datos de entrada inválidos");
+        problema.setProperty("campos", ex.getCampos());
+        return problema;
+    }
+
     /** Las de Spring Security las resuelven su entry point y su access denied handler, no este advice. */
     @ExceptionHandler({AccessDeniedException.class, AuthenticationException.class})
     void relanzarExcepcionDeSeguridad(RuntimeException ex) {

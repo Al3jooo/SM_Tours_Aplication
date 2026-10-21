@@ -42,6 +42,8 @@ public class SecurityConfig {
                     acceso.requestMatchers(HttpMethod.GET, "/api/v1/auth/paises").permitAll();
                     acceso.requestMatchers(HttpMethod.GET, "/api/v1/auth/.well-known/jwks.json").permitAll();
                     acceso.requestMatchers("/actuator/health", "/actuator/health/**").permitAll();
+                    // Administrar cuentas (RF28, RF22, RF62): solo el Administrador (RNF06).
+                    acceso.requestMatchers("/api/v1/auth/admin/**").hasRole("Administrador");
                     if (dev) {
                         acceso.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
                     }

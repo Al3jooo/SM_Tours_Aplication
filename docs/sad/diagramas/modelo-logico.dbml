@@ -11,6 +11,16 @@ Enum estado_cuenta {
   Desactivado
 }
 
+Table Cuenta [headercolor: #F6C9A0] {
+  id_usuario uuid [pk, note: 'Referencia lógica a Usuario.id_usuario de auth_db, sin FK (ADR-008)']
+  rol varchar(20) [not null, note: 'Turista, Prestador, Gestor o Administrador (CHECK)']
+  estado varchar(20) [not null, note: 'Estado derivado: Pendiente, Activo, Rechazado, Inactivo o Desactivado (CHECK)']
+  version bigint [not null, note: 'CHECK >= 1; solo avanza (upsert por versión)']
+  actualizado_en timestamptz [not null]
+
+  Note: 'reservas_db, V4 (ms-booking). Proyección del estado de las cuentas que entrega el relevo de ms-auth a PUT /internal/v1/cuentas/{id}; la usa el validador del claim ver (DEC-29). En catalog_db existe la colección equivalente «cuentas» (M003)'
+}
+
 Table Reserva_Cupo_Dia [headercolor: #F6C9A0] {
   id_reserva uuid
   id_inventario bigint
@@ -95,6 +105,36 @@ Table Turista [headercolor: #A6DFEE] {
   acepto_politicas boolean [not null]
 }
 
+Table Outbox_Evento [headercolor: #F2A9A9] {
+  id_evento bigint [pk, increment]
+  tipo varchar(50) [not null, note: 'CuentaActualizada (CHECK)']
+  id_usuario uuid [not null]
+  carga jsonb [not null, note: '{idUsuario, rol, estadoCuenta, version}']
+  creado_en timestamptz [not null]
+
+  indexes {
+    (id_usuario, id_evento) [name: 'ix_outbox_evento_usuario', note: 'V13; id_evento DESC']
+  }
+
+  Note: 'V13. Outbox transaccional (DEC-26): el evento se inserta en la misma transacción que el cambio de estado'
+}
+
+Table Outbox_Entrega [headercolor: #F2A9A9] {
+  id_evento bigint
+  destino varchar(20) [note: 'ms-catalog o ms-booking (CHECK)']
+  entregado_en timestamptz [null]
+  intentos integer [not null, note: 'CHECK >= 0']
+  proximo_intento timestamptz [not null, note: 'También es el arriendo de la entrega reclamada (FOR UPDATE SKIP LOCKED)']
+  ultimo_error varchar(500) [null]
+
+  indexes {
+    (id_evento, destino) [pk]
+    (destino, proximo_intento) [name: 'ix_outbox_entrega_pendiente', note: 'V13; índice parcial WHERE entregado_en IS NULL']
+  }
+
+  Note: 'V13. Una fila por evento y destino: un destino caído no bloquea al otro (ADR-008)'
+}
+
 Table Token_Recuperacion [headercolor: #F2A9A9] {
   id_token_recuperacion bigint [pk, increment]
   id_usuario uuid [not null]
@@ -110,8 +150,9 @@ Table Usuario [headercolor: #CDBDF0] {
   contrasena_hash varchar(255) [not null]
   fecha_registro date [not null]
   intentos_fallidos integer [not null]
-  estado_cuenta estado_cuenta [not null]
+  estado_cuenta estado_cuenta [not null, note: 'Activo, Inactivo (RF22, prestador) o Desactivado (RF62, turista; DEC-44)']
   bloqueado_hasta timestamptz [null]
+  version_cuenta bigint [not null, note: 'V12; default 0, CHECK >= 0. Sube en 1 con cada cambio de estado o de rol; viaja en el claim ver del JWT (DEC-29)']
 }
 
 Table Prestador [headercolor: #A3DDD2] {
@@ -123,6 +164,9 @@ Table Prestador [headercolor: #A3DDD2] {
   correo_corporativo varchar(100) [not null]
   estado_validacion varchar(50) [not null]
   acepto_politicas boolean [not null, note: 'Sin valor por defecto (V9; decisión D6)']
+  motivo_rechazo varchar(500) [null, note: 'V11; justificación del rechazo (RF28, DEC-42). CHECK: obligatoria si estado_validacion = Rechazado']
+  revisado_en timestamptz [null, note: 'V11; cuándo revisó el Administrador']
+  revisado_por uuid [null, note: 'V11; el Administrador que revisó (FK a Administrador)']
 }
 
 Table Gestor [headercolor: #AFCDEF] {
@@ -149,3 +193,7 @@ Ref: Reserva.id_turista > Turista.id_usuario
 Ref: Reserva.id_prestador > Prestador.id_usuario
 Ref: Reserva_Cupo_Dia.id_reserva > Reserva.id_reserva
 Ref: Reserva_Cupo_Dia.id_inventario > Inventario_Cupo.id_inventario
+Ref: Prestador.revisado_por > Administrador.id_usuario
+Ref: Outbox_Evento.id_usuario > Usuario.id_usuario
+Ref: Outbox_Entrega.id_evento > Outbox_Evento.id_evento
+Ref: Cuenta.id_usuario - Usuario.id_usuario // referencia lógica entre bases, sin FK física (como Reserva.id_turista)

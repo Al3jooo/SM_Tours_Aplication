@@ -16,7 +16,8 @@ public class UsuarioPersistenceMapper {
                 Rol.valueOf(entidad.getRol().getNombre()),
                 entidad.getEstadoCuenta(),
                 entidad.getIntentosFallidos(),
-                entidad.getBloqueadoHasta());
+                entidad.getBloqueadoHasta(),
+                entidad.getVersionCuenta());
     }
 
     /** Copia al registro los campos que puede cambiar el dominio. */

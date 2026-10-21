@@ -3,9 +3,11 @@ package co.edu.unimagdalena.samaria360.auth.infrastructure.adapter.in.web.error;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CredencialesInvalidasException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaBloqueadaException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaInactivaException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaNoEncontradaException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaPendienteValidacionException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaRechazadaException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.DatosRegistroInvalidosException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.EstadoCambiadoException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.PoliticasNoAceptadasException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.RntYaRegistradoException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.UsuarioNoEncontradoException;
@@ -89,6 +91,19 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
     @ExceptionHandler(RntYaRegistradoException.class)
     ProblemDetail rntYaRegistrado(RntYaRegistradoException ex) {
         return Problemas.crear(HttpStatus.CONFLICT, CodigoError.RNT_YA_REGISTRADO, ex.getMessage());
+    }
+
+    /** Otro Administrador cambió la cuenta antes, o la acción no es una transición válida (DEC-39). */
+    @ExceptionHandler(EstadoCambiadoException.class)
+    ProblemDetail estadoCambiado(EstadoCambiadoException ex) {
+        ProblemDetail problema = Problemas.crear(HttpStatus.CONFLICT, CodigoError.ESTADO_CAMBIADO, ex.getMessage());
+        problema.setProperty("estadoActual", ex.getEstadoActual().name());
+        return problema;
+    }
+
+    @ExceptionHandler(CuentaNoEncontradaException.class)
+    ProblemDetail cuentaNoEncontrada(CuentaNoEncontradaException ex) {
+        return Problemas.crear(HttpStatus.NOT_FOUND, CodigoError.CUENTA_NO_ENCONTRADA, ex.getMessage());
     }
 
     /** Token válido de un usuario que ya no existe. */

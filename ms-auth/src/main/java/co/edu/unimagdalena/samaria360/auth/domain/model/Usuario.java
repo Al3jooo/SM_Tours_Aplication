@@ -18,9 +18,17 @@ public class Usuario {
     private final EstadoCuenta estadoCuenta;
     private int intentosFallidos;
     private Instant bloqueadoHasta;
+    private final long versionCuenta;
 
+    /** Cuenta con la versión 0 (sin cambios de estado o de rol todavía). */
     public Usuario(UUID id, String correo, String contrasenaHash, Rol rol, EstadoCuenta estadoCuenta,
                    int intentosFallidos, Instant bloqueadoHasta) {
+        this(id, correo, contrasenaHash, rol, estadoCuenta, intentosFallidos, bloqueadoHasta, 0);
+    }
+
+    /** @param versionCuenta sube en 1 con cada cambio de estado o de rol; viaja en el claim {@code ver} (DEC-29) */
+    public Usuario(UUID id, String correo, String contrasenaHash, Rol rol, EstadoCuenta estadoCuenta,
+                   int intentosFallidos, Instant bloqueadoHasta, long versionCuenta) {
         this.id = Objects.requireNonNull(id, "id");
         this.correo = requerirTexto(correo, "correo");
         this.contrasenaHash = requerirTexto(contrasenaHash, "contrasenaHash");
@@ -31,6 +39,10 @@ public class Usuario {
         }
         this.intentosFallidos = intentosFallidos;
         this.bloqueadoHasta = bloqueadoHasta;
+        if (versionCuenta < 0) {
+            throw new IllegalArgumentException("versionCuenta no puede ser negativa");
+        }
+        this.versionCuenta = versionCuenta;
     }
 
     /** Bloqueada mientras {@code ahora < bloqueadoHasta}; al llegar a esa hora se desbloquea sola. */
@@ -83,6 +95,10 @@ public class Usuario {
 
     public int getIntentosFallidos() {
         return intentosFallidos;
+    }
+
+    public long getVersionCuenta() {
+        return versionCuenta;
     }
 
     public Optional<Instant> getBloqueadoHasta() {

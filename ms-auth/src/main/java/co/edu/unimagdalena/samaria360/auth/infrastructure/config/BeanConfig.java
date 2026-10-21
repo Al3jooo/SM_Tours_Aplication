@@ -1,21 +1,31 @@
 package co.edu.unimagdalena.samaria360.auth.infrastructure.config;
 
+import co.edu.unimagdalena.samaria360.auth.application.port.in.AdministrarCuentasUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.IniciarSesionUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.RegistrarPrestadorUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.RegistrarTuristaUseCase;
+import co.edu.unimagdalena.samaria360.auth.application.port.out.CuentasAdminRepositoryPort;
+import co.edu.unimagdalena.samaria360.auth.application.port.out.DestinoCuentasPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.NotificadorCuentaPort;
+import co.edu.unimagdalena.samaria360.auth.application.port.out.OutboxPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.PasswordHasherPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.RegistroRepositoryPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.RelojPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.TokenProviderPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.UsuarioRepositoryPort;
+import co.edu.unimagdalena.samaria360.auth.application.service.AdministrarCuentasService;
+import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarCuentasService;
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarPaisesService;
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarUsuarioActualService;
 import co.edu.unimagdalena.samaria360.auth.application.service.IniciarSesionService;
 import co.edu.unimagdalena.samaria360.auth.application.service.RegistrarPrestadorService;
 import co.edu.unimagdalena.samaria360.auth.application.service.RegistrarTuristaService;
+import co.edu.unimagdalena.samaria360.auth.application.service.RelevarCuentasService;
+import co.edu.unimagdalena.samaria360.auth.application.service.VerificarSesionService;
 import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaAcceso;
 import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaBloqueo;
+import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaReintento;
+import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaSesion;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -86,5 +96,45 @@ public class BeanConfig {
     @Bean
     public ConsultarPaisesService consultarPaisesService() {
         return new ConsultarPaisesService();
+    }
+
+    @Bean
+    public PoliticaSesion politicaSesion() {
+        return new PoliticaSesion();
+    }
+
+    @Bean
+    public PoliticaReintento politicaReintento() {
+        return new PoliticaReintento();
+    }
+
+    @Bean
+    public VerificarSesionService verificarSesionService(UsuarioRepositoryPort usuarios, PoliticaSesion politica) {
+        return new VerificarSesionService(usuarios, politica);
+    }
+
+    @Bean
+    public ConsultarCuentasService consultarCuentasService(CuentasAdminRepositoryPort cuentas) {
+        return new ConsultarCuentasService(cuentas);
+    }
+
+    @Bean
+    public AdministrarCuentasService administrarCuentasService(CuentasAdminRepositoryPort cuentas, OutboxPort outbox,
+                                                               RelojPort reloj) {
+        return new AdministrarCuentasService(cuentas, outbox, reloj);
+    }
+
+    /** El que reciben los adaptadores de entrada: el cambio de estado y su evento en una sola transacción (DEC-26). */
+    @Bean
+    @Primary
+    public AdministrarCuentasUseCase administrarCuentasUseCase(AdministrarCuentasService servicio,
+                                                               PlatformTransactionManager transacciones) {
+        return new AdministrarCuentasTransaccional(servicio, new TransactionTemplate(transacciones));
+    }
+
+    @Bean
+    public RelevarCuentasService relevarCuentasService(OutboxPort outbox, DestinoCuentasPort destinos, RelojPort reloj,
+                                                       PoliticaReintento politica) {
+        return new RelevarCuentasService(outbox, destinos, reloj, politica);
     }
 }

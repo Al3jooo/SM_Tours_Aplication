@@ -36,6 +36,8 @@ samaria360:
     # JWKS de ms-auth para validar los JWT (ADR-005).
     jwk-set-uri: ${AUTH_JWKS_URI:http://localhost:8081/api/v1/auth/.well-known/jwks.json}
     emisor: samaria360-auth
+    # aud de los tokens de servicio que ms-auth usa en /internal/** (ADR-008)
+    audiencia: ms-booking
   catalogo:
     # Llamada directa a ms-catalog antes de reservar (D4, ADR-007). En Docker Compose: http://ms-catalog:8082
     url: ${MS_CATALOG_URL:http://localhost:8082}

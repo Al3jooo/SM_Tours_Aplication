@@ -17,6 +17,12 @@ public enum CodigoError {
     /** Registro sin aceptar la Política de Privacidad (turista y prestador). */
     POLITICAS_NO_ACEPTADAS,
     NO_AUTENTICADO,
+    /** Token de antes de un cambio de estado o de rol de la cuenta: su claim ver es menor que version_cuenta (DEC-29). */
+    SESION_INVALIDADA,
+    /** La cuenta ya no está en el estado desde el que se pidió el cambio (DEC-39). */
+    ESTADO_CAMBIADO,
+    /** No existe un turista o prestador con ese id (administración de cuentas). */
+    CUENTA_NO_ENCONTRADA,
     ACCESO_DENEGADO,
     DATOS_INVALIDOS,
     SOLICITUD_INVALIDA,

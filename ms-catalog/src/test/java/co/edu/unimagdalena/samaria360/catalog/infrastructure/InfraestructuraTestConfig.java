@@ -4,6 +4,7 @@ import co.edu.unimagdalena.samaria360.catalog.infrastructure.mongo.MongoDePrueba
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.containers.MongoDBContainer;
 
 /**
@@ -21,5 +22,11 @@ public class InfraestructuraTestConfig {
         mongo.start();
         MongoDePrueba.prepararCatalogoCompleto(mongo);
         return mongo;
+    }
+
+    /** El JWKS de ms-auth (simulado): ms-catalog lo descarga al validar el primer token (ADR-005, ADR-008). */
+    @Bean
+    DynamicPropertyRegistrar jwksDePrueba() {
+        return registro -> registro.add("samaria360.seguridad.jwk-set-uri", JwksSimulado::uri);
     }
 }
