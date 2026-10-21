@@ -78,18 +78,26 @@ describe('Encabezado según la sesión', () => {
     expect(await screen.findByRole('link', { name: 'Inicio de sesión' })).toBeInTheDocument()
   })
 
-  it('si la sesión expira a mitad de uso (401 en una petición), el enlace vuelve con el aviso', async () => {
+  // Antes, un 401 de la búsqueda cerraba la sesión (N11): la búsqueda es pública y ahora sale sin token (DEC-47), así
+  // que su respuesta no dice nada de la sesión. El cierre por una petición autenticada está en sesionVencimiento.test.tsx.
+  it('la búsqueda pública sale sin token y su respuesta no cierra la sesión (N11)', async () => {
     sessionStorage.setItem('samaria360.token', 'token-guardado')
     const busqueda = diferida<Response>()
-    simularFetch({ [ME]: () => respuestaJson(200, USUARIO_TURISTA), 'GET /api/v1/catalogo/oferta': () => busqueda.promesa })
+    const { solicitudes } = simularFetch({
+      [ME]: () => respuestaJson(200, USUARIO_TURISTA),
+      'GET /api/v1/catalogo/oferta': () => busqueda.promesa,
+    })
     renderApp('/explorar')
 
     await screen.findByRole('button', { name: 'Menú de usuario de Ana Pérez' })
+    const oferta = () => solicitudes.filter((s) => s.url.startsWith('/api/v1/catalogo/oferta'))
+    await waitFor(() => expect(oferta().length).toBeGreaterThan(0))
     await act(async () => busqueda.resolver(respuestaProblema(401, 'NO_AUTENTICADO')))
 
-    expect(await screen.findByRole('link', { name: 'Inicio de sesión' })).toBeInTheDocument()
-    expect(screen.getByText(/Tu sesión expiró\./)).toBeInTheDocument()
-    expect(token()).toBeNull()
+    expect(oferta().every((s) => s.cabeceras.Authorization === undefined)).toBe(true)
+    expect(screen.getByRole('button', { name: 'Menú de usuario de Ana Pérez' })).toBeInTheDocument()
+    expect(screen.queryByText(/Tu sesión expiró\./)).not.toBeInTheDocument()
+    expect(token()).toBe('token-guardado')
   })
 
   it('/me con 401: el enlace aparece y se borra el token', async () => {

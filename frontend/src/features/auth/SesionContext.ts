@@ -6,8 +6,18 @@ export type EstadoSesion =
   | { estado: 'anonimo' }
   | { estado: 'autenticado'; usuario: UsuarioActual }
 
-/** Por qué terminó una sesión guardada: 401 (expirada) o 403 CUENTA_INACTIVA (RF22, RF62). */
-export type AvisoSesion = 'expirada' | 'inactiva'
+/**
+ * Por qué terminó una sesión: 401 o vencimiento por `expiraEn` (expirada), 403 CUENTA_INACTIVA (inactiva; RF22, RF62)
+ * o 401 SESION_INVALIDADA (invalidada: la cuenta cambió de estado o de rol después de iniciar sesión; DEC-29, DEC-49).
+ */
+export type AvisoSesion = 'expirada' | 'inactiva' | 'invalidada'
+
+/** Claves i18n del texto de cada aviso y de su enlace al login. */
+export const TEXTO_AVISO: Record<AvisoSesion, { aviso: string; enlace: string }> = {
+  expirada: { aviso: 'sesion.avisoExpirada', enlace: 'sesion.iniciarDeNuevo' },
+  invalidada: { aviso: 'sesion.avisoInvalidada', enlace: 'sesion.iniciarDeNuevo' },
+  inactiva: { aviso: 'sesion.avisoInactiva', enlace: 'sesion.iniciarSesion' },
+}
 
 export interface ValorSesion {
   sesion: EstadoSesion

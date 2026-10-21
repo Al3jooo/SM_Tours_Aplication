@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {
+  USUARIO_ADMIN,
   USUARIO_TURISTA,
   paginaOferta,
   respuestaJson,
@@ -124,6 +125,25 @@ describe('Menú del avatar', () => {
     expect(opciones.map((opcion) => opcion.textContent)).toEqual(['Cerrar sesión'])
     await waitFor(() => expect(opciones[0]).toHaveFocus())
   })
+
+  it('para el Administrador, «Administrar cuentas» va antes de «Cerrar sesión» y lleva a /admin/cuentas (WF-12)', async () => {
+    const { usuario, avatar } = await abrirMenu(USUARIO_ADMIN)
+    await usuario.click(avatar)
+
+    const opciones = within(screen.getByRole('menu')).getAllByRole('menuitem')
+    expect(opciones.map((opcion) => opcion.textContent)).toEqual(['Administrar cuentas', 'Cerrar sesión'])
+    expect(opciones[0]).toHaveAttribute('href', '/admin/cuentas')
+    await waitFor(() => expect(opciones[0]).toHaveFocus())
+  })
+
+  it.each([USUARIO_TURISTA, { ...USUARIO_TURISTA, rol: 'Prestador', nombreVisible: 'Hotel Prueba' }])(
+    'para el rol $rol no aparece «Administrar cuentas»',
+    async (usuarioActual) => {
+      const { usuario, avatar } = await abrirMenu(usuarioActual)
+      await usuario.click(avatar)
+      expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: 'Administrar cuentas' })).not.toBeInTheDocument()
+    },
+  )
 
   it('se abre con la barra espaciadora y se cierra con un clic afuera', async () => {
     const { usuario, avatar } = await abrirMenu()

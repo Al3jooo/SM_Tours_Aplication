@@ -1,9 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useSesion } from '../features/auth/useSesion'
+import { SinPermiso } from '../shared/components/SinPermiso'
 
-/** Sin sesión, cualquier ruta privada lleva al login y recuerda a dónde se quería ir. */
-export function RutaProtegida() {
+/**
+ * Sin sesión, cualquier ruta privada lleva al login y recuerda a dónde se quería ir. Con `rol` (DEC-51), una sesión de
+ * otro rol ve «Sin permiso» y la página no se monta: no se descarga ni llama a la API (RNF06).
+ */
+export function RutaProtegida({ rol }: { rol?: string }) {
   const { t } = useTranslation()
   const { sesion } = useSesion()
   const ubicacion = useLocation()
@@ -18,6 +22,9 @@ export function RutaProtegida() {
   if (sesion.estado === 'anonimo') {
     // Ruta completa (con ?consulta y #ancla) para volver exactamente a donde se quería ir.
     return <Navigate to="/login" replace state={{ desde: ubicacion.pathname + ubicacion.search + ubicacion.hash }} />
+  }
+  if (rol && sesion.usuario.rol !== rol) {
+    return <SinPermiso />
   }
   return <Outlet />
 }

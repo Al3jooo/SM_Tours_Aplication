@@ -5,6 +5,7 @@ const BASE = '/api/v1/auth'
 export interface SesionIniciada {
   token: string
   tipo: 'Bearer'
+  /** Instante ISO 8601 (UTC) del `exp` del token: 15 minutos después del inicio de sesión (DEC-29). */
   expiraEn: string
   idUsuario: string
   rol: string
@@ -19,7 +20,7 @@ export interface UsuarioActual {
 }
 
 export function iniciarSesion(correo: string, contrasena: string): Promise<SesionIniciada> {
-  return solicitar<SesionIniciada>(`${BASE}/login`, { method: 'POST', cuerpo: { correo, contrasena } })
+  return solicitar<SesionIniciada>(`${BASE}/login`, { method: 'POST', cuerpo: { correo, contrasena }, publica: true })
 }
 
 export function consultarUsuarioActual(): Promise<UsuarioActual> {
@@ -56,14 +57,14 @@ export interface DatosRegistroPrestador {
  * respuesta ni se inicia sesión.
  */
 export async function registrarTurista(datos: DatosRegistroTurista): Promise<void> {
-  await solicitar<unknown>(`${BASE}/registro/turista`, { method: 'POST', cuerpo: datos })
+  await solicitar<unknown>(`${BASE}/registro/turista`, { method: 'POST', cuerpo: datos, publica: true })
 }
 
 export async function registrarPrestador(datos: DatosRegistroPrestador): Promise<void> {
-  await solicitar<unknown>(`${BASE}/registro/prestador`, { method: 'POST', cuerpo: datos })
+  await solicitar<unknown>(`${BASE}/registro/prestador`, { method: 'POST', cuerpo: datos, publica: true })
 }
 
 /** Códigos ISO 3166-1 alfa-2 (decisión D5): la única lista de países; los nombres los pone el navegador. */
 export function consultarPaises(): Promise<string[]> {
-  return solicitar<string[]>(`${BASE}/paises`)
+  return solicitar<string[]>(`${BASE}/paises`, { publica: true })
 }

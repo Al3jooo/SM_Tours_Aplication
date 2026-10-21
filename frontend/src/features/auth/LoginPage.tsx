@@ -7,6 +7,7 @@ import { destinoTrasLogin } from './destinoTrasLogin'
 import { esEstadoTrasRegistro } from './estadoAcceso'
 import { aErrorInicioSesion, textoError, type ErrorInicioSesion } from './mensajesError'
 import { PestanasAcceso } from './PestanasAcceso'
+import { TEXTO_AVISO } from './SesionContext'
 import { useSesion } from './useSesion'
 import './LoginPage.css'
 
@@ -18,7 +19,7 @@ type Campo = 'correo' | 'contrasena'
  */
 export function LoginPage() {
   const { t, i18n } = useTranslation()
-  const { sesion, iniciarSesion } = useSesion()
+  const { sesion, aviso, iniciarSesion } = useSesion()
   const ubicacion = useLocation()
   const trasRegistro = esEstadoTrasRegistro(ubicacion.state) ? ubicacion.state : null
 
@@ -79,6 +80,12 @@ export function LoginPage() {
 
       <div className="login__cuerpo">
         <p className="login__introduccion">{t('login.introduccion')}</p>
+        {/* Por qué se cerró la sesión, al llegar desde una ruta privada (DEC-50). Iniciar sesión lo descarta. */}
+        {aviso && !trasRegistro && (
+          <p className="login__aviso-registro" role="status">
+            {t(TEXTO_AVISO[aviso].aviso)}
+          </p>
+        )}
         {trasRegistro && (
           <p className="login__aviso-registro" role="status">
             {t(`login.trasRegistro.${trasRegistro.registro}`)}

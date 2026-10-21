@@ -4,7 +4,10 @@
     "cargando": "Cargando…",
     "saltarAlContenido": "Saltar al contenido",
     "cerrarAviso": "Cerrar aviso",
-    "sinDatos": "sin datos"
+    "sinDatos": "sin datos",
+    "noDisponible": "No disponible",
+    "sinPermisoTitulo": "Sin permiso",
+    "sinPermiso": "Tu cuenta no tiene permiso para ver esta página."
   },
   "encabezado": {
     "inicio": "Samaria360, ir al inicio",
@@ -18,7 +21,8 @@
     "ingles": "Inglés",
     "menuUsuario": "Menú de usuario de {{nombre}}",
     "cerrarSesion": "Cerrar sesión",
-    "misReservas": "Mis reservas"
+    "misReservas": "Mis reservas",
+    "administrarCuentas": "Administrar cuentas"
   },
   "login": {
     "titulo": "Iniciar sesión en Samaria360",
@@ -169,7 +173,8 @@
     "avisoExpirada": "Tu sesión expiró.",
     "iniciarDeNuevo": "Inicia sesión de nuevo",
     "avisoInactiva": "Tu cuenta no está activa.",
-    "iniciarSesion": "Iniciar sesión"
+    "iniciarSesion": "Iniciar sesión",
+    "avisoInvalidada": "Tu sesión se cerró porque cambió el estado o los permisos de tu cuenta."
   },
   "catalogo": {
     "categorias": {
@@ -564,6 +569,132 @@
       "volver": "No, volver",
       "cancelando": "Cancelando…",
       "cerrar": "Cerrar"
+    }
+  },
+  "admin": {
+    "titulo": "Administrar cuentas",
+    "apoyo": "Valida a los prestadores registrados y gestiona el estado de las cuentas de prestadores y turistas.",
+    "pestanasEtiqueta": "Tipo de cuentas",
+    "pestanas": {
+      "pendientes": "Prestadores por validar",
+      "pendientesContador": "Prestadores por validar ({{n}})",
+      "prestadores": "Prestadores",
+      "turistas": "Turistas"
+    },
+    "buscar": "Buscar",
+    "buscarPrestadores": "Nombre, correo o RNT",
+    "buscarTuristas": "Nombre o correo",
+    "estado": "Estado",
+    "todos": "Todos",
+    "botonBuscar": "Buscar",
+    "resultados": "Cuentas",
+    "contador_one": "{{count}} cuenta",
+    "contador_other": "{{count}} cuentas",
+    "cargando": "Cargando cuentas…",
+    "paginaDe": "Página {{actual}} de {{total}}",
+    "columnas": {
+      "representante": "Representante legal",
+      "rnt": "RNT",
+      "correoCorporativo": "Correo corporativo",
+      "registrado": "Registrado",
+      "estado": "Estado",
+      "accion": "Acción",
+      "nombre": "Nombre",
+      "correo": "Correo",
+      "pais": "País"
+    },
+    "estados": {
+      "Pendiente": "Pendiente de validación",
+      "Activo": "Activo",
+      "Rechazado": "Rechazado",
+      "Inactivo": "Inactivo",
+      "Desactivado": "Desactivado"
+    },
+    "acciones": {
+      "revisar": "Revisar",
+      "inactivar": "Inactivar",
+      "verMotivo": "Ver motivo",
+      "reactivar": "Reactivar",
+      "desactivar": "Desactivar"
+    },
+    "vacio": {
+      "pendientes": "No hay prestadores pendientes de validación.",
+      "prestadores": "No hay prestadores registrados.",
+      "turistas": "No hay turistas registrados.",
+      "conFiltros": "Ninguna cuenta coincide con la búsqueda o el filtro."
+    },
+    "detalle": {
+      "titulo": "Detalle del prestador",
+      "cerrar": "Cerrar detalle",
+      "cargando": "Cargando el detalle…",
+      "representante": "Representante legal",
+      "razonSocial": "Razón social",
+      "rnt": "RNT",
+      "correo": "Correo corporativo",
+      "telefono": "Teléfono",
+      "politicas": "Políticas aceptadas",
+      "politicasSi": "Sí · {{fecha}}",
+      "politicasNo": "No",
+      "estado": "Estado",
+      "aprobar": "Aprobar → Activo",
+      "rechazar": "Rechazar"
+    },
+    "rechazo": {
+      "titulo": "Rechazar prestador «{{nombre}}»",
+      "definitivo": "La decisión es definitiva: el prestador no podrá iniciar sesión y el rechazo no se puede revertir desde el sistema.",
+      "etiqueta": "Justificación (obligatoria)",
+      "contador": "{{n}} de {{maximo}} caracteres",
+      "confirmar": "Confirmar rechazo",
+      "errores": {
+        "REQUERIDO": "Escribe la justificación del rechazo.",
+        "LONGITUD_MAXIMA": "La justificación admite como máximo {{maximo}} caracteres."
+      }
+    },
+    "confirmacion": {
+      "inactivar": {
+        "titulo": "Inactivar prestador",
+        "texto": "¿Inactivar la cuenta de {{nombre}}? Sus servicios dejarán de publicarse en las búsquedas y no podrá iniciar sesión. El prestador no se puede reactivar desde el sistema.",
+        "confirmar": "Inactivar"
+      },
+      "desactivar": {
+        "titulo": "Desactivar turista",
+        "texto": "¿Desactivar la cuenta de {{nombre}}? No podrá iniciar sesión y sus sesiones abiertas se cerrarán.",
+        "confirmar": "Desactivar"
+      },
+      "reactivar": {
+        "titulo": "Reactivar turista",
+        "texto": "¿Reactivar la cuenta de {{nombre}}? Podrá volver a iniciar sesión.",
+        "confirmar": "Reactivar"
+      }
+    },
+    "motivo": {
+      "titulo": "Motivo del rechazo de {{nombre}}",
+      "sinMotivo": "No hay un motivo registrado."
+    },
+    "dialogo": {
+      "cancelar": "Cancelar",
+      "cerrar": "Cerrar",
+      "enviando": "Guardando…"
+    },
+    "exito": {
+      "aprobado": "Se aprobó a {{nombre}}: su cuenta quedó Activa.",
+      "rechazado": "Se rechazó a {{nombre}}.",
+      "inactivado": "Se inactivó la cuenta de {{nombre}}.",
+      "desactivado": "Se desactivó la cuenta de {{nombre}}.",
+      "reactivado": "Se reactivó la cuenta de {{nombre}}."
+    },
+    "errores": {
+      "ESTADO_CAMBIADO": "La cuenta cambió de estado; se recargó la lista.",
+      "CUENTA_NO_ENCONTRADA": "La cuenta ya no existe; se recargó la lista.",
+      "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión y reintenta.",
+      "SERVICIO_NO_DISPONIBLE": "El servicio de cuentas no está disponible en este momento. Reintenta en unos minutos.",
+      "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo."
+    },
+    "erroresLista": {
+      "noDisponible": "El servicio de cuentas no está disponible en este momento.",
+      "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
+      "otro": "Ocurrió un error inesperado al cargar las cuentas.",
+      "sinPermiso": "Tu cuenta no tiene permiso para ver esta página."
     }
   }
 }

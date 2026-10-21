@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { ApiError } from '../../shared/api/httpClient'
 import { useSesion } from '../auth/useSesion'
-import { Paginacion } from '../catalogo/componentes/Paginacion'
+import { Paginacion } from '../../shared/components/Paginacion'
 import { DialogoCancelar } from './componentes/DialogoCancelar'
 import { TarjetaReserva } from './componentes/TarjetaReserva'
 import {

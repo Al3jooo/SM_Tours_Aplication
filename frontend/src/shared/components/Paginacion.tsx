@@ -13,7 +13,7 @@ export function paginasVisibles(actual: number, total: number): (number | '…')
   return paginas
 }
 
-/** Paginación numerada de WF-05 (RF16: 10 elementos por página). Las páginas empiezan en 1. */
+/** Paginación numerada de WF-05, WF-11 y WF-12 (10 elementos por página). Las páginas empiezan en 1. */
 export function Paginacion({
   actual,
   total,

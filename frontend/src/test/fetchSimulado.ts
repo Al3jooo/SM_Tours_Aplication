@@ -274,3 +274,81 @@ export function reservaConfirmada(extra: Record<string, unknown> = {}) {
 export function paginaReservas(elementos: unknown[], { pagina = 0, totalElementos = elementos.length } = {}) {
   return { elementos, pagina, tamano: 20, totalElementos, totalPaginas: Math.ceil(totalElementos / 20) }
 }
+
+// ------------------------------------------------------------------ ms-auth, Administrar cuentas (/api/v1/auth/admin)
+
+export const USUARIO_ADMIN = {
+  idUsuario: '00000000-0000-4000-8000-000000000009',
+  correo: 'admin@samaria360.test',
+  rol: 'Administrador',
+  estadoCuenta: 'Activo',
+  nombreVisible: 'Laura Díaz',
+}
+
+export const PRESTADOR_PENDIENTE = {
+  idUsuario: '00000000-0000-4000-8000-000000000006',
+  representanteLegal: 'Ana Pérez',
+  rnt: '123456',
+  correoCorporativo: 'ana@hotel.co',
+  fechaRegistro: '2026-10-18',
+  estado: 'Pendiente',
+}
+
+export const DETALLE_PENDIENTE = {
+  ...PRESTADOR_PENDIENTE,
+  razonSocial: null,
+  telefono: '+57 300 000 0000',
+  aceptoPoliticas: true,
+  motivoRechazo: null,
+  revisadoEn: null,
+}
+
+export const PRESTADOR_ACTIVO = {
+  idUsuario: '00000000-0000-4000-8000-000000000010',
+  representanteLegal: 'Carlos Ruiz',
+  rnt: '654321',
+  correoCorporativo: 'carlos@kayak.co',
+  fechaRegistro: '2026-10-10',
+  estado: 'Activo',
+}
+
+export const PRESTADOR_RECHAZADO = {
+  idUsuario: '00000000-0000-4000-8000-000000000011',
+  representanteLegal: 'Juan Ruiz',
+  rnt: '777777',
+  correoCorporativo: 'juan@bar.co',
+  fechaRegistro: '2026-10-11',
+  estado: 'Rechazado',
+}
+
+export const PRESTADOR_INACTIVO = {
+  idUsuario: '00000000-0000-4000-8000-000000000012',
+  representanteLegal: 'Eva Díaz',
+  rnt: '888888',
+  correoCorporativo: 'eva@kayak.co',
+  fechaRegistro: '2026-10-12',
+  estado: 'Inactivo',
+}
+
+export const TURISTA_ACTIVO = {
+  idUsuario: '00000000-0000-4000-8000-000000000013',
+  nombre: 'Marta Lee',
+  correo: 'marta@mail.com',
+  pais: 'US',
+  fechaRegistro: '2026-10-19',
+  estado: 'Activo',
+}
+
+export const TURISTA_DESACTIVADO = {
+  idUsuario: '00000000-0000-4000-8000-000000000014',
+  nombre: 'Pablo Mora',
+  correo: 'pablo@mail.com',
+  pais: 'CO',
+  fechaRegistro: '2026-10-20',
+  estado: 'Desactivado',
+}
+
+/** Página de un listado del Administrador (10 por página, DEC-41; `pagina` desde 0). */
+export function paginaAdmin(elementos: unknown[], { pagina = 0, totalElementos = elementos.length } = {}) {
+  return { elementos, pagina, tamano: 10, totalElementos, totalPaginas: Math.ceil(totalElementos / 10) }
+}

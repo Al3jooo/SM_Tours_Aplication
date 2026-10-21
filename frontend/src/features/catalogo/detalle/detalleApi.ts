@@ -65,7 +65,7 @@ export type DetalleServicio = BaseDetalle &
   )
 
 export function consultarServicio(id: string): Promise<DetalleServicio> {
-  return solicitar<DetalleServicio>(`/api/v1/catalogo/servicios/${encodeURIComponent(id)}`)
+  return solicitar<DetalleServicio>(`/api/v1/catalogo/servicios/${encodeURIComponent(id)}`, { publica: true })
 }
 
 export type ErrorDetalle = 'noEncontrado' | 'noDisponible' | 'red' | 'otro'

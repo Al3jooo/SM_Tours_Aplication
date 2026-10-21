@@ -43,6 +43,11 @@ interface OpcionesSolicitud {
   cuerpoTexto?: string
   /** Cabeceras adicionales (p. ej. Idempotency-Key). */
   cabeceras?: Record<string, string>
+  /**
+   * Endpoint público (DEC-47): sale sin Authorization y su respuesta nunca cierra la sesión. Los servicios validan
+   * cualquier Bearer que llegue, también a un endpoint público: con el token vencido, la búsqueda respondería 401.
+   */
+  publica?: boolean
 }
 
 /**
@@ -50,7 +55,7 @@ interface OpcionesSolicitud {
  * atiende el proxy de Vite y en despliegue el API Gateway.
  */
 export async function solicitar<T>(ruta: string, opciones: OpcionesSolicitud = {}): Promise<T> {
-  const token = leerToken()
+  const token = opciones.publica ? null : leerToken()
   const cabeceras: Record<string, string> = { ...opciones.cabeceras, Accept: 'application/json' }
   const cuerpo = opciones.cuerpoTexto ?? (opciones.cuerpo === undefined ? undefined : JSON.stringify(opciones.cuerpo))
   if (cuerpo !== undefined) {
@@ -74,6 +79,7 @@ export async function solicitar<T>(ruta: string, opciones: OpcionesSolicitud = {
   if (!respuesta.ok) {
     const problema = await leerProblema(respuesta)
     const error = new ApiError(respuesta.status, problema?.codigo ?? `HTTP_${respuesta.status}`, problema)
+    // Solo una petición que salió con token puede revelar que la sesión ya no vale.
     if (token && sesionInvalida(error)) {
       oyentes.forEach((oyente) => oyente(error))
     }

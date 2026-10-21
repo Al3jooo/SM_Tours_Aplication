@@ -146,5 +146,5 @@ export function agregarMasFiltros(parametros: URLSearchParams, filtros: MasFiltr
 }
 
 export function buscarOferta(criterios: CriteriosBusqueda): Promise<PaginaOferta> {
-  return solicitar<PaginaOferta>(`/api/v1/catalogo/oferta?${consultaApi(criterios)}`)
+  return solicitar<PaginaOferta>(`/api/v1/catalogo/oferta?${consultaApi(criterios)}`, { publica: true })
 }
