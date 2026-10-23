@@ -2,12 +2,13 @@ import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DialogoAdmin } from './DialogoAdmin'
 
-export type AccionConfirmable = 'inactivar' | 'desactivar' | 'reactivar'
+export type AccionConfirmable = 'inactivar' | 'desactivar' | 'reactivar' | 'despublicar' | 'eliminarPregunta'
 
 /**
  * Confirmación de Inactivar (RF22), Desactivar y Reactivar (RF62), sin motivo (DEC-38). Inactivar avisa que no se
- * puede revertir desde el sistema (DEC-37) y que los servicios dejan de publicarse (RF22). El foco inicial va a
- * «Cancelar», la opción que no cambia nada.
+ * puede revertir desde el sistema (DEC-37) y que los servicios dejan de publicarse (RF22). También Despublicar un aviso
+ * (RF40, DEC-74) y Eliminar una pregunta frecuente (RF26, DEC-73); `nombre` es el extracto del mensaje o el título. El
+ * foco inicial va a «Cancelar», la opción que no cambia nada.
  */
 export function DialogoConfirmacion({
   accion,

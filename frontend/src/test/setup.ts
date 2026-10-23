@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { afterEach, beforeEach, vi } from 'vitest'
 import i18n from '../i18n'
+import { esAvisosDelBanner, respuestaAvisosVacia } from './fetchSimulado'
 import { restaurarGeolocalizacion } from './geolocalizacionSimulada'
 import { reiniciarLeafletSimulado } from './leafletSimulado'
 
@@ -42,8 +43,16 @@ configure({ asyncUtilTimeout: 5000 })
  * Guardia de red: ninguna prueba sale a la red. Cada prueba empieza con un fetch que registra la llamada y la
  * rechaza; las que necesitan respuestas lo reemplazan con simularFetch (fetchSimulado.ts). El rechazo lo atrapa el
  * código de la app (p. ej. useBusquedaOferta), así que la prueba falla en afterEach con la URL pedida.
+ *
+ * Única excepción (DEC-78): `GET /api/v1/catalogo/avisos`, exacta y sin consulta, responde una lista vacía. La pide el
+ * banner común (DEC-72) en todas las pantallas de la plataforma; sin avisos, el banner no se muestra.
  */
 const peticionesSinSimular: string[] = []
+
+/** Devuelve y descarta las peticiones sin simular de la prueba actual (solo para probar la propia guardia). */
+export function descartarPeticionesSinSimular(): string[] {
+  return peticionesSinSimular.splice(0)
+}
 
 beforeEach(async () => {
   sessionStorage.clear()
@@ -51,7 +60,8 @@ beforeEach(async () => {
   reiniciarLeafletSimulado()
   vi.stubGlobal(
     'fetch',
-    vi.fn(async (entrada: RequestInfo | URL) => {
+    vi.fn(async (entrada: RequestInfo | URL, init?: RequestInit) => {
+      if (esAvisosDelBanner(String(entrada), init?.method)) return respuestaAvisosVacia()
       peticionesSinSimular.push(String(entrada))
       throw new TypeError(`Petición de red sin simular: ${String(entrada)}`)
     }),

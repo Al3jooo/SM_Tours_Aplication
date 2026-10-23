@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Trans, useTranslation } from 'react-i18next'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { IconoCandado, IconoEntrar, IconoRayo, IconoSobre } from '../../shared/components/Iconos'
 import { BotonProximamente } from '../../shared/components/Proximamente'
+import { RUTA_POLITICA_PRIVACIDAD, RUTA_TERMINOS } from '../../shared/rutasLegales'
 import { destinoTrasLogin } from './destinoTrasLogin'
 import { esEstadoTrasRegistro } from './estadoAcceso'
 import { aErrorInicioSesion, textoError, type ErrorInicioSesion } from './mensajesError'
@@ -154,7 +155,13 @@ export function LoginPage() {
               <span>{enviando ? t('login.enviando') : t('login.boton')}</span>
             </button>
 
-            <p className="login__legal">{t('login.legal')}</p>
+            {/* RF46 (CU «Consultar términos», FA1): el texto legal lleva a WF-15 y a su sección 4 (DEC-76). */}
+            <p className="login__legal">
+              <Trans
+                i18nKey="login.legal"
+                components={{ terminos: <Link to={RUTA_TERMINOS} />, privacidad: <Link to={RUTA_POLITICA_PRIVACIDAD} /> }}
+              />
+            </p>
           </form>
         </section>
       </div>

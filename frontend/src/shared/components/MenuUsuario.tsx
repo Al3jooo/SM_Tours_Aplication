@@ -6,20 +6,25 @@ import { iniciales } from './iniciales'
 export interface UsuarioEncabezado {
   nombreVisible: string
   correo: string
-  /** «Mis reservas» (WF-11) solo aparece para el Turista y «Administrar cuentas» (WF-12), para el Administrador. */
+  /** «Mis reservas» (WF-11) solo aparece para el Turista; las pantallas de gestión (WF-12 a WF-14), para el Administrador. */
   rol?: string
 }
 
-/** La pantalla propia de cada rol en el menú (ruta y clave i18n). */
-const OPCION_POR_ROL: Record<string, { ruta: string; texto: string }> = {
-  Turista: { ruta: '/mis-reservas', texto: 'encabezado.misReservas' },
-  Administrador: { ruta: '/admin/cuentas', texto: 'encabezado.administrarCuentas' },
+/** Las pantallas propias de cada rol en el menú, en orden (ruta y clave i18n). */
+const OPCIONES_POR_ROL: Record<string, { ruta: string; texto: string }[]> = {
+  Turista: [{ ruta: '/mis-reservas', texto: 'encabezado.misReservas' }],
+  // DEC-70: cuentas (WF-12), preguntas frecuentes (WF-13) y avisos (WF-14).
+  Administrador: [
+    { ruta: '/admin/cuentas', texto: 'encabezado.administrarCuentas' },
+    { ruta: '/admin/preguntas-frecuentes', texto: 'encabezado.administrarPreguntas' },
+    { ruta: '/admin/avisos', texto: 'encabezado.administrarAvisos' },
+  ],
 }
 
 /**
- * Avatar con iniciales y menú: la pantalla del rol («Mis reservas» del turista, WF-11; «Administrar cuentas» del
- * Administrador, WF-12) y «Cerrar sesión» (RF55). Accesible con teclado: Enter abre y lleva el foco a la primera
- * opción, Escape cierra y devuelve el foco al avatar.
+ * Avatar con iniciales y menú: las pantallas del rol («Mis reservas» del turista, WF-11; la gestión del Administrador,
+ * WF-12 a WF-14) y «Cerrar sesión» (RF55). Accesible con teclado: Enter abre y lleva el foco a la primera opción,
+ * Escape cierra y devuelve el foco al avatar.
  */
 export function MenuUsuario({ usuario, onCerrarSesion }: { usuario: UsuarioEncabezado; onCerrarSesion: () => void }) {
   const { t } = useTranslation()
@@ -28,7 +33,7 @@ export function MenuUsuario({ usuario, onCerrarSesion }: { usuario: UsuarioEncab
   const contenedor = useRef<HTMLDivElement>(null)
   const boton = useRef<HTMLButtonElement>(null)
   const primeraOpcion = useRef<HTMLElement>(null)
-  const opcionRol = usuario.rol ? OPCION_POR_ROL[usuario.rol] : undefined
+  const opcionesRol = (usuario.rol && OPCIONES_POR_ROL[usuario.rol]) || []
 
   useEffect(() => {
     if (!abierto) return
@@ -76,21 +81,21 @@ export function MenuUsuario({ usuario, onCerrarSesion }: { usuario: UsuarioEncab
           <p className="menu-usuario__nombre">{usuario.nombreVisible}</p>
           <p className="menu-usuario__correo">{usuario.correo}</p>
           <ul id={idMenu} role="menu" aria-label={usuario.nombreVisible}>
-            {opcionRol && (
-              <li role="none">
+            {opcionesRol.map((opcion, indice) => (
+              <li key={opcion.ruta} role="none">
                 <Link
-                  ref={primeraOpcion as RefObject<HTMLAnchorElement>}
-                  to={opcionRol.ruta}
+                  ref={indice === 0 ? (primeraOpcion as RefObject<HTMLAnchorElement>) : undefined}
+                  to={opcion.ruta}
                   role="menuitem"
                   onClick={() => setAbierto(false)}
                 >
-                  {t(opcionRol.texto)}
+                  {t(opcion.texto)}
                 </Link>
               </li>
-            )}
+            ))}
             <li role="none">
               <button
-                ref={opcionRol ? undefined : (primeraOpcion as RefObject<HTMLButtonElement>)}
+                ref={opcionesRol.length > 0 ? undefined : (primeraOpcion as RefObject<HTMLButtonElement>)}
                 type="button"
                 role="menuitem"
                 onClick={() => {

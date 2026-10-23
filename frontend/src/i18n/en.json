@@ -22,7 +22,9 @@
     "menuUsuario": "User menu for {{nombre}}",
     "cerrarSesion": "Sign out",
     "misReservas": "My bookings",
-    "administrarCuentas": "Manage accounts"
+    "administrarCuentas": "Manage accounts",
+    "administrarPreguntas": "FAQ",
+    "administrarAvisos": "Notices"
   },
   "login": {
     "titulo": "Sign in to Samaria360",
@@ -40,7 +42,7 @@
     "avisoIntentos": "3 failed attempts will lock the account for 15 minutes.",
     "boton": "Sign in",
     "enviando": "Signing in…",
-    "legal": "By signing in you accept the Terms, Conditions and Privacy Policies and the data processing of Samaria360.",
+    "legal": "By signing in you accept the <terminos>Terms, Conditions</terminos> and <privacidad>Privacy Policies</privacidad> and the data processing of Samaria360.",
     "campoObligatorio": "This field is required.",
     "trasRegistro": {
       "turista": "Registration received. Sign in with your email.",
@@ -80,6 +82,7 @@
       "Aventura": "Adventure"
     },
     "aceptoPoliticas": "I accept the <politica>Privacy Policy</politica> and the processing of my data.",
+    "pestanaNueva": "Opens in a new tab.",
     "botonTurista": "Create tourist account",
     "nombreRepresentanteLegal": "Legal representative name",
     "nombreRepresentanteLegalPlaceholder": "E.g.: Juan Carlos Pérez",
@@ -168,6 +171,41 @@
     "derechosAcceso": "© 2026 Samaria360 · Verified tourism platform",
     "enlacesAcceso": "Legal and support links",
     "avisoAcademico": "Academic prototype — Universidad del Magdalena. Images are for reference only and may belong to third parties; they are not used for commercial purposes."
+  },
+  "faq": {
+    "titulo": "Frequently asked questions",
+    "apoyo": "Find answers about bookings, accounts and the platform.",
+    "cargando": "Loading the questions…",
+    "buscarEtiqueta": "Search the frequently asked questions",
+    "buscar": "Search",
+    "buscarPlaceholder": "Keyword",
+    "ayudaBuscar": "Searches the title and the answer, ignoring case and accents.",
+    "resultados": "Showing {{n}} of {{total}} questions.",
+    "sinCoincidencias": "There are no questions with “{{termino}}”.",
+    "borrarBusqueda": "Clear search",
+    "vacia": "There are no frequently asked questions yet.",
+    "reintentar": "Retry",
+    "errores": {
+      "noDisponible": "The frequently asked questions are not available right now. Try again in a few minutes.",
+      "red": "Could not connect to the server. Check your connection.",
+      "otro": "An unexpected error occurred while loading the questions."
+    }
+  },
+  "avisos": {
+    "banner": {
+      "titulo": "Notices from the municipality",
+      "cerrar": "Dismiss notices"
+    },
+    "tipos": {
+      "Clima": "Weather",
+      "Cierre": "Closure",
+      "Comunicado": "Announcement"
+    }
+  },
+  "terminos": {
+    "titulo": "Terms and conditions",
+    "nota": "Academic prototype text — Universidad del Magdalena. It is not a legally binding document.",
+    "indice": "Contents"
   },
   "sesion": {
     "avisoExpirada": "Your session expired.",
@@ -665,6 +703,16 @@
         "titulo": "Reactivate tourist",
         "texto": "Reactivate the account of {{nombre}}? They will be able to sign in again.",
         "confirmar": "Reactivate"
+      },
+      "despublicar": {
+        "titulo": "Unpublish notice",
+        "texto": "“{{nombre}}” will no longer appear in the banner. It cannot be published again: create a new one.",
+        "confirmar": "Unpublish"
+      },
+      "eliminarPregunta": {
+        "titulo": "Delete “{{nombre}}”",
+        "texto": "The question is removed from the public section. This cannot be undone.",
+        "confirmar": "Delete"
       }
     },
     "motivo": {
@@ -688,6 +736,7 @@
       "CUENTA_NO_ENCONTRADA": "The account no longer exists; the list was reloaded.",
       "ERROR_RED": "Could not connect to the server. Check your connection and retry.",
       "SERVICIO_NO_DISPONIBLE": "The accounts service is not available right now. Retry in a few minutes.",
+      "CONTENIDO_NO_DISPONIBLE": "The content service is not available right now. Retry in a few minutes.",
       "GENERICO": "An unexpected error occurred. Please try again."
     },
     "erroresLista": {
@@ -695,6 +744,91 @@
       "red": "Could not connect to the server. Check your connection.",
       "otro": "An unexpected error occurred while loading the accounts.",
       "sinPermiso": "Your account does not have permission to view this page."
+    },
+    "contenido": {
+      "contador": "{{n}} of {{maximo}} characters",
+      "errores": {
+        "REQUERIDO": "This field is required.",
+        "LONGITUD_MAXIMA": "It can have at most {{maximo}} characters."
+      },
+      "erroresLista": {
+        "noDisponible": "The content service is not available right now.",
+        "red": "Could not connect to the server. Check your connection.",
+        "otro": "An unexpected error occurred while loading the list.",
+        "sinPermiso": "Your account does not have permission to view this page."
+      }
+    },
+    "preguntas": {
+      "titulo": "Manage frequently asked questions",
+      "apoyo": "Create, edit and delete the questions of the public section. They are shown by title in alphabetical order.",
+      "resultados": "Questions",
+      "contador": "{{n}} of {{maximo}} questions",
+      "nueva": "New question",
+      "limite": "There are already {{maximo}} questions, the maximum allowed. Delete one to create another.",
+      "vacia": "There are no frequently asked questions yet.",
+      "cargando": "Loading the questions…",
+      "tablaTitulo": "Frequently asked questions",
+      "columnas": {
+        "titulo": "Title",
+        "actualizada": "Updated",
+        "acciones": "Actions"
+      },
+      "editar": "Edit",
+      "eliminar": "Delete",
+      "formulario": {
+        "tituloNueva": "New question",
+        "tituloEditar": "Edit question",
+        "ayuda": "The title and the body are required. Leading and trailing spaces are removed when saving.",
+        "titulo": "Title (required)",
+        "cuerpo": "Body (required)",
+        "guardar": "Save"
+      },
+      "exito": {
+        "creada": "The question “{{titulo}}” was created.",
+        "editada": "The changes to “{{titulo}}” were saved.",
+        "eliminada": "The question “{{titulo}}” was deleted."
+      },
+      "errores": {
+        "FAQ_NO_ENCONTRADA": "The question no longer exists; the list was reloaded.",
+        "LIMITE_FAQ": "There are already 200 questions, the maximum allowed; the list was reloaded."
+      }
+    },
+    "avisos": {
+      "titulo": "Manage notices",
+      "apoyo": "Publish notices from the municipality (weather, closures or announcements) in the platform banner. Notices are not edited: they are unpublished.",
+      "nuevo": "New notice",
+      "mensaje": "Message (required)",
+      "tipo": "Type",
+      "publicar": "Publish",
+      "publicando": "Publishing…",
+      "publicados": "Published notices",
+      "contador_one": "{{count}} published notice",
+      "contador_other": "{{count}} published notices",
+      "vacia": "There are no published notices yet.",
+      "fueraDeRango": "This page has no notices.",
+      "cargando": "Loading the notices…",
+      "tablaTitulo": "Published notices",
+      "columnas": {
+        "mensaje": "Message",
+        "tipo": "Type",
+        "publicado": "Published",
+        "estado": "Status",
+        "accion": "Action"
+      },
+      "despublicar": "Unpublish",
+      "sinAccion": "No actions: the notice is already unpublished.",
+      "exito": {
+        "publicado": "The notice was published; it now appears in the banner.",
+        "despublicado": "The notice “{{mensaje}}” was unpublished."
+      },
+      "errores": {
+        "ESTADO_CAMBIADO": "The notice was already unpublished; the list was reloaded.",
+        "AVISO_NO_ENCONTRADO": "The notice no longer exists; the list was reloaded."
+      },
+      "erroresTipo": {
+        "REQUERIDO": "Choose the type of the notice.",
+        "NO_PERMITIDO": "Choose a type from the list."
+      }
     }
   }
 }

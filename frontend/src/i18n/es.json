@@ -22,7 +22,9 @@
     "menuUsuario": "Menú de usuario de {{nombre}}",
     "cerrarSesion": "Cerrar sesión",
     "misReservas": "Mis reservas",
-    "administrarCuentas": "Administrar cuentas"
+    "administrarCuentas": "Administrar cuentas",
+    "administrarPreguntas": "Preguntas frecuentes",
+    "administrarAvisos": "Avisos"
   },
   "login": {
     "titulo": "Iniciar sesión en Samaria360",
@@ -40,7 +42,7 @@
     "avisoIntentos": "3 intentos fallidos bloquearán la cuenta por 15 minutos.",
     "boton": "Iniciar sesión",
     "enviando": "Iniciando sesión…",
-    "legal": "Al iniciar sesión aceptas los Términos, Condiciones y Políticas de Privacidad y el tratamiento de datos de Samaria360.",
+    "legal": "Al iniciar sesión aceptas los <terminos>Términos, Condiciones</terminos> y <privacidad>Políticas de Privacidad</privacidad> y el tratamiento de datos de Samaria360.",
     "campoObligatorio": "Este campo es obligatorio.",
     "trasRegistro": {
       "turista": "Registro recibido. Inicia sesión con tu correo.",
@@ -80,6 +82,7 @@
       "Aventura": "Aventura"
     },
     "aceptoPoliticas": "Acepto la <politica>Política de Privacidad</politica> y el tratamiento de mis datos.",
+    "pestanaNueva": "Se abre en una pestaña nueva.",
     "botonTurista": "Crear cuenta de turista",
     "nombreRepresentanteLegal": "Nombre del representante legal",
     "nombreRepresentanteLegalPlaceholder": "Ej.: Juan Carlos Pérez",
@@ -168,6 +171,41 @@
     "derechosAcceso": "© 2026 Samaria360 · Plataforma turística verificada",
     "enlacesAcceso": "Enlaces legales y de soporte",
     "avisoAcademico": "Prototipo académico — Universidad del Magdalena. Las imágenes son de referencia y pueden pertenecer a terceros; no se usan con fines comerciales."
+  },
+  "faq": {
+    "titulo": "Preguntas frecuentes",
+    "apoyo": "Resuelve tus dudas sobre reservas, cuentas y la plataforma.",
+    "cargando": "Cargando las preguntas…",
+    "buscarEtiqueta": "Buscar en las preguntas frecuentes",
+    "buscar": "Buscar",
+    "buscarPlaceholder": "Palabra clave",
+    "ayudaBuscar": "Busca en el título y en la respuesta, sin importar mayúsculas ni tildes.",
+    "resultados": "Se muestran {{n}} de {{total}} preguntas.",
+    "sinCoincidencias": "No hay preguntas con «{{termino}}».",
+    "borrarBusqueda": "Borrar búsqueda",
+    "vacia": "Todavía no hay preguntas frecuentes.",
+    "reintentar": "Reintentar",
+    "errores": {
+      "noDisponible": "Las preguntas frecuentes no están disponibles en este momento. Inténtalo de nuevo en unos minutos.",
+      "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
+      "otro": "Ocurrió un error inesperado al cargar las preguntas."
+    }
+  },
+  "avisos": {
+    "banner": {
+      "titulo": "Avisos del municipio",
+      "cerrar": "Cerrar avisos"
+    },
+    "tipos": {
+      "Clima": "Clima",
+      "Cierre": "Cierre",
+      "Comunicado": "Comunicado"
+    }
+  },
+  "terminos": {
+    "titulo": "Términos y condiciones",
+    "nota": "Texto del prototipo académico — Universidad del Magdalena. No es un documento legal vigente.",
+    "indice": "Contenido"
   },
   "sesion": {
     "avisoExpirada": "Tu sesión expiró.",
@@ -665,6 +703,16 @@
         "titulo": "Reactivar turista",
         "texto": "¿Reactivar la cuenta de {{nombre}}? Podrá volver a iniciar sesión.",
         "confirmar": "Reactivar"
+      },
+      "despublicar": {
+        "titulo": "Despublicar aviso",
+        "texto": "«{{nombre}}» deja de verse en el banner. No se puede volver a publicar: crea uno nuevo.",
+        "confirmar": "Despublicar"
+      },
+      "eliminarPregunta": {
+        "titulo": "Eliminar «{{nombre}}»",
+        "texto": "La pregunta se borra de la sección pública. No se puede deshacer.",
+        "confirmar": "Eliminar"
       }
     },
     "motivo": {
@@ -688,6 +736,7 @@
       "CUENTA_NO_ENCONTRADA": "La cuenta ya no existe; se recargó la lista.",
       "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión y reintenta.",
       "SERVICIO_NO_DISPONIBLE": "El servicio de cuentas no está disponible en este momento. Reintenta en unos minutos.",
+      "CONTENIDO_NO_DISPONIBLE": "El servicio de contenidos no está disponible en este momento. Reintenta en unos minutos.",
       "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo."
     },
     "erroresLista": {
@@ -695,6 +744,91 @@
       "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
       "otro": "Ocurrió un error inesperado al cargar las cuentas.",
       "sinPermiso": "Tu cuenta no tiene permiso para ver esta página."
+    },
+    "contenido": {
+      "contador": "{{n}} de {{maximo}} caracteres",
+      "errores": {
+        "REQUERIDO": "Este campo es obligatorio.",
+        "LONGITUD_MAXIMA": "Admite como máximo {{maximo}} caracteres."
+      },
+      "erroresLista": {
+        "noDisponible": "El servicio de contenidos no está disponible en este momento.",
+        "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
+        "otro": "Ocurrió un error inesperado al cargar la lista.",
+        "sinPermiso": "Tu cuenta no tiene permiso para ver esta página."
+      }
+    },
+    "preguntas": {
+      "titulo": "Administrar preguntas frecuentes",
+      "apoyo": "Crea, edita y elimina las preguntas de la sección pública. Se muestran por título en orden alfabético.",
+      "resultados": "Preguntas",
+      "contador": "{{n}} de {{maximo}} preguntas",
+      "nueva": "Nueva pregunta",
+      "limite": "Ya hay {{maximo}} preguntas, el máximo permitido. Elimina una para crear otra.",
+      "vacia": "Todavía no hay preguntas frecuentes.",
+      "cargando": "Cargando las preguntas…",
+      "tablaTitulo": "Preguntas frecuentes",
+      "columnas": {
+        "titulo": "Título",
+        "actualizada": "Actualizada",
+        "acciones": "Acciones"
+      },
+      "editar": "Editar",
+      "eliminar": "Eliminar",
+      "formulario": {
+        "tituloNueva": "Nueva pregunta",
+        "tituloEditar": "Editar pregunta",
+        "ayuda": "El título y el cuerpo son obligatorios. Se guardan sin los espacios de los extremos.",
+        "titulo": "Título (obligatorio)",
+        "cuerpo": "Cuerpo (obligatorio)",
+        "guardar": "Guardar"
+      },
+      "exito": {
+        "creada": "Se creó la pregunta «{{titulo}}».",
+        "editada": "Se guardaron los cambios de «{{titulo}}».",
+        "eliminada": "Se eliminó la pregunta «{{titulo}}»."
+      },
+      "errores": {
+        "FAQ_NO_ENCONTRADA": "La pregunta ya no existe; se recargó la lista.",
+        "LIMITE_FAQ": "Ya hay 200 preguntas, el máximo permitido; se recargó la lista."
+      }
+    },
+    "avisos": {
+      "titulo": "Administrar avisos",
+      "apoyo": "Publica avisos del municipio (clima, cierres o comunicados) en el banner de la plataforma. Los avisos no se editan: se despublican.",
+      "nuevo": "Nuevo aviso",
+      "mensaje": "Mensaje (obligatorio)",
+      "tipo": "Tipo",
+      "publicar": "Publicar",
+      "publicando": "Publicando…",
+      "publicados": "Avisos publicados",
+      "contador_one": "{{count}} aviso publicado",
+      "contador_other": "{{count}} avisos publicados",
+      "vacia": "Todavía no hay avisos publicados.",
+      "fueraDeRango": "Esta página no tiene avisos.",
+      "cargando": "Cargando los avisos…",
+      "tablaTitulo": "Avisos publicados",
+      "columnas": {
+        "mensaje": "Mensaje",
+        "tipo": "Tipo",
+        "publicado": "Publicado",
+        "estado": "Estado",
+        "accion": "Acción"
+      },
+      "despublicar": "Despublicar",
+      "sinAccion": "Sin acciones: el aviso ya está despublicado.",
+      "exito": {
+        "publicado": "Se publicó el aviso; ya aparece en el banner.",
+        "despublicado": "Se despublicó el aviso «{{mensaje}}»."
+      },
+      "errores": {
+        "ESTADO_CAMBIADO": "El aviso ya estaba despublicado; se recargó la lista.",
+        "AVISO_NO_ENCONTRADO": "El aviso ya no existe; se recargó la lista."
+      },
+      "erroresTipo": {
+        "REQUERIDO": "Elige el tipo del aviso.",
+        "NO_PERMITIDO": "Elige un tipo de la lista."
+      }
     }
   }
 }

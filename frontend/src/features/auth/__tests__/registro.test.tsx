@@ -132,21 +132,23 @@ describe('CU Registrarse (RF01, RF02; WF-02, WF-03)', () => {
   })
 
   it.each(['Turista', 'Prestador de Servicios'])(
-    'formulario %s: «Política de Privacidad» va al mismo destino que el pie (hoy, pendiente)',
+    'formulario %s: «Política de Privacidad» va al mismo destino que el pie, la sección 4 de los términos',
     async (tipo) => {
       simular()
       const { usuario } = renderApp('/registro')
       await usuario.click(screen.getByRole('radio', { name: tipo }))
 
-      // Sin página de política (RUTA_POLITICA_PRIVACIDAD = null): ni la casilla ni el pie tienen enlace.
+      // RUTA_POLITICA_PRIVACIDAD = /terminos#privacidad (DEC-68, DEC-76): la casilla y el pie enlazan al mismo lugar.
       const casilla = screen.getByRole('checkbox', { name: /Acepto la Política de Privacidad/ })
-      expect(casilla).toHaveAccessibleName(
-        'Acepto la Política de Privacidad y el tratamiento de mis datos. (Próximamente)',
-      )
-      expect(screen.queryByRole('link', { name: /Política de Privacidad/i })).not.toBeInTheDocument()
+      expect(casilla).toHaveAccessibleName('Acepto la Política de Privacidad y el tratamiento de mis datos.')
+      const enlace = screen.getByRole('link', { name: 'Política de Privacidad' })
+      expect(enlace).toHaveAttribute('href', '/terminos#privacidad')
+      // En una pestaña nueva, para no perder lo escrito, y anunciado a los lectores de pantalla.
+      expect(enlace).toHaveAttribute('target', '_blank')
+      expect(enlace).toHaveAttribute('rel', 'noopener noreferrer')
+      expect(enlace).toHaveAccessibleDescription('Se abre en una pestaña nueva.')
       const pie = within(screen.getByRole('contentinfo'))
-      expect(pie.getByText('Políticas de privacidad')).toHaveClass('enlace-deshabilitado')
-      expect(pie.queryByRole('link', { name: /Políticas de privacidad/ })).not.toBeInTheDocument()
+      expect(pie.getByRole('link', { name: 'Políticas de privacidad' })).toHaveAttribute('href', '/terminos#privacidad')
     },
   )
 

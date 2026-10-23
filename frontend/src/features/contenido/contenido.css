@@ -1,0 +1,275 @@
+/* «Contenido público» (WF-13, WF-14 y WF-15). Solo tokens de estilos.css y pares de color ya verificados en
+   tokens.test.ts: tinta/superficie, tinta-suave/superficie, tinta/sol-100, mar-700/superficie, mar-900/mar-100,
+   mar-700/mar-100, mar-900/arena, error/error-fondo y café-700/sol-100. */
+
+/* ===================== Banner de avisos (WF-14, común) ===================== */
+
+.banner-avisos {
+  border-bottom: 1px solid var(--color-borde);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+}
+
+.banner-avisos__contenido {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: var(--espacio-2) var(--espacio-4);
+  max-width: var(--ancho-maximo);
+  margin: 0 auto;
+  padding: var(--espacio-3) var(--espacio-4);
+  border-left: 4px solid var(--color-atardecer-600);
+}
+
+.banner-avisos__titulo {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-tinta);
+  font-size: var(--texto-base);
+}
+
+.banner-avisos__lista {
+  display: grid;
+  gap: var(--espacio-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.banner-avisos__aviso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espacio-1) var(--espacio-2);
+  color: var(--color-tinta);
+  font-size: var(--texto-sm);
+}
+
+.banner-avisos__mensaje {
+  overflow-wrap: anywhere;
+}
+
+.banner-avisos__fecha {
+  color: var(--color-tinta-suave);
+  white-space: nowrap;
+}
+
+.banner-avisos__cerrar {
+  align-self: end;
+}
+
+@media (max-width: 40rem) {
+  .banner-avisos__contenido {
+    grid-template-columns: 1fr;
+  }
+
+  .banner-avisos__cerrar {
+    justify-self: start;
+  }
+}
+
+/* Tipo del aviso: texto y color (WCAG 1.4.1). También en la tabla de WF-14. */
+.insignia-aviso {
+  display: inline-block;
+  padding: 0.05rem var(--espacio-2);
+  border-radius: var(--radio-pill);
+  font-size: var(--texto-xs);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.insignia-aviso--Clima {
+  background: var(--color-mar-100);
+  color: var(--color-mar-700);
+}
+
+.insignia-aviso--Cierre {
+  background: var(--color-error-fondo);
+  color: var(--color-error);
+}
+
+.insignia-aviso--Comunicado {
+  background: var(--color-sol-100);
+  color: var(--color-cafe-700);
+}
+
+/* Aviso de carga o lista vacía en las páginas públicas (mar-900 sobre mar-100; error sobre error-fondo). */
+.aviso-contenido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin: 0 0 var(--espacio-4);
+  padding: var(--espacio-3) var(--espacio-4);
+  border-left: 4px solid var(--color-mar-700);
+  border-radius: var(--radio-sm);
+  background: var(--color-mar-100);
+  color: var(--color-mar-900);
+}
+
+.aviso-contenido p {
+  margin: 0;
+}
+
+.aviso-contenido--error {
+  border-left-color: var(--color-error);
+  background: var(--color-error-fondo);
+  color: var(--color-error);
+}
+
+/* ===================== Preguntas frecuentes (WF-13) ===================== */
+
+.preguntas-frecuentes,
+.terminos {
+  max-width: 52rem;
+  margin: 0 auto;
+  animation: subir 320ms ease-out both;
+}
+
+.preguntas-frecuentes h1,
+.terminos h1 {
+  margin: 0 0 var(--espacio-2);
+  color: var(--color-mar-900);
+  font-size: var(--texto-3xl);
+}
+
+.preguntas-frecuentes__apoyo {
+  margin: 0 0 var(--espacio-5);
+  color: var(--color-tinta-suave);
+}
+
+.preguntas-frecuentes__buscador .campo {
+  margin: 0;
+}
+
+.preguntas-frecuentes__ayuda {
+  margin: var(--espacio-1) 0 0;
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.preguntas-frecuentes__region p {
+  margin: var(--espacio-3) 0;
+  color: var(--color-tinta-suave);
+}
+
+.acordeon-faq {
+  display: grid;
+  gap: var(--espacio-3);
+  margin: var(--espacio-5) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.acordeon-faq__item {
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+}
+
+.acordeon-faq__titulo {
+  margin: 0;
+  font-size: var(--texto-lg);
+}
+
+.acordeon-faq__boton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-4);
+  width: 100%;
+  padding: var(--espacio-4) var(--espacio-5);
+  border: 0;
+  border-radius: var(--radio-md);
+  background: none;
+  color: var(--color-tinta);
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--transicion);
+}
+
+.acordeon-faq__boton:hover,
+.acordeon-faq__boton[aria-expanded='true'] {
+  color: var(--color-mar-700);
+}
+
+.acordeon-faq__signo {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-mar-100);
+  color: var(--color-mar-700);
+  font-size: var(--texto-lg);
+}
+
+.acordeon-faq__cuerpo {
+  padding: 0 var(--espacio-5) var(--espacio-4);
+  color: var(--color-tinta);
+}
+
+.acordeon-faq__cuerpo p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ===================== Términos y condiciones (WF-15) ===================== */
+
+.terminos__nota {
+  margin: 0 0 var(--espacio-5);
+  padding: var(--espacio-3) var(--espacio-4);
+  border-left: 4px solid var(--color-cafe-700);
+  border-radius: var(--radio-sm);
+  background: var(--color-sol-100);
+  color: var(--color-tinta);
+}
+
+.terminos__indice {
+  margin-bottom: var(--espacio-6);
+  padding: var(--espacio-4) var(--espacio-5);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+}
+
+.terminos__indice h2 {
+  margin: 0 0 var(--espacio-2);
+  font-size: var(--texto-lg);
+}
+
+.terminos__indice ol {
+  display: grid;
+  gap: var(--espacio-1);
+  margin: 0;
+  padding-left: var(--espacio-5);
+}
+
+.terminos__indice a {
+  color: var(--color-mar-700);
+  font-weight: 600;
+  text-underline-offset: 0.2em;
+}
+
+.terminos__seccion {
+  margin-bottom: var(--espacio-5);
+  /* El encabezado fijo no tapa la sección a la que lleva el ancla. */
+  scroll-margin-top: calc(var(--alto-encabezado) + var(--espacio-4));
+}
+
+.terminos__seccion h2 {
+  margin: 0 0 var(--espacio-3);
+  color: var(--color-mar-900);
+  font-size: var(--texto-xl);
+}
+
+.terminos__seccion p {
+  margin: 0 0 var(--espacio-3);
+}

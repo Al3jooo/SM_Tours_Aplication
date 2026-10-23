@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { RUTA_POLITICA_PRIVACIDAD } from '../rutasLegales'
+import { RUTA_POLITICA_PRIVACIDAD, RUTA_PREGUNTAS_FRECUENTES, RUTA_TERMINOS } from '../rutasLegales'
 import { Ola } from './Ilustraciones'
 import { LogoSamaria } from './LogoSamaria'
 
@@ -25,18 +25,19 @@ const COLUMNAS: { titulo: string; enlaces: EnlacePie[] }[] = [
   { titulo: 'pie.prestadores', enlaces: [{ texto: 'pie.registrarServicio' }, { texto: 'pie.panelGestor' }] },
   {
     titulo: 'pie.legal',
+    // RF46 y RF26 (DEC-76): términos (WF-15), su sección 4 y las preguntas frecuentes (WF-13).
     enlaces: [
-      { texto: 'pie.terminos' },
-      { texto: 'pie.privacidad', destino: RUTA_POLITICA_PRIVACIDAD ?? undefined },
-      { texto: 'pie.preguntasFrecuentes' },
+      { texto: 'pie.terminos', destino: RUTA_TERMINOS },
+      { texto: 'pie.privacidad', destino: RUTA_POLITICA_PRIVACIDAD },
+      { texto: 'pie.preguntasFrecuentes', destino: RUTA_PREGUNTAS_FRECUENTES },
     ],
   },
 ]
 
-/** Pie reducido: «Políticas de privacidad» usa la misma ruta que la casilla del registro (RUTA_POLITICA_PRIVACIDAD). */
+/** Pie reducido: «Políticas de privacidad» usa la misma ruta que la casilla del registro; «Ayuda / Soporte» sigue pendiente. */
 const ENLACES_ACCESO: EnlacePie[] = [
-  { texto: 'pie.terminos' },
-  { texto: 'pie.privacidad', destino: RUTA_POLITICA_PRIVACIDAD ?? undefined },
+  { texto: 'pie.terminos', destino: RUTA_TERMINOS },
+  { texto: 'pie.privacidad', destino: RUTA_POLITICA_PRIVACIDAD },
   { texto: 'pie.ayuda' },
 ]
 
@@ -92,7 +93,7 @@ export function PiePagina() {
   )
 }
 
-/** Pie reducido de las pantallas de acceso (WF-01 a WF-03, v2): derechos y tres enlaces, todos pendientes. */
+/** Pie reducido de las pantallas de acceso (WF-01 a WF-03, v2): derechos y tres enlaces (Ayuda, pendiente). */
 export function PieAcceso() {
   const { t } = useTranslation()
   return (

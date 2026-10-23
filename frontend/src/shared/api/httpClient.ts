@@ -86,6 +86,10 @@ export async function solicitar<T>(ruta: string, opciones: OpcionesSolicitud = {
     throw error
   }
 
+  // 204 No Content (p. ej. DELETE /admin/faq/{id}, DEC-73): no hay cuerpo que leer.
+  if (respuesta.status === 204) {
+    return undefined as T
+  }
   return (await respuesta.json()) as T
 }
 

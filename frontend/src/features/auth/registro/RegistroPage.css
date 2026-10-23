@@ -109,6 +109,18 @@
   gap: var(--espacio-1);
 }
 
+/* «Política de Privacidad» (DEC-76): el mismo estilo que el texto legal del login, sobre la tarjeta (superficie). */
+.registro__politicas a {
+  color: var(--color-mar-700);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.registro__politicas a:hover {
+  color: var(--color-mar-900);
+}
+
 /* «Tu cuenta quedará pendiente de validación…» (WF-03): información obligatoria de RF02, fija (role="note"). */
 .registro__aviso-pendiente {
   align-items: center;

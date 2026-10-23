@@ -18,7 +18,7 @@ Para usar la app de punta a punta: `docker compose up -d` en la raíz y `./mvnw 
 | Carpeta | Contenido |
 |---|---|
 | `src/app/` | Rutas, diseños de la plataforma y de acceso (encabezado y pie), ruta protegida, **`estilos.css` (tokens)** |
-| `src/features/<caso de uso>/` | Páginas, estado y llamadas de cada caso de uso: `auth/`, `catalogo/` (con `detalle/`, WF-06), `reservas/` (WF-10 y WF-11) y `admin/` (WF-12) |
+| `src/features/<caso de uso>/` | Páginas, estado y llamadas de cada caso de uso: `auth/`, `catalogo/` (con `detalle/`, WF-06), `reservas/` (WF-10 y WF-11), `contenido/` (WF-13 y WF-15 públicas y el banner de WF-14) y `admin/` (WF-12 y la gestión de WF-13 y WF-14) |
 | `src/shared/api/` | Cliente HTTP (`fetch` + token Bearer solo en las llamadas autenticadas, DEC-47) y almacenamiento del token y su vencimiento |
 | `src/shared/components/` | Componentes reutilizables (entre ellos `Paginacion`, `BotonNoDisponible` y `SinPermiso`), iconos e ilustraciones |
 | `src/i18n/` | Textos en `es.json` y `en.json` (RF03, RNF08) |
@@ -117,6 +117,23 @@ Reglas:
 - La justificación del rechazo se cuenta y se envía sin los espacios de los extremos (1 a 500, `justificacion.ts`).
 - Después de validar o inactivar se recarga la página actual. Después de desactivar o reactivar, la fila se reemplaza en su
   sitio. Un 409 o un 404 avisan en la región de estado y recargan la lista.
+
+## Contenido público (WF-13, WF-14 y WF-15)
+
+Contrato en [`docs/sad/api/ms-catalog.md`](../docs/sad/api/ms-catalog.md); decisiones DEC-70 a DEC-78 en `docs/trazabilidad.md`.
+
+| Ruta | Pantalla | Acceso |
+|---|---|---|
+| `/preguntas-frecuentes` | WF-13 público (`contenido/PreguntasFrecuentesPage.tsx`), diferida | Pública; `GET /faq` sin token |
+| `/terminos` (`#privacidad` = sección 4) | WF-15 (`contenido/terminos/TerminosPage.tsx`), diferida; el texto, en `terminos/textoTerminos.ts` | Pública, sin backend |
+| `/admin/preguntas-frecuentes` | Gestión de WF-13 (`admin/AdministrarPreguntasPage.tsx`), diferida | Solo el Administrador |
+| `/admin/avisos?pagina=` | Gestión de WF-14 (`admin/AdministrarAvisosPage.tsx`), diferida | Solo el Administrador |
+
+- **Banner de avisos** (`contenido/BannerAvisos.tsx`): en `DisenoPrincipal`, debajo del encabezado; no va en las pantallas de acceso. Pide `GET /avisos` sin token; cerrarlo guarda los ids en `sessionStorage` (`samaria360.avisosCerrados`). La gestión lo actualiza con `avisarCambioAvisos()`.
+- **RF47** (`contenido/filtroPreguntas.ts`): filtra la lista ya cargada con cada pulsación, sin tildes ni mayúsculas.
+- Los contadores de 150, 2000 y 300 cuentan **puntos de código** sin los espacios de los extremos (`admin/textoAcotado.ts`), como ms-catalog.
+- `admin` puede importar de `contenido`; `contenido` nunca importa de `admin`.
+- En las pruebas, la guardia y `simularFetch` responden una lista vacía solo a `GET /api/v1/catalogo/avisos` exacta (DEC-78).
 
 ## Pendientes de pruebas
 
@@ -331,6 +348,13 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Aviso de la región de estado | `.aviso-cuentas` | mar-900 sobre mar-100 con borde izquierdo mar-700, dentro de una región `aria-live` siempre presente (éxito, 409, 404). |
 | Sin permiso | `SinPermiso`, `.sin-permiso` | h1 y mensaje `role="alert"`; no cierra la sesión. |
 | Aviso de ubicación | `.aviso-ubicacion` | `role="status"` siempre presente; mar-900 sobre mar-100 con borde izquierdo mar-700 cuando tiene texto. |
+| Paginación | `Paginacion`, `.paginacion` (en `estilos.css` desde N12, DEC-77) | Botones con borde de campo sobre superficie; la página actual, mar-700 con texto superficie. WF-05, WF-11, WF-12 y WF-14. |
+| Banner de avisos | `BannerAvisos`, `.banner-avisos` (`features/contenido/contenido.css`) | Superficie con borde izquierdo atardecer-600, debajo del encabezado; `section` con título «Avisos del municipio»; avisos apilados, sin rotación; «Cerrar avisos» es un botón secundario. |
+| Insignia de aviso | `.insignia-aviso--<Tipo>` | Texto traducido y color: Clima mar-700/mar-100 · Cierre error/error-fondo · Comunicado café-700/sol-100. Banner y tabla de WF-14. |
+| Acordeón | `.acordeon-faq` | Tarjetas en superficie; `h2 > button[aria-expanded][aria-controls]` con «+»/«−» en un círculo mar-100; abierto o en hover, mar-700. Se pueden abrir varias. |
+| Buscador en vivo | `.preguntas-frecuentes__buscador` + región `status` | Campo `type="search"` con su ayuda; la región anuncia «Se muestran n de N preguntas» o «sin coincidencias» con «Borrar búsqueda». |
+| Página de texto legal | `.terminos`, `__nota`, `__indice`, `__seccion` | Nota café-700 sobre sol-100; índice en superficie con enlaces mar-700; cada sección con `scroll-margin-top` para que el encabezado fijo no la tape. |
+| Formulario en línea | `.formulario-aviso` | Superficie con borde superior atardecer-600; contador a la derecha, en error al pasarse; acción principal `aria-disabled` en arena con tinta-suave. |
 
 ### Maquetación y responsivo
 
