@@ -42,11 +42,16 @@ describe('Pantallas de la plataforma (WF-04 a WF-10)', () => {
       'Registrar servicio (Próximamente)',
       'Panel del gestor (Próximamente)',
     ])
-    expect(within(columna('Legal y Soporte')).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
-      'Términos y condiciones (Próximamente)',
-      'Políticas de privacidad (Próximamente)',
-      'Preguntas frecuentes (Próximamente)',
+    // RF46 y RF26 (DEC-76): los tres enlaces ya tienen destino.
+    const legal = within(columna('Legal y Soporte'))
+    expect(legal.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+      'Términos y condiciones',
+      'Políticas de privacidad',
+      'Preguntas frecuentes',
     ])
+    expect(legal.getByRole('link', { name: 'Términos y condiciones' })).toHaveAttribute('href', '/terminos')
+    expect(legal.getByRole('link', { name: 'Políticas de privacidad' })).toHaveAttribute('href', '/terminos#privacidad')
+    expect(legal.getByRole('link', { name: 'Preguntas frecuentes' })).toHaveAttribute('href', '/preguntas-frecuentes')
     expect(within(pie).getByText('© 2026 Alcaldía de Santa Marta · Samaria360')).toBeInTheDocument()
     expect(within(pie).getByText(/^Prototipo académico/)).toBeInTheDocument()
   })
@@ -100,17 +105,19 @@ describe('Pantallas de acceso (WF-01 a WF-03)', () => {
     expect(within(encabezado).getAllByRole('link')).toHaveLength(1)
   })
 
-  it('el pie reducido tiene los derechos y tres enlaces pendientes, sin las columnas', async () => {
+  it('el pie reducido tiene los derechos, Términos y Privacidad con destino y Ayuda pendiente, sin las columnas', async () => {
     simularFetch({})
     const { usuario } = renderApp('/login')
 
     const pie = screen.getByRole('contentinfo')
     expect(within(pie).getByText('© 2026 Samaria360 · Plataforma turística verificada')).toBeInTheDocument()
     expect(within(pie).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
-      'Términos y condiciones (Próximamente)',
-      'Políticas de privacidad (Próximamente)',
+      'Términos y condiciones',
+      'Políticas de privacidad',
       'Ayuda / Soporte (Próximamente)',
     ])
+    expect(within(pie).getByRole('link', { name: 'Términos y condiciones' })).toHaveAttribute('href', '/terminos')
+    expect(within(pie).getByRole('link', { name: 'Políticas de privacidad' })).toHaveAttribute('href', '/terminos#privacidad')
     expect(within(pie).queryByRole('region')).not.toBeInTheDocument()
     expect(within(pie).getByText(/^Prototipo académico/)).toBeInTheDocument()
 

@@ -226,6 +226,19 @@
   line-height: 1.6;
 }
 
+/* Enlaces a los términos y a su sección 4 (RF46, DEC-76): mar-700 sobre la tarjeta (superficie), subrayados para no
+   depender solo del color (WCAG 1.4.1); en hover, mar-900. Pares verificados en tokens.test.ts. */
+.login__legal a {
+  color: var(--color-mar-700);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.login__legal a:hover {
+  color: var(--color-mar-900);
+}
+
 /* Mensaje tras el registro (estado del router): «Registro recibido…» o «Solicitud recibida…». */
 .login__aviso-registro {
   margin: calc(var(--espacio-4) * -1) 0 var(--espacio-5);

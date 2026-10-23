@@ -796,44 +796,7 @@
   list-style: none;
 }
 
-.paginacion ul {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--espacio-2);
-  margin: var(--espacio-6) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.paginacion button {
-  min-width: 2.5rem;
-  min-height: 2.5rem;
-  padding: 0 var(--espacio-3);
-  border: 1.5px solid var(--color-borde-campo);
-  border-radius: var(--radio-sm);
-  background: var(--color-superficie);
-  color: var(--color-tinta);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.paginacion button[aria-current='page'] {
-  border-color: var(--color-mar-700);
-  background: var(--color-mar-700);
-  color: var(--color-superficie);
-}
-
-.paginacion button:disabled {
-  border-color: var(--color-borde);
-  color: var(--color-deshabilitado);
-  cursor: not-allowed;
-}
-
-.paginacion__elipsis {
-  align-self: center;
-  color: var(--color-tinta-suave);
-}
+/* .paginacion vive en app/estilos.css (N12, DEC-77): la usan WF-05, WF-11, WF-12 y WF-14. */
 
 .explorar__mapa {
   display: grid;

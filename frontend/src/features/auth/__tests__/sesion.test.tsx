@@ -126,22 +126,33 @@ describe('Menú del avatar', () => {
     await waitFor(() => expect(opciones[0]).toHaveFocus())
   })
 
-  it('para el Administrador, «Administrar cuentas» va antes de «Cerrar sesión» y lleva a /admin/cuentas (WF-12)', async () => {
+  it('para el Administrador, sus tres pantallas van antes de «Cerrar sesión» (WF-12 a WF-14, DEC-70)', async () => {
     const { usuario, avatar } = await abrirMenu(USUARIO_ADMIN)
     await usuario.click(avatar)
 
     const opciones = within(screen.getByRole('menu')).getAllByRole('menuitem')
-    expect(opciones.map((opcion) => opcion.textContent)).toEqual(['Administrar cuentas', 'Cerrar sesión'])
+    expect(opciones.map((opcion) => opcion.textContent)).toEqual([
+      'Administrar cuentas',
+      'Preguntas frecuentes',
+      'Avisos',
+      'Cerrar sesión',
+    ])
     expect(opciones[0]).toHaveAttribute('href', '/admin/cuentas')
+    expect(opciones[1]).toHaveAttribute('href', '/admin/preguntas-frecuentes')
+    expect(opciones[2]).toHaveAttribute('href', '/admin/avisos')
+    // El foco inicial va a la primera opción, «Administrar cuentas».
     await waitFor(() => expect(opciones[0]).toHaveFocus())
   })
 
   it.each([USUARIO_TURISTA, { ...USUARIO_TURISTA, rol: 'Prestador', nombreVisible: 'Hotel Prueba' }])(
-    'para el rol $rol no aparece «Administrar cuentas»',
+    'para el rol $rol no aparece ninguna pantalla del Administrador',
     async (usuarioActual) => {
       const { usuario, avatar } = await abrirMenu(usuarioActual)
       await usuario.click(avatar)
-      expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: 'Administrar cuentas' })).not.toBeInTheDocument()
+      const menu = within(screen.getByRole('menu'))
+      for (const nombre of ['Administrar cuentas', 'Preguntas frecuentes', 'Avisos']) {
+        expect(menu.queryByRole('menuitem', { name: nombre })).not.toBeInTheDocument()
+      }
     },
   )
 

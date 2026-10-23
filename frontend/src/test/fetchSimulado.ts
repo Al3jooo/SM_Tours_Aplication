@@ -50,9 +50,22 @@ export function respuestaHtml(status: number): Response {
   })
 }
 
+/** Avisos del banner común (RF40, DEC-72): solo `GET /api/v1/catalogo/avisos`, exacta y sin consulta (DEC-78). */
+export const RUTA_AVISOS_BANNER = '/api/v1/catalogo/avisos'
+
+export function esAvisosDelBanner(url: string, metodo: string | undefined): boolean {
+  return (metodo ?? 'GET') === 'GET' && url === RUTA_AVISOS_BANNER
+}
+
+/** Sin avisos activos: el banner no se muestra y la pantalla queda como antes. */
+export function respuestaAvisosVacia(): Response {
+  return respuestaJson(200, { elementos: [] })
+}
+
 /**
  * Reemplaza fetch por rutas "MÉTODO /ruta" (con o sin la consulta). Devuelve el registro de solicitudes para verificar, por
- * ejemplo, la cabecera Authorization.
+ * ejemplo, la cabecera Authorization. Si la prueba no simula `GET /api/v1/catalogo/avisos`, responde una lista vacía
+ * (DEC-78); la solicitud igual queda registrada.
  */
 export function simularFetch(rutas: Record<string, Manejador>) {
   const solicitudes: SolicitudSimulada[] = []
@@ -67,7 +80,9 @@ export function simularFetch(rutas: Record<string, Manejador>) {
     solicitudes.push(solicitud)
     // Primero la URL exacta; si no, la ruta sin la consulta (el manejador recibe la URL completa).
     const manejador =
-      rutas[`${solicitud.metodo} ${solicitud.url}`] ?? rutas[`${solicitud.metodo} ${solicitud.url.split('?')[0]}`]
+      rutas[`${solicitud.metodo} ${solicitud.url}`] ??
+      rutas[`${solicitud.metodo} ${solicitud.url.split('?')[0]}`] ??
+      (esAvisosDelBanner(solicitud.url, solicitud.metodo) ? respuestaAvisosVacia : undefined)
     if (!manejador) {
       throw new Error(`fetch sin simulación: ${solicitud.metodo} ${solicitud.url}`)
     }
@@ -351,4 +366,56 @@ export const TURISTA_DESACTIVADO = {
 /** Página de un listado del Administrador (10 por página, DEC-41; `pagina` desde 0). */
 export function paginaAdmin(elementos: unknown[], { pagina = 0, totalElementos = elementos.length } = {}) {
   return { elementos, pagina, tamano: 10, totalElementos, totalPaginas: Math.ceil(totalElementos / 10) }
+}
+
+// ------------------------------------------------------------------ ms-catalog, contenido público (/api/v1/catalogo)
+
+/** Preguntas en el orden del servidor: alfabético por título (DEC-63). */
+export const PREGUNTA_ACCESIBLES = {
+  id: '6a1f00000000000000000001',
+  titulo: '¿Cómo encuentro lugares accesibles?',
+  cuerpo: 'En la exploración, usa el filtro de accesibilidad: movilidad reducida, visual o auditiva.',
+  fechaActualizacion: '2026-10-22T13:00:00Z',
+}
+
+export const PREGUNTA_CANCELAR = {
+  id: '6a1f00000000000000000002',
+  titulo: '¿Hasta cuándo puedo cancelar una reserva?',
+  cuerpo: 'Hasta 24 horas antes del inicio, desde «Mis reservas».',
+  fechaActualizacion: '2026-10-21T13:00:00Z',
+}
+
+export const PREGUNTA_TOUR_CAFE = {
+  id: '6a1f00000000000000000003',
+  titulo: '¿Qué incluye el Tour de Café?',
+  cuerpo: 'Un recorrido guiado por fincas de la Sierra Nevada con degustación.',
+  fechaActualizacion: '2026-10-20T13:00:00Z',
+}
+
+export const AVISO_CIERRE = {
+  id: '6a1e00000000000000000002',
+  mensaje: 'El sendero de la Cascada El Salto está cerrado temporalmente por lluvias.',
+  tipo: 'Cierre',
+  activo: true,
+  fechaPublicacion: '2026-10-22T15:00:00Z',
+}
+
+export const AVISO_CLIMA = {
+  id: '6a1e00000000000000000001',
+  mensaje: 'Lluvias fuertes en la Sierra Nevada esta tarde.',
+  tipo: 'Clima',
+  activo: true,
+  fechaPublicacion: '2026-10-21T15:00:00Z',
+}
+
+export const AVISO_INACTIVO = {
+  id: '6a1e00000000000000000000',
+  mensaje: 'Feria de las flores en el centro histórico.',
+  tipo: 'Comunicado',
+  activo: false,
+  fechaPublicacion: '2026-10-01T15:00:00Z',
+}
+
+export function listaElementos(elementos: unknown[]) {
+  return { elementos }
 }
