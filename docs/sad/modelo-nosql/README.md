@@ -8,10 +8,13 @@ Validadores de `catalog_db` en su **última versión**. Parten de la transcripci
 |---|---|---|---|
 | `servicios.schema.json` | `servicios` | `catalog_db` | ms-catalog |
 | `atractivos.schema.json` | `atractivos` | `catalog_db` | ms-catalog |
+| `cuentas.schema.json` | `cuentas` | `catalog_db` | ms-catalog |
+| `faq.schema.json` | `faq` | `catalog_db` | ms-catalog |
+| `avisos.schema.json` | `avisos` | `catalog_db` | ms-catalog |
 
 Cada archivo contiene exactamente el objeto que va en `validator` de `db.createCollection` o de `collMod`. `servicios.schema.json` tiene dos claves, `$jsonSchema` y `$expr`: MongoDB exige las dos (un AND implícito).
 
-Las demás colecciones del Entregable 2 (`eventos`, `faq`, `favoritos`, `historial_busqueda`, `itinerarios_sugeridos`, `base_conocimiento_turistico`, `calificaciones`, `reportes`, `logs_auditoria`, `notificaciones`) se transcribirán aquí cuando un caso de uso del prototipo las necesite.
+Las demás colecciones del Entregable 2 (`eventos`, `favoritos`, `historial_busqueda`, `itinerarios_sugeridos`, `base_conocimiento_turistico`, `calificaciones`, `reportes`, `logs_auditoria`, `notificaciones`) se transcribirán aquí cuando un caso de uso del prototipo las necesite.
 
 ## Notas para la implementación
 
@@ -21,3 +24,14 @@ Las demás colecciones del Entregable 2 (`eventos`, `faq`, `favoritos`, `histori
 - El `oneOf` de `servicios` discrimina por `categoria`: cada rama fija un único valor y exige su `detalleCategoria`.
 - **Cambio posterior al Entregable 2:** `detalleCategoria.serviciosIncluidos` (Alojamiento) admite solo `WiFi`, `Desayuno`, `Piscina` y `Parqueadero` (`enum`), el vocabulario cerrado de RF10 y WF-08 que usa «Más filtros» (WF-05).
 - **Cambio posterior al Entregable 2 — esquema v2 de `servicios` (migración M001, D1 de «Reservar servicio»):** un alojamiento tiene `detalleCategoria.unidades`, al menos una, en lugar de `tipoHabitacion`, `numHabitaciones` y `capacidadMaxHuespedes`. Cada unidad: `idUnidad` (`objectId`, estable aunque se renombre la unidad), `nombre` (1 a 100 caracteres), `tipoHabitacion`, `numHabitaciones` y `capacidadMaxHuespedes` (enteros ≥ 1) y `precioNoche` (decimal > 0). `serviciosIncluidos` sigue siendo del alojamiento. En Alojamiento `precioBase` es obligatorio y es el precio «desde» (RF37): el menor `precioNoche`. `$jsonSchema` no puede exigir que `idUnidad` sea única dentro del arreglo (`uniqueItems` compara la unidad completa) ni que `precioBase` sea el mínimo; lo hace la condición `$expr`.
+- **Colección `faq` (M005; RF26, RF47; DEC-57, DEC-61):** es la del Entregable 2, con `titulo` y `cuerpo`, **más estricta**:
+  - `fechaActualizacion` es obligatoria: la escribe siempre el servidor (en el Entregable 2 era opcional);
+  - `additionalProperties: false`;
+  - límites de 1 a 150 (`titulo`) y de 1 a 2000 (`cuerpo`) caracteres, más un `pattern` que exige el texto sin espacios en los extremos (`^\S([\s\S]*\S)?\z`; con `$`, PCRE aceptaría un salto de línea final). El dominio recorta con `strip()` y nunca guarda lo que el `pattern` rechaza. El `\s` de MongoDB solo reconoce los espacios ASCII (espacio, `\t`, `\n`, `\v`, `\f`, `\r`): los espacios Unicode (U+00A0, U+2003…) cuentan como `\S`.
+  - `maxLength` cuenta puntos de código, igual que el dominio.
+  - Índice `faq_titulo` con colación `es`, nivel 1 (orden alfabético, DEC-63).
+- **Colección `avisos` (M005; RF40; DEC-57, DEC-58), ampliación del modelo del Entregable 2:**
+  - `mensaje` (1 a 300 caracteres, mismo `pattern`), `tipo` (`Clima`, `Cierre`, `Comunicado`), `activo` (bool) y `fechaPublicacion` (date), todos obligatorios;
+  - sin vigencia automática;
+  - índices `avisos_activos` (banner) y `avisos_fecha` (listado del Administrador).
+  - Falta llevarla al Documento Entregable 2.

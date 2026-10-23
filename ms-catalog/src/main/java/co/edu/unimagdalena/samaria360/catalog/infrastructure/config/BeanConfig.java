@@ -4,16 +4,23 @@ import co.edu.unimagdalena.samaria360.catalog.application.port.in.ActualizarCuen
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.BuscarOfertaUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarOpcionesFiltroUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarServicioUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.GestionarAvisosUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.GestionarPreguntasFrecuentesUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.VerificarSesionUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.out.AvisoRepositoryPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.CuentaRepositoryPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.OfertaRepositoryPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.OpcionesFiltroRepositoryPort;
+import co.edu.unimagdalena.samaria360.catalog.application.port.out.PreguntaFrecuenteRepositoryPort;
+import co.edu.unimagdalena.samaria360.catalog.application.port.out.RelojPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.ServicioRepositoryPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.VisibilidadPrestadorPort;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ActualizarCuentaService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.BuscarOfertaService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarOpcionesFiltroService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarServicioService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.GestionarAvisosService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.GestionarPreguntasFrecuentesService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.VerificarSesionService;
 import co.edu.unimagdalena.samaria360.catalog.domain.service.PoliticaSesion;
 import org.springframework.context.annotation.Bean;
@@ -52,5 +59,16 @@ public class BeanConfig {
     public ActualizarCuentaUseCase actualizarCuentaUseCase(CuentaRepositoryPort cuentas,
                                                            VisibilidadPrestadorPort visibilidad) {
         return new ActualizarCuentaService(cuentas, visibilidad);
+    }
+
+    @Bean
+    public GestionarPreguntasFrecuentesUseCase gestionarPreguntasFrecuentesUseCase(
+            PreguntaFrecuenteRepositoryPort preguntas, RelojPort reloj) {
+        return new GestionarPreguntasFrecuentesService(preguntas, reloj);
+    }
+
+    @Bean
+    public GestionarAvisosUseCase gestionarAvisosUseCase(AvisoRepositoryPort avisos, RelojPort reloj) {
+        return new GestionarAvisosService(avisos, reloj);
     }
 }

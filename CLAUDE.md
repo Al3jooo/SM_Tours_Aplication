@@ -16,8 +16,9 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
   - vista principal del catálogo (`ms-catalog`);
   - el CU «Reservar servicio» (`ms-booking`: RF11, RF18, RF20, RF32, RF37, RF44), con RF12 del lado del turista («Mis reservas» con filtros) y RF52 (Confirmada → Completada automática) ya implementados;
   - el CU «Administrar cuentas» (`ms-auth`, con proyecciones en `ms-catalog` y `ms-booking`: RF28, RF22 y RF62; WF-12, propuesto por arquitectura y pendiente de validación). La parte de backend y documentos está hecha; la pantalla WF-12 es la sesión B. RF45 no se implementa, pero el diseño le sirve ([CU](docs/casos-de-uso/CU-administrar-cuentas.md), [ADR-008](docs/sad/adr/ADR-008-sincronizacion-estado-cuentas.md));
-  - las pantallas de reservas, con carga diferida: WF-06 mínimo (`/servicios/:id`), WF-10 (`/servicios/:id/reservar`, la selección vive en la URL) y WF-11 «Mis reservas» (`/mis-reservas`, privada, solo turistas; pendiente de diseño), más la disponibilidad de las tarjetas y la miniatura del popup del mapa (RF23).
-- **Fuera de alcance:** chatbot real, notificaciones (el aviso por correo del registro llega con RF34; RF13, RF30 y RF63, con ms-notificaciones), analítica, y en reservas RF12 del lado del prestador y RF19. No implementarlos aunque parezcan fáciles.
+  - las pantallas de reservas, con carga diferida: WF-06 mínimo (`/servicios/:id`), WF-10 (`/servicios/:id/reservar`, la selección vive en la URL) y WF-11 «Mis reservas» (`/mis-reservas`, privada, solo turistas; pendiente de diseño), más la disponibilidad de las tarjetas y la miniatura del popup del mapa (RF23);
+  - «Contenido público» (DEC-54, iteración A del plan del 60 %): preguntas frecuentes (RF26, RF47), avisos generales (RF40) y términos y condiciones (RF46). El backend vive en `ms-catalog` (DEC-57) y ya está hecho; las pantallas WF-13 a WF-15 (propuestas por arquitectura, pendientes de validación) y el banner común son la sesión B. CU: [Gestionar FAQs](docs/casos-de-uso/CU-gestionar-faqs.md), [Crear y publicar aviso general](docs/casos-de-uso/CU-crear-publicar-aviso-general.md) y [Consultar términos y condiciones](docs/casos-de-uso/CU-consultar-terminos.md).
+- **Fuera de alcance:** chatbot real, notificaciones (el aviso por correo del registro llega con RF34; RF13, RF30 y RF63, con ms-notificaciones), analítica, en reservas RF12 del lado del prestador y RF19, y en contenido público «Noticias» del pie, la vigencia automática de los avisos y el contenido en varios idiomas (DEC-58, DEC-69). No implementarlos aunque parezcan fáciles.
 - Si una regla de negocio no está definida en el SRS (`docs/srs/`), **preguntar**; no inventarla.
 - Fuente única de requisitos: `docs/srs/especificacion de requisitos.pdf`. Modelo de datos: `docs/sad/diagramas/modelo-logico.dbml`. Ignorar las carpetas `Documentos extras/`, `DocumentosEntregable1/` y `Diagramas de casos de uso/`, que contienen versiones anteriores.
 - Las pantallas del frontend y los datos que exponen los endpoints deben corresponder a los wireframes de `docs/wireframes/`. Si un elemento del wireframe queda fuera del alcance del prototipo, se muestra deshabilitado y se lista como pendiente.
@@ -79,6 +80,16 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
   - `docs/sad/modelo-nosql/*.schema.json` describe la última versión; `MigracionesMongoTest` lo verifica;
   - el `oneOf` de `detalleCategoria` discrimina por `categoria` en el nivel superior.
 - **Proyección `cuentas`** (M003; `docs/sad/modelo-nosql/cuentas.schema.json`, ADR-008): el estado y la versión de las cuentas de **todos** los roles. `PUT /internal/v1/cuentas/{id}` solo acepta un JWT con `rol = SERVICIO` y `aud = ms-catalog` (403 con un token de usuario, 401 con otra `aud`); *upsert* idempotente que solo avanza si `version` es mayor (204 también si se ignora). Si la cuenta es de un Prestador, primero fija `servicios.prestadorActivo = (estado == Activo)` (índice `prestador`, M004) y después guarda la proyección; si algo falla, el relevo reintenta. Dos `SecurityFilterChain`: `/internal/**` y la pública (con el validador de `ver`).
+- **Contenido público** (contrato en `docs/sad/api/ms-catalog.md`; DEC-60 a DEC-69):
+  - **Públicos, sin token:** `GET /api/v1/catalogo/faq` (todas, sin paginar, por título con colación `es` nivel 1) y `GET /api/v1/catalogo/avisos` (los activos, del más reciente al más antiguo).
+  - **Solo el Administrador** (`/api/v1/catalogo/admin/**`, con el validador de `ver`; otro rol, 403 `ACCESO_DENEGADO`):
+    - `POST`, `PUT /{id}` y `DELETE /{id}` de `/admin/faq`;
+    - `GET /admin/avisos` (páginas de 10, `pagina` desde 0), `POST /admin/avisos` y `POST /admin/avisos/{id}/despublicacion`.
+  - **Colección `faq`:** `titulo` de 1 a 150 y `cuerpo` de 1 a 2000, recortados con `strip()` y contados en puntos de código; tope de 200 (409 `LIMITE_FAQ`, sin atomicidad); borrado físico; el PUT no tiene control de concurrencia.
+  - **Colección `avisos`:** `mensaje` de 1 a 300, `tipo` Clima, Cierre o Comunicado, `activo` y `fechaPublicacion`. Sin vigencia automática y sin edición ni borrado. Despublicar es un UPDATE condicional: si ya estaba inactivo, 409 `ESTADO_CAMBIADO` con `estadoActual: Inactivo`; si no existe, 404.
+  - **Ids:** un id que no es un ObjectId es 404 (`FAQ_NO_ENCONTRADA`, `AVISO_NO_ENCONTRADO`).
+  - **Esquema:** M005 (validadores e índices) y M006 (semilla).
+  - **Hora:** la de `fechaActualizacion` y `fechaPublicacion` sale de `RelojPort`.
 
 ## ms-booking (Java 17, Spring Boot 3.5.16, PostgreSQL `reservas_db`)
 

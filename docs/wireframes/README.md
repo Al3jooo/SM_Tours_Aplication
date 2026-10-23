@@ -11,7 +11,8 @@
 
 **Pantallas de la plataforma (WF-04 a WF-10):**
 - **Encabezado:** logo «Samaria360»; navegación **Búsqueda, Servicios, Asistente IA**; selector **ES / EN** (RF03, RNF08); con sesión, avatar circular con las iniciales (p. ej. «MG»). Sin sesión, el prototipo muestra además el enlace «Inicio de sesión» (los wireframes solo dibujan el estado con sesión).
-- **Pie de página:** logo; columnas **Explorar** (Alojamiento, Gastronomía, Tours, Alquiler de equipos), **Municipio** (Noticias), **Prestadores** (Registrar servicio, Panel del gestor), **Legal y Soporte** (Términos y condiciones, Políticas de privacidad, Preguntas frecuentes — RF46, RF26). Texto inferior: «© 2026 Alcaldía de Santa Marta · Samaria360».
+- **Banner de avisos del municipio (RF40, DEC-67):** debajo del encabezado, en todas las pantallas con el encabezado de la plataforma. Muestra todos los avisos activos, del más reciente al más antiguo, con su tipo. Se cierra y no vuelve en la sesión del navegador; sin avisos activos, no aparece. WF-04 lo dibuja solo en el inicio, pero RF40 lo pide «en la parte superior de la interfaz para todos los usuarios»: por eso es común («Mejora de diseño»). Estructura en WF-14.
+- **Pie de página:** logo; columnas **Explorar** (Alojamiento, Gastronomía, Tours, Alquiler de equipos), **Municipio** (Noticias), **Prestadores** (Registrar servicio, Panel del gestor), **Legal y Soporte** (Términos y condiciones, Políticas de privacidad, Preguntas frecuentes — RF46, RF26). Texto inferior: «© 2026 Alcaldía de Santa Marta · Samaria360». «Términos y condiciones» lleva a WF-15, «Políticas de privacidad» a su sección 4 y «Preguntas frecuentes» a WF-13.
 
 **Pantallas de acceso (WF-01 a WF-03):**
 - **Encabezado reducido:** solo logo y selector ES / EN.
@@ -33,6 +34,9 @@
 | WF-10-disponibilidad-reserva.png | Disponibilidad y reserva **(nuevo)** | Reservar servicio | RF11, RF20, RF37, RF44 | **Sí** (sin RNT, impuestos, pagos ni «Notificarme si se libera») |
 | — (WF-11, sin imagen) | Mis reservas **(pendiente de diseño)** | Reservar servicio | RF12, RF18, RF44, RF52 | Sí (diseño provisional) |
 | WF-12-administrar-cuentas.puml (+ `.png` y `.svg`) | Administrar cuentas **(nuevo)** | Administrar cuentas | RF28, RF22, RF62 | **Sí** (sin la reactivación del prestador). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-13-preguntas-frecuentes.puml | Preguntas frecuentes **(nuevo)** | Gestionar FAQs | RF26, RF47 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-14-avisos.puml | Avisos generales: banner y gestión **(nuevo)** | Crear y publicar aviso general | RF40 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-15-terminos.puml | Términos y condiciones **(nuevo)** | Consultar términos y condiciones | RF46 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
 
 ## WF-01 — Inicio de sesión
 
@@ -60,7 +64,7 @@ Pestaña **Registrarse** activa; opción **Prestador de Servicios** seleccionada
 - «Explora por categoría»: **Alojamiento, Gastronomía, Tours, Alquiler de equipos**, con icono.
 - «Destacados esta semana»: 3 tarjetas con imagen, nombre, categoría, calificación, precio «desde», disponibilidad y **Ver detalle**. Cambio respecto a la v1: sin el enlace «Reservar».
 
-**Prototipo:** la búsqueda y las categorías llevan a WF-05 con el filtro aplicado. Banner de avisos: pendiente (no hay fuente de datos de avisos).
+**Prototipo:** la búsqueda y las categorías llevan a WF-05 con el filtro aplicado. El banner de avisos es un elemento común de la plataforma (ver «Elementos comunes» y WF-14). Su fuente de datos ya existe: `GET /api/v1/catalogo/avisos`. Lo implementa la sesión B de «Contenido público».
 
 **Nota:** El botón flotante del asistente se retiró por decisión del equipo; el acceso a RF04 queda en la navegación.
 
@@ -122,6 +126,42 @@ Cambios respecto del contenido propuesto, por lo que el modelo guarda (DEC-45 y 
 - **Se quitó «País» del detalle del prestador:** RF02 no lo captura (solo el turista tiene país de origen, RF01).
 - **«Políticas aceptadas» muestra «Sí · fecha»**, sin hora: el modelo guarda un booleano y el día del registro (decisión D6 de «Registrarse»).
 - **El turista desactivado se muestra «Desactivado»**, no «Inactivo»: «Inactivo» es el estado de RF22, del prestador (DEC-44).
+
+## WF-13, WF-14 y WF-15 — Contenido público (nuevos)
+
+**Estado: propuestos por arquitectura, pendientes de validación del equipo (DEC-67, como DEC-36).**
+- No los dibujó quien hizo los wireframes. Son wireframes en PlantUML Salt, solo de estructura (regiones, elementos y flujo).
+- Los `.png` y `.svg` los exporta el equipo.
+- Los implementa la sesión B de la iteración «Contenido público».
+- El contenido de las preguntas y los avisos va en el idioma en que lo escribe el Administrador; la interfaz, en ES y EN (DEC-69).
+
+**WF-13 — Preguntas frecuentes** (CU «Gestionar FAQs», `docs/casos-de-uso/CU-gestionar-faqs.md`; RF26, RF47):
+- **Sección pública,** desde «Preguntas frecuentes» del pie:
+  - título y texto de apoyo;
+  - **barra de búsqueda** que filtra en tiempo real por título o cuerpo: coincidencia parcial, sin distinguir mayúsculas ni tildes (RF47, DEC-62);
+  - lista de preguntas en acordeón, por título en orden alfabético (DEC-63);
+  - estado «sin coincidencias» con «Borrar búsqueda», y estado de lista vacía.
+- **Gestión del Administrador:**
+  - contador «n de 200 preguntas» y **Nueva pregunta**;
+  - tabla con título, fecha de actualización, **Editar** y **Eliminar**;
+  - formulario con **Título** (contador 0/150) y **Cuerpo** (contador 0/2000), con error por campo;
+  - confirmación de **Eliminar** («no se puede deshacer»);
+  - región de estado (`aria-live`): éxito, 404 y 409 `LIMITE_FAQ`.
+
+**WF-14 — Avisos generales** (CU «Crear y publicar aviso general», `docs/casos-de-uso/CU-crear-publicar-aviso-general.md`; RF40):
+- **Banner** (elemento común): todos los avisos activos, del más reciente al más antiguo, con su tipo (Clima, Cierre o Comunicado) y fecha.
+  - **Cerrar avisos** lo oculta en la sesión del navegador.
+  - Sin avisos activos, no se muestra.
+- **Gestión del Administrador:**
+  - formulario **Nuevo aviso** con **Mensaje** (contador 0/300), **Tipo** y **Publicar**;
+  - listado de 10 por página con mensaje, tipo, fecha, estado y **Despublicar** (solo en los activos), con confirmación;
+  - región de estado: éxito, 409 (ya despublicado) y 404.
+  - No hay editar ni borrar (DEC-64).
+
+**WF-15 — Términos y condiciones** (CU «Consultar términos y condiciones», `docs/casos-de-uso/CU-consultar-terminos.md`; RF46):
+- Página estática, desde el pie (y el pie reducido y el texto legal de WF-01), en ES y EN.
+- Título y nota «Texto del prototipo académico — Universidad del Magdalena. No es un documento legal vigente».
+- Índice con enlaces a las 9 secciones de DEC-68. La sección 4, «Datos personales (Ley 1581 de 2012)», es el destino de «Políticas de privacidad» (pie y casilla del registro).
 
 ## Diferencias detectadas en la v2 (pendientes de resolver antes de implementar esas pantallas)
 
