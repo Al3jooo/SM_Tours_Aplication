@@ -1,0 +1,26 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "required": ["_id", "mensaje", "tipo", "activo", "fechaPublicacion"],
+    "additionalProperties": false,
+    "properties": {
+      "_id": { "bsonType": "objectId" },
+      "mensaje": {
+        "bsonType": "string",
+        "minLength": 1,
+        "maxLength": 300,
+        "pattern": "^\\S([\\s\\S]*\\S)?\\z",
+        "description": "RF40. De 1 a 300 caracteres (puntos de código), sin espacios en los extremos (DEC-58)"
+      },
+      "tipo": {
+        "enum": ["Clima", "Cierre", "Comunicado"],
+        "description": "RF40: alertas de clima, cierres temporales o comunicados"
+      },
+      "activo": {
+        "bsonType": "bool",
+        "description": "true al publicar; el Administrador lo despublica (false). Sin vigencia automática (DEC-58)"
+      },
+      "fechaPublicacion": { "bsonType": "date" }
+    }
+  }
+}

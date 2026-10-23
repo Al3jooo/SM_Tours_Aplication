@@ -1,5 +1,7 @@
 package co.edu.unimagdalena.samaria360.catalog.infrastructure.mongo;
 
+import co.edu.unimagdalena.samaria360.catalog.domain.model.PreguntaFrecuente;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.TextoAcotado;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -48,8 +50,14 @@ class MigracionesMongoTest {
             MongoDePrueba.MIGRACIONES.resolve("esquema/M001__servicios.v2.schema.json");
     private static final Path VALIDADOR_M003 =
             MongoDePrueba.MIGRACIONES.resolve("esquema/M003__cuentas.v1.schema.json");
+    private static final Path VALIDADOR_M005_FAQ = MongoDePrueba.MIGRACIONES.resolve("esquema/M005__faq.v1.schema.json");
+    private static final Path VALIDADOR_M005_AVISOS =
+            MongoDePrueba.MIGRACIONES.resolve("esquema/M005__avisos.v1.schema.json");
     private static final List<String> MIGRACIONES = List.of("M001__unidades-alojamiento",
-            "M002__semilla-suite-casa-tayrona", "M003__cuentas", "M004__indice-servicios-prestador");
+            "M002__semilla-suite-casa-tayrona", "M003__cuentas", "M004__indice-servicios-prestador",
+            "M005__faq-avisos", "M006__semilla-faq-avisos");
+    /** Fuera del plano básico: un punto de código, dos unidades UTF-16. */
+    private static final String EMOJI = "🌴";
     private static final int VALIDACION_DOCUMENTO_FALLIDA = 121;
 
     @Container
@@ -101,7 +109,7 @@ class MigracionesMongoTest {
     // ------------------------------------------------------------------ validador v2
 
     @ParameterizedTest
-    @ValueSource(strings = {"servicios", "atractivos", "cuentas"})
+    @ValueSource(strings = {"servicios", "atractivos", "cuentas", "faq", "avisos"})
     void despuesDeLasMigracionesElValidadorEsElDeDocs(String coleccion) throws IOException {
         Document esperado = Document.parse(Files.readString(ESQUEMAS.resolve(coleccion + ".schema.json")));
 
@@ -122,6 +130,148 @@ class MigracionesMongoTest {
     void laCopiaDelValidadorDeM003EsLaUltimaVersion() throws IOException {
         assertThat(Document.parse(Files.readString(VALIDADOR_M003)))
                 .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("cuentas.schema.json"))));
+    }
+
+    /** Mientras no exista una migración posterior que cambie faq o avisos, las copias de M005 son la última versión. */
+    @Test
+    void lasCopiasDeLosValidadoresDeM005SonLaUltimaVersion() throws IOException {
+        assertThat(Document.parse(Files.readString(VALIDADOR_M005_FAQ)))
+                .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("faq.schema.json"))));
+        assertThat(Document.parse(Files.readString(VALIDADOR_M005_AVISOS)))
+                .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("avisos.schema.json"))));
+    }
+
+    // ------------------------------------------------------------------ faq y avisos (M005, M006)
+
+    @Test
+    void laColeccionFaqAceptaPreguntasValidasHastaElLimiteEnPuntosDeCodigo() {
+        MongoCollection<Document> faq = nuevo.getCollection("faq");
+
+        for (Document pregunta : List.of(pregunta("¿Hay parqueadero?", "Sí."),
+                pregunta("a".repeat(150), "b".repeat(2000)),
+                pregunta(EMOJI.repeat(150), EMOJI.repeat(2000)),
+                pregunta("Dos\nlíneas", "Primera línea.\n\nSegunda línea."))) {
+            faq.insertOne(pregunta);
+            faq.deleteOne(Filters.eq("_id", pregunta.getObjectId("_id")));
+        }
+    }
+
+    @Test
+    void laColeccionFaqRechazaLoQueNoSeaUnaPreguntaValida() {
+        MongoCollection<Document> faq = nuevo.getCollection("faq");
+
+        assertRechazado(faq, pregunta("", "Cuerpo"));
+        assertRechazado(faq, pregunta("   ", "Cuerpo"));
+        assertRechazado(faq, pregunta(" Título", "Cuerpo"));
+        assertRechazado(faq, pregunta("Título\n", "Cuerpo"));
+        assertRechazado(faq, pregunta("a".repeat(151), "Cuerpo"));
+        assertRechazado(faq, pregunta(EMOJI.repeat(151), "Cuerpo"));
+        assertRechazado(faq, pregunta("Título", "b".repeat(2001)));
+        assertRechazado(faq, pregunta("Título", "Cuerpo").append("otro", "campo"));
+        assertRechazado(faq, pregunta("Título", "Cuerpo").append("fechaActualizacion", "hoy"));
+        Document sinFecha = pregunta("Título", "Cuerpo");
+        sinFecha.remove("fechaActualizacion");
+        assertRechazado(faq, sinFecha);
+    }
+
+    /**
+     * El dominio recorta con {@link String#strip()}; el validador exige {@code \S} en los extremos. Todo lo que MongoDB
+     * rechaza, el dominio también lo rechaza, y el texto que el dominio guarda (ya limpio) MongoDB lo acepta: también con
+     * espacios Unicode que {@code strip()} no recorta (U+00A0, U+2007, U+202F) o sí recorta (U+2003, U+3000). El
+     * dominio puede ser más estricto: recorta U+2003, que el {@code \S} de MongoDB acepta.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {" ", " ", " ", " ", "　", "\u0085", "﻿", "\t", "\n"})
+    void loQueRechazaElValidadorTambienLoRechazaElDominioConEspaciosEnLosExtremos(String espacio) {
+        for (String texto : List.of("Hola" + espacio, espacio + "Hola")) {
+            String codigo = String.format("U+%04X en «%s»", (int) espacio.charAt(0), texto);
+            boolean dominioLoDaPorValido = texto.equals(TextoAcotado.limpiar(texto))
+                    && TextoAcotado.validar(texto, PreguntaFrecuente.TITULO_MAXIMO).isEmpty();
+
+            if (!aceptaComoTitulo(texto)) {
+                assertThat(dominioLoDaPorValido).as(codigo).isFalse();
+            }
+            assertThat(aceptaComoTitulo(TextoAcotado.limpiar(texto))).as("limpio: " + codigo).isTrue();
+        }
+    }
+
+    /** Lo que de verdad hace el {@code pattern} en un extremo: rechaza los espacios ASCII y acepta los Unicode. */
+    @ParameterizedTest
+    @ValueSource(strings = {" ", "\t", "\n", "\r", "\u000B", "\f"})
+    void elValidadorRechazaUnEspacioAsciiEnCualquierExtremo(String espacio) {
+        assertThat(aceptaComoTitulo("Hola" + espacio)).isFalse();
+        assertThat(aceptaComoTitulo(espacio + "Hola")).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {" ", " ", " ", " ", "　", "\u0085", "﻿"})
+    void elValidadorAceptaUnEspacioUnicodeEnUnExtremo(String espacio) {
+        assertThat(aceptaComoTitulo("Hola" + espacio)).isTrue();
+        assertThat(aceptaComoTitulo(espacio + "Hola")).isTrue();
+    }
+
+    /** U+00A0: ni {@code strip()} ni el {@code \S} de MongoDB lo tratan como espacio, así que se conserva y se acepta. */
+    @Test
+    void unEspacioDeNoSeparacionEnUnExtremoSeConservaYSeAcepta() {
+        assertThat(TextoAcotado.limpiar("Hola ")).isEqualTo("Hola ");
+        assertThat(aceptaComoTitulo("Hola ")).isTrue();
+        assertThat(aceptaComoTitulo(" Hola")).isTrue();
+    }
+
+    @Test
+    void laColeccionAvisosAceptaUnAvisoValidoDeCadaTipo() {
+        MongoCollection<Document> avisos = nuevo.getCollection("avisos");
+
+        for (String tipo : List.of("Clima", "Cierre", "Comunicado")) {
+            for (Document aviso : List.of(aviso("Mensaje", tipo, true), aviso("m".repeat(300), tipo, false),
+                    aviso(EMOJI.repeat(300), tipo, true))) {
+                avisos.insertOne(aviso);
+                avisos.deleteOne(Filters.eq("_id", aviso.getObjectId("_id")));
+            }
+        }
+    }
+
+    @Test
+    void laColeccionAvisosRechazaLoQueNoSeaUnAvisoValido() {
+        MongoCollection<Document> avisos = nuevo.getCollection("avisos");
+
+        assertRechazado(avisos, aviso("", "Clima", true));
+        assertRechazado(avisos, aviso(" Mensaje", "Clima", true));
+        assertRechazado(avisos, aviso("m".repeat(301), "Clima", true));
+        assertRechazado(avisos, aviso(EMOJI.repeat(301), "Clima", true));
+        assertRechazado(avisos, aviso("Mensaje", "Lluvia", true));
+        assertRechazado(avisos, aviso("Mensaje", "Clima", true).append("activo", "si"));
+        assertRechazado(avisos, aviso("Mensaje", "Clima", true).append("vigenteHasta", new java.util.Date()));
+        Document sinFecha = aviso("Mensaje", "Clima", true);
+        sinFecha.remove("fechaPublicacion");
+        assertRechazado(avisos, sinFecha);
+    }
+
+    @Test
+    void m005CreaLosIndicesDeFaqYAvisosEnVolumenNuevoYExistente() {
+        for (MongoDatabase base : List.of(nuevo, existente)) {
+            assertThat(base.getCollection("faq").listIndexes().into(new ArrayList<>())).anySatisfy(indice -> {
+                assertThat(indice.getString("name")).isEqualTo("faq_titulo");
+                assertThat(indice.get("key", Document.class)).isEqualTo(new Document("titulo", 1).append("_id", 1));
+                assertThat(indice.get("collation", Document.class).getString("locale")).isEqualTo("es");
+                assertThat(indice.get("collation", Document.class).getInteger("strength")).isEqualTo(1);
+            });
+            assertThat(indices(base, "avisos")).contains(
+                    new Document("name", "avisos_activos").append("key",
+                            new Document("activo", 1).append("fechaPublicacion", -1).append("_id", -1)),
+                    new Document("name", "avisos_fecha").append("key",
+                            new Document("fechaPublicacion", -1).append("_id", -1)));
+        }
+    }
+
+    @Test
+    void laSemillaDeM006TraeCincoPreguntasYUnAvisoActivo() {
+        assertThat(existente.getCollection("faq").countDocuments()).isEqualTo(5);
+        assertThat(existente.getCollection("avisos").find().into(new ArrayList<>())).singleElement()
+                .satisfies(aviso -> {
+                    assertThat(aviso.getString("tipo")).isEqualTo("Cierre");
+                    assertThat(aviso.getBoolean("activo")).isTrue();
+                });
     }
 
     // ------------------------------------------------------------------ cuentas (M003) y su índice (M004)
@@ -266,7 +416,7 @@ class MigracionesMongoTest {
 
         MongoDePrueba.exigirExito("aplicar.js", segunda);
         assertThat(segunda.getStdout()).contains("ya aplicada: M001", "ya aplicada: M002", "ya aplicada: M003",
-                "ya aplicada: M004");
+                "ya aplicada: M004", "ya aplicada: M005", "ya aplicada: M006");
         assertThat(documentos(existente, "servicios")).isEqualTo(antes);
         assertThat(idsMigraciones(existente)).containsExactlyElementsOf(MIGRACIONES);
     }
@@ -274,7 +424,7 @@ class MigracionesMongoTest {
     // ------------------------------------------------------------------ convergencia
 
     @ParameterizedTest
-    @ValueSource(strings = {"servicios", "atractivos"})
+    @ValueSource(strings = {"servicios", "atractivos", "faq", "avisos"})
     void unVolumenNuevoYUnoExistenteTerminanIguales(String coleccion) {
         assertThat(sinIdsAleatorios(documentos(existente, coleccion)))
                 .isNotEmpty()
@@ -317,7 +467,8 @@ class MigracionesMongoTest {
         MongoDePrueba.exigirExito("aplicar.js", MongoDePrueba.migrar(ERRORES, false));
 
         assertThat(idsMigraciones(errores)).containsExactly("M001__unidades-alojamiento", "M003__cuentas",
-                "M004__indice-servicios-prestador");
+                "M004__indice-servicios-prestador", "M005__faq-avisos");
+        assertThat(errores.getCollection("faq").countDocuments()).isZero();
         assertThat(unidadesDe(errores, "Hotel Casa Tayrona")).hasSize(1);
     }
 
@@ -346,8 +497,37 @@ class MigracionesMongoTest {
         return ids;
     }
 
+    private static Document pregunta(String titulo, String cuerpo) {
+        return new Document("_id", new ObjectId()).append("titulo", titulo).append("cuerpo", cuerpo)
+                .append("fechaActualizacion", new java.util.Date());
+    }
+
+    private static Document aviso(String mensaje, String tipo, boolean activo) {
+        return new Document("_id", new ObjectId()).append("mensaje", mensaje).append("tipo", tipo)
+                .append("activo", activo).append("fechaPublicacion", new java.util.Date());
+    }
+
+    /** Inserta y borra: true si el validador de faq acepta el texto como título. */
+    private static boolean aceptaComoTitulo(String titulo) {
+        MongoCollection<Document> faq = nuevo.getCollection("faq");
+        Document documento = pregunta(titulo, "Cuerpo");
+        try {
+            faq.insertOne(documento);
+        } catch (MongoWriteException e) {
+            assertThat(e.getError().getCode()).isEqualTo(VALIDACION_DOCUMENTO_FALLIDA);
+            return false;
+        }
+        faq.deleteOne(Filters.eq("_id", documento.getObjectId("_id")));
+        return true;
+    }
+
     private static List<Document> documentos(MongoDatabase base, String coleccion) {
-        String nombre = "servicios".equals(coleccion) ? "nombreComercial" : "nombre";
+        String nombre = switch (coleccion) {
+            case "servicios" -> "nombreComercial";
+            case "faq" -> "titulo";
+            case "avisos" -> "mensaje";
+            default -> "nombre";
+        };
         return base.getCollection(coleccion).find().sort(Sorts.ascending(nombre)).into(new ArrayList<>());
     }
 

@@ -1,0 +1,65 @@
+' WF-13 — Preguntas frecuentes (RF26, RF47). Propuesto por arquitectura, pendiente de validación del equipo (DEC-67).
+' Solo estructura: regiones, elementos y flujo. Diagramas: (1) sección pública con el buscador; (2) gestión del
+' Administrador; (3) formulario de crear o editar; (4) confirmación de eliminar.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (Iniciar sesión) }
+{ Banner de avisos (común, WF-14): [Cierre] Sendero Cascada El Salto cerrado por lluvias | [x] }
+==
+<b>Preguntas frecuentes
+Resuelve tus dudas sobre reservas, cuentas y la plataforma.
+{ Buscar | "palabra clave (título o cuerpo)        " }
+filtra en tiempo real, sin mayúsculas ni tildes (RF47)
+--
+{+
+[+] ¿Cómo encuentro lugares accesibles?
+[-] ¿Cómo reservo un servicio?
+    Busca el servicio, abre su detalle y elige «Ver disponibilidad y reservar»…
+[+] ¿Hasta cuándo puedo cancelar una reserva?
+}
+orden alfabético por título (DEC-63)
+--
+Sin coincidencias: «No hay preguntas con “término”.» | [Borrar búsqueda]
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte: Términos y condiciones · Políticas de privacidad · <b>Preguntas frecuentes }
+}
+@endsalt
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | [ES/EN] | (Administrador ▼) }
+==
+<b>Administrar preguntas frecuentes
+{ n de 200 preguntas | [Nueva pregunta] }
+{#
+<b>Título | <b>Actualizada | <b>Acciones
+¿Cómo encuentro lugares accesibles? | 22/10/2026 | [Editar] [Eliminar]
+¿Cómo reservo un servicio? | 22/10/2026 | [Editar] [Eliminar]
+}
+Región de estado (aria-live): creada, editada, eliminada, 404 (ya no existe; se recarga la lista), 409 LIMITE_FAQ
+}
+@endsalt
+
+@startsalt
+{+
+<b>Nueva pregunta / Editar pregunta
+Título (obligatorio)
+"                                        "
+0 / 150 · error del campo
+Cuerpo (obligatorio)
+{+ "                                        "
+   "                                        "
+   "                                        " }
+0 / 2000 · error del campo
+{ [Cancelar] | [Guardar] (deshabilitado si un campo está vacío o se pasa) }
+}
+@endsalt
+
+@startsalt
+{+
+<b>Eliminar «¿Cómo reservo un servicio?»
+La pregunta se borra de la sección pública. No se puede deshacer.
+{ [Cancelar] | [Eliminar] }
+}
+@endsalt

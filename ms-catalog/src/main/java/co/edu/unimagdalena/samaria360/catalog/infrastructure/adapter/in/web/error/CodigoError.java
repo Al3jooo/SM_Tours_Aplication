@@ -11,6 +11,14 @@ public enum CodigoError {
     /** Token de antes de un cambio de estado o de rol de la cuenta: su claim ver es menor que la versión conocida (DEC-29). */
     SESION_INVALIDADA,
     DATOS_INVALIDOS,
+    /** No existe una pregunta frecuente con ese id, o el id no es un ObjectId (RF26). */
+    FAQ_NO_ENCONTRADA,
+    /** Ya hay 200 preguntas frecuentes, el tope de la colección (DEC-62). */
+    LIMITE_FAQ,
+    /** No existe un aviso con ese id, o el id no es un ObjectId (RF40). */
+    AVISO_NO_ENCONTRADO,
+    /** El aviso ya no está en el estado de origen: ya estaba despublicado (DEC-64, como DEC-39 en ms-auth). */
+    ESTADO_CAMBIADO,
     ACCESO_DENEGADO,
     SOLICITUD_INVALIDA,
     ERROR_INTERNO

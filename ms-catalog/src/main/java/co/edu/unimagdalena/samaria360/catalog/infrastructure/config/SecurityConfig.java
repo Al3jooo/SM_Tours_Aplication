@@ -25,8 +25,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * API sin estado con token Bearer emitido por ms-auth. La búsqueda, sus opciones de filtro y el detalle de un servicio
- * son públicos (WF-04, WF-05, WF-06); los endpoints protegidos que vengan validan el JWT con el JWKS de ms-auth.
+ * API sin estado con token Bearer emitido por ms-auth. La búsqueda, sus opciones de filtro, el detalle de un servicio,
+ * las preguntas frecuentes y los avisos activos son públicos (WF-04, WF-05, WF-06, WF-13, WF-14);
+ * {@code /api/v1/catalogo/admin/**} es solo del Administrador (RNF06). El JWT se valida con el JWKS de ms-auth.
  * <p>
  * Dos cadenas (ADR-008): {@code /internal/**} solo para el JWT de servicio de ms-auth ({@code rol = SERVICIO},
  * {@code aud = ms-catalog}); todo lo demás, para tokens de usuario cuyo claim {@code ver} no sea menor que la versión de
@@ -91,7 +92,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(acceso -> {
                     acceso.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
                     acceso.requestMatchers(HttpMethod.GET, "/api/v1/catalogo/oferta", "/api/v1/catalogo/filtros",
-                            "/api/v1/catalogo/servicios/*").permitAll();
+                            "/api/v1/catalogo/servicios/*", "/api/v1/catalogo/faq",
+                            "/api/v1/catalogo/avisos").permitAll();
+                    // Preguntas frecuentes y avisos (RF26, RF40; DEC-65): con ver vigente, por la misma cadena.
+                    acceso.requestMatchers("/api/v1/catalogo/admin/**").hasRole("Administrador");
                     acceso.requestMatchers("/actuator/health", "/actuator/health/**").permitAll();
                     if (dev) {
                         acceso.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();

@@ -1,0 +1,32 @@
+' WF-15 — Términos y condiciones (RF46). Propuesto por arquitectura, pendiente de validación del equipo (DEC-67).
+' Solo estructura: regiones, elementos y flujo. Texto estático del frontend en ES y EN; índice de DEC-68.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (Iniciar sesión) }
+==
+<b>Términos y condiciones
+Texto del prototipo académico — Universidad del Magdalena. No es un documento legal vigente.
+--
+<b>Contenido
+{
+1. Objeto y aceptación
+2. Uso permitido y prohibido
+3. Cuentas y roles
+4. Datos personales (Ley 1581 de 2012)  ← destino de «Políticas de privacidad»
+5. Reservas y cancelaciones
+6. Contenido de terceros e imágenes de referencia
+7. Avisos y preguntas frecuentes
+8. Contacto
+9. Cambios a los términos
+}
+--
+<b>1. Objeto y aceptación
+texto…
+<b>…
+<b>9. Cambios a los términos
+texto…
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte: <b>Términos y condiciones · Políticas de privacidad · Preguntas frecuentes }
+}
+@endsalt

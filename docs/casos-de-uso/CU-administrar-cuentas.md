@@ -11,6 +11,11 @@ Fase de Construcción (RUP). Caso de uso de la iteración «Administrar cuentas�
 | **Nivel** | Objetivo de usuario |
 | **Alcance** | `ms-auth` (`auth_db`), `ms-catalog` (`catalog_db`) y `ms-booking` (`reservas_db`) |
 
+**Nota (DEC-59):**
+- Se conservan los nombres originales de los CU de los entregables, y no se corrigen sus observaciones UML (N14).
+- La reactivación aplica solo al turista: reafirma DEC-37.
+- RF45 entra en la iteración B como margen. Hasta entonces, el Administrador no tiene fila en la proyección `cuentas` y su `ver` no se invalida.
+
 ## Reglas de negocio (citadas del SRS)
 
 - **RF02:** «La cuenta quedará en estado "Pendiente de Validación" hasta que el Administrador verifique sus credenciales.»

@@ -1,0 +1,28 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "required": ["_id", "titulo", "cuerpo", "fechaActualizacion"],
+    "additionalProperties": false,
+    "properties": {
+      "_id": { "bsonType": "objectId" },
+      "titulo": {
+        "bsonType": "string",
+        "minLength": 1,
+        "maxLength": 150,
+        "pattern": "^\\S([\\s\\S]*\\S)?\\z",
+        "description": "RF26. De 1 a 150 caracteres (puntos de código), sin espacios en los extremos (DEC-61)"
+      },
+      "cuerpo": {
+        "bsonType": "string",
+        "minLength": 1,
+        "maxLength": 2000,
+        "pattern": "^\\S([\\s\\S]*\\S)?\\z",
+        "description": "RF26. De 1 a 2000 caracteres (puntos de código), sin espacios en los extremos (DEC-61)"
+      },
+      "fechaActualizacion": {
+        "bsonType": "date",
+        "description": "Creación o última edición. La escribe siempre el servidor: obligatoria, aunque el Entregable 2 la tenía opcional"
+      }
+    }
+  }
+}

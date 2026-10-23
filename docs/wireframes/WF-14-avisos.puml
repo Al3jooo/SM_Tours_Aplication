@@ -1,0 +1,51 @@
+' WF-14 — Avisos generales (RF40). Propuesto por arquitectura, pendiente de validación del equipo (DEC-67).
+' Solo estructura: regiones, elementos y flujo. Diagramas: (1) banner, elemento común de las pantallas con el
+' encabezado de la plataforma; (2) gestión del Administrador; (3) confirmación de despublicar.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar) }
+{+
+<b>Avisos del municipio
+[Cierre] El sendero de la Cascada El Salto está cerrado temporalmente por lluvias. · 22/10/2026
+[Clima] Lluvias fuertes en la Sierra Nevada esta tarde. · 21/10/2026
+[Cerrar avisos]
+}
+todos los activos, del más reciente al más antiguo; cerrado, no vuelve en la sesión del navegador
+sin avisos activos, no se muestra
+==
+... contenido de la pantalla (WF-04 a WF-12) ...
+}
+@endsalt
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | [ES/EN] | (Administrador ▼) }
+==
+<b>Administrar avisos
+<b>Nuevo aviso
+Mensaje (obligatorio)
+{+ "                                        "
+   "                                        " }
+0 / 300 · error del campo
+Tipo | ^Clima^ (Clima, Cierre, Comunicado)
+{ [Publicar] (deshabilitado si el mensaje está vacío o se pasa) }
+--
+<b>Avisos publicados
+{#
+<b>Mensaje | <b>Tipo | <b>Publicado | <b>Estado | <b>Acción
+El sendero de la Cascada El Salto… | Cierre | 22/10/2026 | Activo | [Despublicar]
+Feria de las flores en el centro… | Comunicado | 01/10/2026 | Inactivo | —
+}
+{ [< Anterior] | Página 1 de n | [Siguiente >] }
+Región de estado (aria-live): publicado, despublicado, 409 (ya estaba despublicado; se recarga), 404
+}
+@endsalt
+
+@startsalt
+{+
+<b>Despublicar aviso
+«El sendero de la Cascada El Salto…» deja de verse en el banner. No se puede volver a publicar: crea uno nuevo.
+{ [Cancelar] | [Despublicar] }
+}
+@endsalt
