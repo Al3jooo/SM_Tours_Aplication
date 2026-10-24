@@ -9,11 +9,14 @@ export function BotonNoDisponible({
   children,
   className = '',
   ref,
+  descripcion,
 }: {
   children: ReactNode
   className?: string
   /** Para devolverle el foco (p. ej. después de inactivar, WF-12). */
   ref?: Ref<HTMLButtonElement>
+  /** Id del texto visible con el motivo, si lo hay (p. ej. «La cuenta está desactivada», DEC-122). */
+  descripcion?: string
 }) {
   const { t } = useTranslation()
   return (
@@ -22,6 +25,7 @@ export function BotonNoDisponible({
       type="button"
       className={`boton-secundario boton-no-disponible ${className}`.trim()}
       aria-disabled="true"
+      aria-describedby={descripcion}
       onClick={(evento) => evento.preventDefault()}
     >
       {children}

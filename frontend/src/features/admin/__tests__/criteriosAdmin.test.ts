@@ -5,13 +5,14 @@ const leer = (consulta: string) => leerCriteriosAdmin(new URLSearchParams(consul
 
 describe('criterios de WF-12 en la URL (DEC-51)', () => {
   it('sin parámetros: pestaña «pendientes», sin estado ni búsqueda, página 1', () => {
-    expect(leer('')).toEqual({ pestana: 'pendientes', estado: '', q: '', pagina: 1 })
+    expect(leer('')).toEqual({ pestana: 'pendientes', estado: '', rol: '', q: '', pagina: 1 })
   })
 
   it('lee pestaña, estado, búsqueda y página', () => {
     expect(leer('pestana=turistas&estado=Desactivado&q=marta&pagina=3')).toEqual({
       pestana: 'turistas',
       estado: 'Desactivado',
+      rol: '',
       q: 'marta',
       pagina: 3,
     })
@@ -31,8 +32,8 @@ describe('criterios de WF-12 en la URL (DEC-51)', () => {
   })
 
   it('escribe solo lo que no es por defecto, en un orden fijo', () => {
-    expect(escribirCriteriosAdmin({ pestana: 'pendientes', estado: '', q: '', pagina: 1 }).toString()).toBe('')
-    expect(escribirCriteriosAdmin({ pestana: 'prestadores', estado: 'Activo', q: ' ana ', pagina: 2 }).toString()).toBe(
+    expect(escribirCriteriosAdmin({ pestana: 'pendientes', estado: '', rol: '', q: '', pagina: 1 }).toString()).toBe('')
+    expect(escribirCriteriosAdmin({ pestana: 'prestadores', estado: 'Activo', rol: '', q: ' ana ', pagina: 2 }).toString()).toBe(
       'pestana=prestadores&estado=Activo&q=ana&pagina=2',
     )
   })
@@ -40,5 +41,18 @@ describe('criterios de WF-12 en la URL (DEC-51)', () => {
   it('leer y escribir son inversos', () => {
     const consulta = 'pestana=turistas&estado=Activo&q=pablo&pagina=4'
     expect(escribirCriteriosAdmin(leer(consulta)).toString()).toBe(consulta)
+  })
+
+  it('«Personal» (RF45, DEC-115): lee y escribe el rol, sin estado', () => {
+    const consulta = 'pestana=personal&rol=Gestor&q=luis&pagina=2'
+    expect(leer(consulta)).toEqual({ pestana: 'personal', estado: '', rol: 'Gestor', q: 'luis', pagina: 2 })
+    expect(escribirCriteriosAdmin(leer(consulta)).toString()).toBe(consulta)
+  })
+
+  it('descarta un rol inválido, el de otra pestaña y el estado en «Personal»', () => {
+    expect(leer('pestana=personal&rol=Turista')).toMatchObject({ rol: '' })
+    expect(leer('pestana=personal&rol=Prestador')).toMatchObject({ rol: '' })
+    expect(leer('pestana=turistas&rol=Gestor')).toMatchObject({ rol: '' })
+    expect(leer('pestana=personal&estado=Activo')).toMatchObject({ estado: '' })
   })
 })

@@ -111,12 +111,15 @@ Reglas:
 
 | Ruta | Pantalla | Acceso |
 |---|---|---|
-| `/admin/cuentas?pestana=&estado=&q=&pagina=` | WF-12 (`AdministrarCuentasPage.tsx`), diferida | Privada, solo el Administrador (`RutaProtegida rol="Administrador"`); otro rol ve «Sin permiso» |
+| `/admin/cuentas?pestana=&estado=&rol=&q=&pagina=` | WF-12 (`AdministrarCuentasPage.tsx`), diferida | Privada, solo el Administrador (`RutaProtegida rol="Administrador"`); otro rol ve «Sin permiso» |
 
 - La página de la URL empieza en 1 y la de la API, en 0 (páginas de 10).
 - La justificación del rechazo se cuenta y se envía sin los espacios de los extremos (1 a 500, `justificacion.ts`).
 - Después de validar o inactivar se recarga la página actual. Después de desactivar o reactivar, la fila se reemplaza en su
   sitio. Un 409 o un 404 avisan en la región de estado y recargan la lista.
+- Cambiar rol (RF45, DEC-115 a DEC-123): pestaña «Personal» (`pestana=personal`, filtro `rol`) y «Asignar rol» en
+  «Turistas». Modificar reemplaza la fila en su sitio; asignar y revocar recargan la página actual. Si la página llega
+  vacía más allá de la última, se pasa a la última que existe (DEC-121).
 
 ## Contenido público (WF-13, WF-14 y WF-15)
 
@@ -368,6 +371,8 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Tarjeta de reserva | `.tarjeta-reserva--<Estado>` | Borde izquierdo mar-700 (Confirmada), error (Cancelada) o café-700 (Completada). |
 | Insignia de reserva | `.insignia-reserva--<Estado>` | Icono y texto: Confirmada mar-700/mar-100 · Cancelada error/error-fondo · Completada café-700/sol-100 (los pares de `.insignia-estado`). |
 | Diálogo | `.dialogo` (`<dialog>` con `showModal()`, en `estilos.css`) | Superficie con `--sombra-3` y fondo mar-900 al 55 %; el foco inicial va a la opción que no destruye nada (o al campo de texto, en el rechazo de WF-12) y vuelve al botón que lo abrió. WF-11 y WF-12. |
+| Diálogo de cambio de rol | `DialogoCambioRol`, `.dialogo-cuentas__roles`, `.dialogo-cuentas__advertencia` (`features/admin/`) | Rol nuevo con radios en un `fieldset` (acento mar-700) al asignar; advertencia de DEC-112 café-700 sobre sol-100 con borde izquierdo. Foco inicial en el radio (asignar) o en «Cancelar» (modificar y revocar). WF-12. |
+| Motivo de una acción no disponible | `BotonNoDisponible` con `descripcion` + `.motivo-no-disponible` | Texto tinta-suave, pequeño, junto al botón y enlazado con `aria-describedby` («La cuenta está desactivada», «Sin datos de turista»). WF-12 (DEC-122). |
 | Pestañas de una página | `.pestanas-cuentas` (`features/admin/admin.css`) | `tablist` WAI-ARIA: botones `role="tab"` con `aria-selected`, tabindex itinerante y ← → Inicio Fin; pestaña activa en mar-700 con barra inferior. Distintas de `PestanasAcceso`, que cambian de página. |
 | Tabla adaptable | `TablaCuentas`, `.tabla-cuentas` | Superficie con encabezado arena. Por debajo de 40 rem, cada fila es una tarjeta y cada celda muestra su columna (`data-etiqueta`). Los roles ARIA explícitos conservan la semántica de tabla. |
 | Insignia de cuenta | `.insignia-cuenta--<Estado>` | Pendiente café-700/sol-100 · Activo mar-700/mar-100 · Rechazado error/error-fondo · Inactivo y Desactivado tinta-suave sobre superficie con borde discontinuo. |
