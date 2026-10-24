@@ -517,9 +517,10 @@ class AdminCuentasApiIntegracionTest {
         return tokens.emitir(usuario, Instant.now()).token();
     }
 
+    /** El Administrador de la semilla, con su versión actual: V15 la subió a 1 (DEC-108). */
     private MvcResult admin(MockHttpServletRequestBuilder solicitud) throws Exception {
         String token = tokenDe(new Usuario(ID_ADMIN, "admin@samaria360.test", "x", Rol.Administrador,
-                EstadoCuenta.Activo, 0, null, 0));
+                EstadoCuenta.Activo, 0, null, version(ID_ADMIN)));
         return mvc.perform(solicitud.header(HttpHeaders.AUTHORIZATION, "Bearer " + token)).andReturn();
     }
 

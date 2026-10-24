@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 /**
@@ -102,6 +103,36 @@ class CuentaInternaApiIntegracionTest {
         assertThat(guardada).containsEntry("rol", "Turista").containsEntry("estado", "Desactivado")
                 .containsEntry("version", 4L);
         assertThat(guardada.get("actualizado_en")).isNotNull();
+    }
+
+    /**
+     * RF45 (DEC-107, DEC-110): el evento de una cuenta de Administrador desconocida crea la fila; con ella, su token pasa
+     * la validación de sesión (y la autorización por rol responde 403 en /mias). Al revocar, el token anterior es 401.
+     */
+    @Test
+    void elEventoDeUnAdministradorDesconocidoCreaLaFilaYElDeLaRevocacionInvalidaElTokenAnterior() throws Exception {
+        UUID id = UUID.randomUUID();
+        assertThat(misReservas(TokensDePrueba.usuario(id, "Administrador", 2)).getResponse().getStatus())
+                .isEqualTo(401);
+
+        assertThat(enviar(id, servicio(), cuerpo("Administrador", "Activo", 2)).getResponse().getStatus())
+                .isEqualTo(204);
+        assertThat(fila(id)).containsEntry("rol", "Administrador").containsEntry("version", 2L);
+        assertThat(misReservas(TokensDePrueba.usuario(id, "Administrador", 2)).getResponse().getStatus())
+                .isEqualTo(403);
+
+        assertThat(enviar(id, servicio(), cuerpo("Turista", "Activo", 3)).getResponse().getStatus()).isEqualTo(204);
+        assertThat(fila(id)).containsEntry("rol", "Turista").containsEntry("version", 3L);
+        MvcResult viejo = misReservas(TokensDePrueba.usuario(id, "Administrador", 2));
+        assertThat(viejo.getResponse().getStatus()).isEqualTo(401);
+        assertThat(JsonPath.<String>read(texto(viejo), "$.codigo")).isEqualTo("SESION_INVALIDADA");
+        assertThat(misReservas(TokensDePrueba.turista(id, 3)).getResponse().getStatus()).isEqualTo(200);
+        jdbc.update("DELETE FROM cuenta WHERE id_usuario = ?", id);
+    }
+
+    private MvcResult misReservas(String token) throws Exception {
+        return mvc.perform(get("/api/v1/reservas/mias").header(HttpHeaders.AUTHORIZATION,
+                TokensDePrueba.bearer(token))).andReturn();
     }
 
     @ParameterizedTest

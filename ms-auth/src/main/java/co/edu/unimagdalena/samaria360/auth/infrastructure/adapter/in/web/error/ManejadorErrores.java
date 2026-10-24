@@ -1,8 +1,10 @@
 package co.edu.unimagdalena.samaria360.auth.infrastructure.adapter.in.web.error;
 
+import co.edu.unimagdalena.samaria360.auth.domain.exception.CambioRolPropioException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CredencialesInvalidasException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaBloqueadaException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaInactivaException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaNoElegibleException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaNoEncontradaException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaPendienteValidacionException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.CuentaRechazadaException;
@@ -10,6 +12,8 @@ import co.edu.unimagdalena.samaria360.auth.domain.exception.DatosRegistroInvalid
 import co.edu.unimagdalena.samaria360.auth.domain.exception.EstadoCambiadoException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.PoliticasNoAceptadasException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.RntYaRegistradoException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.RolCambiadoException;
+import co.edu.unimagdalena.samaria360.auth.domain.exception.UltimoAdministradorException;
 import co.edu.unimagdalena.samaria360.auth.domain.exception.UsuarioNoEncontradoException;
 import co.edu.unimagdalena.samaria360.auth.domain.model.MotivoInvalido;
 import org.slf4j.Logger;
@@ -99,6 +103,31 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
         ProblemDetail problema = Problemas.crear(HttpStatus.CONFLICT, CodigoError.ESTADO_CAMBIADO, ex.getMessage());
         problema.setProperty("estadoActual", ex.getEstadoActual().name());
         return problema;
+    }
+
+    /** Otro Administrador cambió el rol antes, o la lista estaba desactualizada (RF45, DEC-104). */
+    @ExceptionHandler(RolCambiadoException.class)
+    ProblemDetail rolCambiado(RolCambiadoException ex) {
+        ProblemDetail problema = Problemas.crear(HttpStatus.CONFLICT, CodigoError.ROL_CAMBIADO, ex.getMessage());
+        problema.setProperty("rolActual", ex.getRolActual().name());
+        return problema;
+    }
+
+    @ExceptionHandler(CuentaNoElegibleException.class)
+    ProblemDetail cuentaNoElegible(CuentaNoElegibleException ex) {
+        ProblemDetail problema = Problemas.crear(HttpStatus.CONFLICT, CodigoError.CUENTA_NO_ELEGIBLE, ex.getMessage());
+        problema.setProperty("motivo", ex.getMotivo().name());
+        return problema;
+    }
+
+    @ExceptionHandler(CambioRolPropioException.class)
+    ProblemDetail cambioRolPropio(CambioRolPropioException ex) {
+        return Problemas.crear(HttpStatus.CONFLICT, CodigoError.CAMBIO_ROL_PROPIO, ex.getMessage());
+    }
+
+    @ExceptionHandler(UltimoAdministradorException.class)
+    ProblemDetail ultimoAdministrador(UltimoAdministradorException ex) {
+        return Problemas.crear(HttpStatus.CONFLICT, CodigoError.ULTIMO_ADMINISTRADOR, ex.getMessage());
     }
 
     @ExceptionHandler(CuentaNoEncontradaException.class)

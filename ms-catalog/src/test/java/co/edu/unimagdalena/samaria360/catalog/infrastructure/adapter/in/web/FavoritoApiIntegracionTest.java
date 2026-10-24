@@ -85,6 +85,15 @@ class FavoritoApiIntegracionTest {
         mongo.getCollection("cuentas").deleteOne(Filters.eq("_id", turista.toString()));
     }
 
+    /**
+     * Fila de la proyección {@code cuentas}: desde RF45, un Gestor o un Administrador sin fila recibe 401 (DEC-110). La
+     * borra el {@code @AfterEach} o la misma prueba.
+     */
+    private void filaDeCuenta(UUID id, String rol, long version) {
+        mongo.getCollection("cuentas").insertOne(new Document("_id", id.toString()).append("rol", rol)
+                .append("estadoCuenta", "Activo").append("version", version).append("actualizadoEn", new Date()));
+    }
+
     // ---- guardar, listar y quitar -----------------------------------------------------------------------------
 
     @Test
@@ -246,11 +255,16 @@ class FavoritoApiIntegracionTest {
     @Test
     void elPrestadorYElAdministradorReciben403() throws Exception {
         for (String rol : List.of("Prestador", "Administrador", "Gestor")) {
+            UUID id = UUID.randomUUID();
+            if (!rol.equals("Prestador")) {
+                filaDeCuenta(id, rol, 1); // sin fila, el rol privilegiado recibiría 401 (DEC-110)
+            }
             for (MockHttpServletRequestBuilder solicitud : rutas()) {
-                MvcResult resultado = enviar(solicitud, TokensDePrueba.usuario(UUID.randomUUID(), rol, 0));
+                MvcResult resultado = enviar(solicitud, TokensDePrueba.usuario(id, rol, 1));
                 assertThat(resultado.getResponse().getStatus()).as(rol).isEqualTo(403);
                 assertThat(this.<String>leer(resultado, "$.codigo")).isEqualTo("ACCESO_DENEGADO");
             }
+            mongo.getCollection("cuentas").deleteOne(Filters.eq("_id", id.toString()));
         }
     }
 

@@ -19,16 +19,25 @@ class VerificarSesionServiceTest {
     private final VerificarSesionService servicio = new VerificarSesionService(cuentas, new PoliticaSesion());
 
     @Test
-    void sinFilaEnLaProyeccionAceptaElToken() {
-        assertThat(servicio.sesionVigente(ID, 0)).isTrue();
+    void sinFilaEnLaProyeccionAceptaElTokenDeUnTuristaPeroNoElDeUnAdministrador() {
+        assertThat(servicio.sesionVigente(ID, 0, "Turista")).isTrue();
+        assertThat(servicio.sesionVigente(ID, 0, "Administrador")).isFalse();
     }
 
     @Test
     void conFilaComparaElVerConLaVersionGuardada() {
         cuentas.agregar(new Cuenta(ID, RolCuenta.Turista, EstadoCuenta.Desactivado, 4));
 
-        assertThat(servicio.sesionVigente(ID, 4)).isTrue();
-        assertThat(servicio.sesionVigente(ID, 3)).isFalse();
-        assertThat(servicio.sesionVigente(ID, 0)).isFalse();
+        assertThat(servicio.sesionVigente(ID, 4, "Turista")).isTrue();
+        assertThat(servicio.sesionVigente(ID, 3, "Turista")).isFalse();
+        assertThat(servicio.sesionVigente(ID, 0, "Turista")).isFalse();
+    }
+
+    @Test
+    void unAdministradorConFilaComparaElVerComoCualquierOtro() {
+        cuentas.agregar(new Cuenta(ID, RolCuenta.Administrador, EstadoCuenta.Activo, 2));
+
+        assertThat(servicio.sesionVigente(ID, 2, "Administrador")).isTrue();
+        assertThat(servicio.sesionVigente(ID, 1, "Administrador")).isFalse();
     }
 }

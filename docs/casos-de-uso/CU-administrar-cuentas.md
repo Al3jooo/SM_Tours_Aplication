@@ -7,14 +7,14 @@ Fase de Construcción (RUP). Caso de uso de la iteración «Administrar cuentas�
 | **Nombre** | Administrar cuentas |
 | **Actor principal** | Administrador |
 | **Actores secundarios** | ms-catalog y ms-booking (sistemas; reciben el estado de la cuenta, ver «Propagar estado de cuenta») |
-| **Requisitos que traza** | RF28, RF22, RF62. RF45 (roles) **no se implementa**: el diseño le sirve (el evento lleva el rol y la versión, y el relevo cubre todos los roles) |
+| **Requisitos que traza** | RF28, RF22, RF62. RF45 (roles) tiene su propio CU desde la iteración B2: [«Cambiar rol de cuenta»](CU-cambiar-rol-cuenta.md), con el mismo mecanismo (el evento lleva el rol y la versión, y el relevo cubre todos los roles) |
 | **Nivel** | Objetivo de usuario |
 | **Alcance** | `ms-auth` (`auth_db`), `ms-catalog` (`catalog_db`) y `ms-booking` (`reservas_db`) |
 
 **Nota (DEC-59):**
 - Se conservan los nombres originales de los CU de los entregables, y no se corrigen sus observaciones UML (N14).
 - La reactivación aplica solo al turista: reafirma DEC-37.
-- RF45 entra en la iteración B como margen. Hasta entonces, el Administrador no tiene fila en la proyección `cuentas` y su `ver` no se invalida.
+- RF45 entra en la iteración B2 con el CU [«Cambiar rol de cuenta»](CU-cambiar-rol-cuenta.md) (DEC-82). Desde V15 de ms-auth, el Administrador tiene fila en la proyección `cuentas` y su `ver` se invalida (L3 cerrado, DEC-110).
 
 ## Reglas de negocio (citadas del SRS)
 
@@ -290,7 +290,7 @@ BIC ..> [JWKS] : valida firma
 
 ## Fuera de alcance de este CU
 
-- **RF45** (asignar, modificar o revocar el rol de Gestor o Administrador): no se implementa. El diseño le sirve: el evento ya lleva el rol y la versión sube con cada cambio de rol, así que un cambio de rol invalida los tokens viejos con el mismo mecanismo.
+- **RF45** (asignar, modificar o revocar el rol de Gestor o Administrador): es el CU [«Cambiar rol de cuenta»](CU-cambiar-rol-cuenta.md). Usa el mismo mecanismo: el evento lleva el rol y la versión sube con cada cambio de rol, así que un cambio de rol invalida los tokens viejos.
 - **Reactivar a un prestador inactivo o rechazado** (DEC-37).
 - **Notificar** al prestador o al turista del cambio (RF30, RF63, RF34): ms-notificaciones.
 - **Registro de auditoría** (log de RF29): solo se guarda la última revisión del prestador (`revisado_en`, `revisado_por`).

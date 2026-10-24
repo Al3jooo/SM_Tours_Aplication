@@ -114,7 +114,7 @@ El Administrador hereda de «Visitante o usuario»: también consulta y busca.
   - Turista, Prestador o Gestor → 403 `ACCESO_DENEGADO` (RNF06).
   - Sin token, o con un token vencido → 401 `NO_AUTENTICADO`.
   - Con `ver` viejo → 401 `SESION_INVALIDADA`.
-  - **Limitación conocida:** hoy el Administrador no tiene fila en la proyección `cuentas`, así que su `ver` nunca se invalida. Se cierra en la iteración B con RF45 (DEC-59).
+  - **L3 cerrado (RF45, DEC-110):** el Administrador tiene fila en la proyección `cuentas` desde V15 de ms-auth, y su `ver` se invalida como el de cualquier cuenta. Sin fila, su token recibe 401 `SESION_INVALIDADA`.
 
 **Postcondiciones:**
 - **Éxito (crear o editar):** la pregunta queda en `faq` con su título y su cuerpo recortados y la fecha de la operación. La sección pública la muestra en la siguiente consulta.

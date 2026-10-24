@@ -207,7 +207,7 @@ Solo el rol **Turista**. Es una llamada aparte de `GET /oferta`, que sigue públ
 | `DATOS_INVALIDOS` | 400 | `campos` como se indica arriba. Un cuerpo que no es JSON, sin `campos` |
 | `CRITERIOS_INVALIDOS` | 400 | `POST /historial` con criterios que `GET /oferta` también rechaza (DEC-88) |
 | `NO_AUTENTICADO` | 401 | Sin token en `/admin/**`, `/favoritos/**` o `/historial`, o con un token vencido, inválido o de servicio (`rol = SERVICIO`) |
-| `SESION_INVALIDADA` | 401 | `ver` menor que la versión de la proyección `cuentas`. **Limitación conocida:** hoy el Administrador no tiene fila en la proyección (no hay RF45), así que su `ver` no se invalida; se cierra con RF45 |
+| `SESION_INVALIDADA` | 401 | `ver` menor que la versión de la proyección `cuentas`, o un token de Gestor o Administrador cuya cuenta no tiene fila en ella (DEC-110; L3 cerrado con RF45) |
 | `ACCESO_DENEGADO` | 403 | `/admin/**` con un rol que no es Administrador (Turista, Prestador o Gestor); `/favoritos/**` o `/historial` con un rol que no es Turista |
 | `OFERTA_NO_DISPONIBLE` | 404 | `PUT /favoritos/{tipo}/{id}` con un id inválido, inexistente o no visible |
 | `FAQ_NO_ENCONTRADA` | 404 | Pregunta inexistente o id que no es un ObjectId |

@@ -33,7 +33,7 @@
 | WF-09-registrar-atractivo.png | Registrar atractivo turístico | Registrar atractivo | RF06, RF07, RF24, RF27, RF33 | No |
 | WF-10-disponibilidad-reserva.png | Disponibilidad y reserva **(nuevo)** | Reservar servicio | RF11, RF20, RF37, RF44 | **Sí** (sin RNT, impuestos, pagos ni «Notificarme si se libera») |
 | — (WF-11, sin imagen) | Mis reservas **(pendiente de diseño)** | Reservar servicio | RF12, RF18, RF44, RF52 | Sí (diseño provisional) |
-| WF-12-administrar-cuentas.puml (+ `.png` y `.svg`) | Administrar cuentas **(nuevo)** | Administrar cuentas | RF28, RF22, RF62 | **Sí** (sin la reactivación del prestador). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-12-administrar-cuentas.puml (+ `.png` y `.svg`) | Administrar cuentas **(nuevo)** | Administrar cuentas; Cambiar rol de cuenta | RF28, RF22, RF62, RF45 | **Sí** (sin la reactivación del prestador; la parte de RF45, en la sesión B de B2). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-13-preguntas-frecuentes.puml | Preguntas frecuentes **(nuevo)** | Gestionar FAQs | RF26, RF47 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-14-avisos.puml | Avisos generales: banner y gestión **(nuevo)** | Crear y publicar aviso general | RF40 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-15-terminos.puml | Términos y condiciones **(nuevo)** | Consultar términos y condiciones | RF46 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
@@ -115,13 +115,18 @@ Contenido: **lista de reservas** del turista, con el servicio y la unidad tal co
 
 ## WF-12 — Administrar cuentas (nuevo)
 
-**Estado: propuesto por arquitectura, pendiente de validación del equipo (DEC-36).** No lo dibujó quien hizo los wireframes: es un wireframe en PlantUML Salt (`WF-12-administrar-cuentas.puml`, con su `.png` y su `.svg`). Cuando el equipo lo valide o lo rediseñe, la pantalla se ajusta a ese diseño. Pantalla privada del **Administrador**; se llega desde el menú del avatar. Cada diagrama del `.puml` se exporta a su propio archivo: `WF-12-administrar-cuentas` (la primera pantalla), `_001`, `_002` y `_003`.
+**Estado: propuesto por arquitectura, pendiente de validación del equipo (DEC-36).** No lo dibujó quien hizo los wireframes: es un wireframe en PlantUML Salt (`WF-12-administrar-cuentas.puml`, con su `.png` y su `.svg`). Cuando el equipo lo valide o lo rediseñe, la pantalla se ajusta a ese diseño. Pantalla privada del **Administrador**; se llega desde el menú del avatar. Cada diagrama del `.puml` se exporta a su propio archivo: `WF-12-administrar-cuentas` (la primera pantalla), `_001`, `_002` y `_003`; los de RF45, `_004` a `_006` (los exporta el equipo).
 
 Contenido (CU «Administrar cuentas», `docs/casos-de-uso/CU-administrar-cuentas.md`):
 - **Pestañas «Prestadores por validar (n)», «Prestadores» y «Turistas».** Cada una con buscador (nombre, correo o RNT en los prestadores; nombre o correo en los turistas), filtro de estado, tabla y paginación de 10 (DEC-41).
 - **Por validar (RF28):** representante legal, RNT, correo corporativo y fecha de registro; **Revisar** abre el detalle del prestador (representante, razón social opcional, RNT, correo, teléfono, políticas aceptadas y estado) con **Aprobar → Activo** y **Rechazar**. Rechazar abre un diálogo con la **justificación obligatoria** (máximo 500 caracteres, con contador y error por campo; «Confirmar rechazo» deshabilitado si está vacía).
 - **Prestadores (RF22):** **Inactivar** a un prestador Activo; **Ver motivo** en un Rechazado. «Reactivar» aparece **deshabilitado** en un Inactivo: RF22 no define la reactivación (DEC-37); queda como pendiente.
 - **Turistas (RF62):** **Desactivar** y **Reactivar**.
+- **Cambiar rol de cuenta (RF45, iteración B2; DEC-114):** tres diagramas más al final del `.puml` (`_004`, `_005` y `_006` al exportarlos), propuestos por arquitectura y pendientes de validación. Los implementa la sesión B de B2. CU: `docs/casos-de-uso/CU-cambiar-rol-cuenta.md`.
+  - **Pestaña «Personal»:** Gestores y Administradores, con buscador (nombre o correo), filtro de rol, tabla y paginación de 10. Acciones: **Cambiar rol** (Gestor ↔ Administrador) y **Revocar** (vuelve a Turista; deshabilitado si la cuenta no tiene rol base). La propia cuenta del Administrador no tiene acciones.
+  - **«Asignar rol»** en la pestaña «Turistas», solo para un turista Activo (deshabilitado si está Desactivado).
+  - **Diálogo de confirmación** con el rol actual y el nuevo, y la advertencia de que la cuenta no usará sus reservas, favoritos ni historial mientras tenga el rol (DEC-112).
+  - **Región de estado** con los 409 `ROL_CAMBIADO`, `CUENTA_NO_ELEGIBLE`, `ULTIMO_ADMINISTRADOR` y `CAMBIO_ROL_PROPIO`: avisa y recarga (DEC-52).
 - **Confirmación** de Desactivar, Reactivar e Inactivar, **sin motivo** (DEC-38): solo el rechazo del prestador lo exige (RF28).
 - **Región de estado** (`aria-live`): éxito, lista vacía y el 409 `ESTADO_CAMBIADO` («La cuenta cambió de estado; se recargó la lista», DEC-39).
 
