@@ -1,0 +1,40 @@
+' WF-17 — Mis favoritos (RF54). Propuesto por arquitectura, pendiente de validación del equipo (DEC-90).
+' Solo estructura: regiones, elementos y flujo. Diagramas: (1) lista; (2) estado vacío.
+' Se llega desde WF-16 («Mis favoritos») y desde el menú del avatar. Solo para turistas.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+{ Banner de avisos (común, ver WF-14) }
+==
+<b>Mis favoritos
+{ n de 100 favoritos (DEC-86) | [Volver a mi perfil] }
+del más reciente al más antiguo
+--
+{#
+<b>Imagen | <b>Nombre y categoría | <b>Estado | <b>Acciones
+(foto) | Cabañas El Roble · Alojamiento | Disponible | [Ver detalle] [Quitar]
+(foto) | Cascada El Salto · Atractivo, Naturaleza | Disponible | [Ver detalle] (deshabilitado: detalle de atractivo, iteración E) [Quitar]
+(sin foto) | Tour Sierra Nevada · Tour | <b>No disponible | [Quitar]
+}
+«No disponible»: el servicio se despublicó o su prestador está inactivo; se conserva hasta que el turista lo quite
+«Ver detalle» de un servicio lleva a WF-06 (/servicios/:id)
+Región de estado (aria-live): «Quitado de favoritos» · error del servidor
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+<b>Mis favoritos
+--
+Aún no tienes favoritos.
+Marca el corazón en los resultados de la búsqueda o en la ficha de un servicio.
+[Explorar la oferta]
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt

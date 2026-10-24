@@ -19,6 +19,8 @@ public enum CodigoError {
     AVISO_NO_ENCONTRADO,
     /** El aviso ya no está en el estado de origen: ya estaba despublicado (DEC-64, como DEC-39 en ms-auth). */
     ESTADO_CAMBIADO,
+    /** El turista ya tiene 100 favoritos, el tope por turista (DEC-86). */
+    LIMITE_FAVORITOS,
     ACCESO_DENEGADO,
     SOLICITUD_INVALIDA,
     ERROR_INTERNO

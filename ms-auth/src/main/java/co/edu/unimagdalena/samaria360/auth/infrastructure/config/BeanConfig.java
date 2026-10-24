@@ -1,6 +1,7 @@
 package co.edu.unimagdalena.samaria360.auth.infrastructure.config;
 
 import co.edu.unimagdalena.samaria360.auth.application.port.in.AdministrarCuentasUseCase;
+import co.edu.unimagdalena.samaria360.auth.application.port.in.GestionarPerfilUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.IniciarSesionUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.RegistrarPrestadorUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.RegistrarTuristaUseCase;
@@ -9,6 +10,7 @@ import co.edu.unimagdalena.samaria360.auth.application.port.out.DestinoCuentasPo
 import co.edu.unimagdalena.samaria360.auth.application.port.out.NotificadorCuentaPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.OutboxPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.PasswordHasherPort;
+import co.edu.unimagdalena.samaria360.auth.application.port.out.PerfilRepositoryPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.RegistroRepositoryPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.RelojPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.TokenProviderPort;
@@ -17,6 +19,7 @@ import co.edu.unimagdalena.samaria360.auth.application.service.AdministrarCuenta
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarCuentasService;
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarPaisesService;
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarUsuarioActualService;
+import co.edu.unimagdalena.samaria360.auth.application.service.GestionarPerfilService;
 import co.edu.unimagdalena.samaria360.auth.application.service.IniciarSesionService;
 import co.edu.unimagdalena.samaria360.auth.application.service.RegistrarPrestadorService;
 import co.edu.unimagdalena.samaria360.auth.application.service.RegistrarTuristaService;
@@ -130,6 +133,19 @@ public class BeanConfig {
     public AdministrarCuentasUseCase administrarCuentasUseCase(AdministrarCuentasService servicio,
                                                                PlatformTransactionManager transacciones) {
         return new AdministrarCuentasTransaccional(servicio, new TransactionTemplate(transacciones));
+    }
+
+    @Bean
+    public GestionarPerfilService gestionarPerfilService(PerfilRepositoryPort perfiles) {
+        return new GestionarPerfilService(perfiles);
+    }
+
+    /** El que reciben los adaptadores de entrada: los datos y las categorías en una sola transacción (DEC-85). */
+    @Bean
+    @Primary
+    public GestionarPerfilUseCase gestionarPerfilUseCase(GestionarPerfilService servicio,
+                                                         PlatformTransactionManager transacciones) {
+        return new GestionarPerfilTransaccional(servicio, new TransactionTemplate(transacciones));
     }
 
     @Bean

@@ -1,0 +1,28 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "required": ["_id", "turistaId", "entidadId", "tipoEntidad", "fechaCreacion"],
+    "additionalProperties": false,
+    "properties": {
+      "_id": { "bsonType": "objectId" },
+      "turistaId": {
+        "bsonType": "string",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "description": "id_usuario del turista en auth_db (UUID en minúsculas, claim sub) — referencia lógica, sin FK física"
+      },
+      "entidadId": {
+        "bsonType": "string",
+        "pattern": "^[0-9a-f]{24}$",
+        "description": "_id del servicio o del atractivo, como ObjectId en texto (Entregable 2, §2.4)"
+      },
+      "tipoEntidad": {
+        "enum": ["servicio", "atractivo"],
+        "description": "Colección de entidadId (Entregable 2, §2.4). La API lo expone como Servicio o Atractivo (DEC-80)"
+      },
+      "fechaCreacion": {
+        "bsonType": "date",
+        "description": "Ampliación propia frente al Entregable 2: ordena «Mis favoritos», el más reciente primero (DEC-86)"
+      }
+    }
+  }
+}

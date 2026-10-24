@@ -44,6 +44,8 @@ public class SecurityConfig {
                     acceso.requestMatchers("/actuator/health", "/actuator/health/**").permitAll();
                     // Administrar cuentas (RF28, RF22, RF62): solo el Administrador (RNF06).
                     acceso.requestMatchers("/api/v1/auth/admin/**").hasRole("Administrador");
+                    // Perfil del turista (RF53, DEC-79): solo el Turista; /me sigue abierto a cualquier rol autenticado.
+                    acceso.requestMatchers("/api/v1/auth/perfil").hasRole("Turista");
                     if (dev) {
                         acceso.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
                     }

@@ -1,0 +1,45 @@
+' Cambios de la iteración B1 «Turista» en WF-05, WF-06 y WF-11 (RF60, RF54, RF49). Propuestos por arquitectura,
+' pendientes de validación del equipo (DEC-90). Solo estructura: muestran únicamente las regiones que cambian; el
+' resto de cada pantalla es el de su wireframe. Diagramas: (1) WF-05; (2) WF-06; (3) WF-11.
+
+@startsalt
+{+
+<b>WF-05 — Exploración (solo las regiones nuevas)
+{ Barra de filtros (sin cambios) | [Buscar] }
+--
+<b>Últimas búsquedas (RF60) — solo con la sesión de un turista
+{ [«playa» · Alojamiento · hasta $200.000] | [Cerca de mí · 5 km] | [«Tayrona»] | … hasta 10 }
+la más reciente primero; un clic repite la búsqueda (si usaba la ubicación, la vuelve a pedir)
+sin historial, la región no se muestra
+--
+Tarjeta de resultado (servicio o atractivo)
+{ (foto) | Nombre · categoría · precio · distancia | [♡] Guardar en favoritos (RF54) }
+con la sesión de un turista: corazón activo (♥ si ya es favorito); sin sesión, lleva al inicio de sesión
+con otro rol: no se muestra
+Región de estado (aria-live): «Guardado en favoritos» · «Quitado» · 409 «Llegaste a 100 favoritos»
+}
+@endsalt
+
+@startsalt
+{+
+<b>WF-06 — Detalle (solo la región que cambia)
+{ <b>Nombre del servicio | [♡] Guardar en favoritos (RF54, activo) | [Compartir] (deshabilitado) }
+el corazón funciona como en WF-05; 404 al guardar → «Este servicio ya no está disponible»
+«Compartir» de la ficha sigue deshabilitado: RF49 solo traza el botón de las reservas Completadas (WF-11)
+}
+@endsalt
+
+@startsalt
+{+
+<b>WF-11 — Mis reservas (solo la tarjeta que cambia)
+{#
+<b>Servicio | <b>Fechas | <b>Estado | <b>Acciones
+Cabañas El Roble · Cabaña Familiar | 10/10 – 12/10 | Completada | [Compartir] (RF49)
+Tour Sierra Nevada | 30/10 | Confirmada | [Cancelar]
+Hotel Casa Tayrona | 01/10 | Cancelada | —
+}
+«Compartir» solo en las Completadas: enlace a /servicios/:idServicio (DEC-81)
+con la hoja de compartir del sistema; si no existe, copia al portapapeles
+Región de estado (aria-live): «Enlace copiado»
+}
+@endsalt
