@@ -2,6 +2,7 @@ package co.edu.unimagdalena.samaria360.catalog.infrastructure.mongo;
 
 import co.edu.unimagdalena.samaria360.catalog.domain.model.PreguntaFrecuente;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.TextoAcotado;
+import com.mongodb.ErrorCategory;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -27,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,9 +55,13 @@ class MigracionesMongoTest {
     private static final Path VALIDADOR_M005_FAQ = MongoDePrueba.MIGRACIONES.resolve("esquema/M005__faq.v1.schema.json");
     private static final Path VALIDADOR_M005_AVISOS =
             MongoDePrueba.MIGRACIONES.resolve("esquema/M005__avisos.v1.schema.json");
+    private static final Path VALIDADOR_M007_FAVORITOS =
+            MongoDePrueba.MIGRACIONES.resolve("esquema/M007__favoritos.v1.schema.json");
+    private static final Path VALIDADOR_M007_HISTORIAL =
+            MongoDePrueba.MIGRACIONES.resolve("esquema/M007__historial_busqueda.v1.schema.json");
     private static final List<String> MIGRACIONES = List.of("M001__unidades-alojamiento",
             "M002__semilla-suite-casa-tayrona", "M003__cuentas", "M004__indice-servicios-prestador",
-            "M005__faq-avisos", "M006__semilla-faq-avisos");
+            "M005__faq-avisos", "M006__semilla-faq-avisos", "M007__favoritos-historial");
     /** Fuera del plano básico: un punto de código, dos unidades UTF-16. */
     private static final String EMOJI = "🌴";
     private static final int VALIDACION_DOCUMENTO_FALLIDA = 121;
@@ -109,7 +115,7 @@ class MigracionesMongoTest {
     // ------------------------------------------------------------------ validador v2
 
     @ParameterizedTest
-    @ValueSource(strings = {"servicios", "atractivos", "cuentas", "faq", "avisos"})
+    @ValueSource(strings = {"servicios", "atractivos", "cuentas", "faq", "avisos", "favoritos", "historial_busqueda"})
     void despuesDeLasMigracionesElValidadorEsElDeDocs(String coleccion) throws IOException {
         Document esperado = Document.parse(Files.readString(ESQUEMAS.resolve(coleccion + ".schema.json")));
 
@@ -139,6 +145,102 @@ class MigracionesMongoTest {
                 .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("faq.schema.json"))));
         assertThat(Document.parse(Files.readString(VALIDADOR_M005_AVISOS)))
                 .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("avisos.schema.json"))));
+    }
+
+    /** Mientras no exista una migración posterior que cambie favoritos o historial_busqueda, las de M007 son la última. */
+    @Test
+    void lasCopiasDeLosValidadoresDeM007SonLaUltimaVersion() throws IOException {
+        assertThat(Document.parse(Files.readString(VALIDADOR_M007_FAVORITOS)))
+                .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("favoritos.schema.json"))));
+        assertThat(Document.parse(Files.readString(VALIDADOR_M007_HISTORIAL)))
+                .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("historial_busqueda.schema.json"))));
+    }
+
+    // ------------------------------------------------------------------ favoritos e historial_busqueda (M007)
+
+    @Test
+    void m007CreaLosIndicesDeFavoritosEHistorialEnVolumenNuevoYExistente() {
+        for (MongoDatabase base : List.of(nuevo, existente)) {
+            assertThat(indicesConUnicidad(base, "favoritos")).contains(
+                    new Document("name", "favoritos_turista_entidad").append("key", new Document("turistaId", 1)
+                            .append("tipoEntidad", 1).append("entidadId", 1)).append("unique", true),
+                    new Document("name", "favoritos_turista_fecha").append("key", new Document("turistaId", 1)
+                            .append("fechaCreacion", -1).append("_id", -1)).append("unique", false));
+            assertThat(indicesConUnicidad(base, "historial_busqueda")).contains(
+                    new Document("name", "historial_turista_fecha").append("key", new Document("turistaId", 1)
+                            .append("fecha", -1).append("_id", -1)).append("unique", false),
+                    new Document("name", "historial_turista_clave").append("key", new Document("turistaId", 1)
+                            .append("clave", 1)).append("unique", true));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"favoritos", "historial_busqueda"})
+    void m007DejaLasMismasOpcionesEIndicesEnUnVolumenNuevoYEnUnoExistente(String coleccion) {
+        assertThat(opciones(existente, coleccion)).isEqualTo(opciones(nuevo, coleccion));
+        assertThat(indicesConUnicidad(existente, coleccion)).isEqualTo(indicesConUnicidad(nuevo, coleccion));
+    }
+
+    @Test
+    void laColeccionFavoritosAceptaUnServicioYUnAtractivoYRechazaUnDuplicado() {
+        MongoCollection<Document> favoritos = nuevo.getCollection("favoritos");
+        String turista = UUID.randomUUID().toString();
+        String entidad = new ObjectId().toHexString();
+        favoritos.insertOne(favorito(turista, entidad, "servicio"));
+        favoritos.insertOne(favorito(turista, entidad, "atractivo"));
+
+        assertThatThrownBy(() -> favoritos.insertOne(favorito(turista, entidad, "servicio")))
+                .isInstanceOf(MongoWriteException.class)
+                .satisfies(e -> assertThat(((MongoWriteException) e).getError().getCategory())
+                        .isEqualTo(ErrorCategory.DUPLICATE_KEY));
+        favoritos.deleteMany(Filters.eq("turistaId", turista));
+    }
+
+    @Test
+    void laColeccionFavoritosRechazaLoQueNoSeaUnFavoritoValido() {
+        MongoCollection<Document> favoritos = nuevo.getCollection("favoritos");
+        String turista = UUID.randomUUID().toString();
+        String entidad = new ObjectId().toHexString();
+
+        assertRechazado(favoritos, favorito(turista, entidad, "Servicio"));
+        assertRechazado(favoritos, favorito(turista, entidad, "evento"));
+        assertRechazado(favoritos, favorito(turista.toUpperCase(), entidad, "servicio"));
+        assertRechazado(favoritos, favorito(turista, "no-es-un-objectid", "servicio"));
+        assertRechazado(favoritos, favorito(turista, entidad, "servicio").append("nombre", "Desnormalizado"));
+        Document sinFecha = favorito(turista, entidad, "servicio");
+        sinFecha.remove("fechaCreacion");
+        assertRechazado(favoritos, sinFecha);
+    }
+
+    @Test
+    void laColeccionHistorialAceptaUnaBusquedaValidaYRechazaLaMismaClaveDelMismoTurista() {
+        MongoCollection<Document> historial = nuevo.getCollection("historial_busqueda");
+        String turista = UUID.randomUUID().toString();
+        historial.insertOne(busqueda(turista, "{\"texto\":\"Playa\"}", "texto=playa"));
+        historial.insertOne(busqueda(UUID.randomUUID().toString(), "{\"texto\":\"Playa\"}", "texto=playa"));
+
+        assertThatThrownBy(() -> historial.insertOne(busqueda(turista, "{\"texto\":\"playa\"}", "texto=playa")))
+                .isInstanceOf(MongoWriteException.class)
+                .satisfies(e -> assertThat(((MongoWriteException) e).getError().getCategory())
+                        .isEqualTo(ErrorCategory.DUPLICATE_KEY));
+        historial.deleteMany(Filters.eq("clave", "texto=playa"));
+    }
+
+    @Test
+    void laColeccionHistorialRechazaLoQueNoSeaUnaBusquedaValida() {
+        MongoCollection<Document> historial = nuevo.getCollection("historial_busqueda");
+        String turista = UUID.randomUUID().toString();
+
+        assertRechazado(historial, busqueda(turista, "{\"texto\":\"Playa\"}", ""));
+        assertRechazado(historial, busqueda(turista, "x".repeat(2001), "clave"));
+        assertRechazado(historial, busqueda(turista, "{}", "c".repeat(2001)));
+        assertRechazado(historial, busqueda(turista, "{}", "clave").append("lat", 11.2));
+        Document conObjeto = busqueda(turista, "{}", "clave");
+        conObjeto.put("criteriosBusqueda", new Document("texto", "Playa"));
+        assertRechazado(historial, conObjeto);
+        Document sinFecha = busqueda(turista, "{}", "clave");
+        sinFecha.remove("fecha");
+        assertRechazado(historial, sinFecha);
     }
 
     // ------------------------------------------------------------------ faq y avisos (M005, M006)
@@ -416,7 +518,7 @@ class MigracionesMongoTest {
 
         MongoDePrueba.exigirExito("aplicar.js", segunda);
         assertThat(segunda.getStdout()).contains("ya aplicada: M001", "ya aplicada: M002", "ya aplicada: M003",
-                "ya aplicada: M004", "ya aplicada: M005", "ya aplicada: M006");
+                "ya aplicada: M004", "ya aplicada: M005", "ya aplicada: M006", "ya aplicada: M007");
         assertThat(documentos(existente, "servicios")).isEqualTo(antes);
         assertThat(idsMigraciones(existente)).containsExactlyElementsOf(MIGRACIONES);
     }
@@ -467,7 +569,7 @@ class MigracionesMongoTest {
         MongoDePrueba.exigirExito("aplicar.js", MongoDePrueba.migrar(ERRORES, false));
 
         assertThat(idsMigraciones(errores)).containsExactly("M001__unidades-alojamiento", "M003__cuentas",
-                "M004__indice-servicios-prestador", "M005__faq-avisos");
+                "M004__indice-servicios-prestador", "M005__faq-avisos", "M007__favoritos-historial");
         assertThat(errores.getCollection("faq").countDocuments()).isZero();
         assertThat(unidadesDe(errores, "Hotel Casa Tayrona")).hasSize(1);
     }
@@ -500,6 +602,26 @@ class MigracionesMongoTest {
     private static Document pregunta(String titulo, String cuerpo) {
         return new Document("_id", new ObjectId()).append("titulo", titulo).append("cuerpo", cuerpo)
                 .append("fechaActualizacion", new java.util.Date());
+    }
+
+    private static Document favorito(String turista, String entidad, String tipoEntidad) {
+        return new Document("_id", new ObjectId()).append("turistaId", turista).append("entidadId", entidad)
+                .append("tipoEntidad", tipoEntidad).append("fechaCreacion", new java.util.Date());
+    }
+
+    private static Document busqueda(String turista, String criterios, String clave) {
+        return new Document("_id", new ObjectId()).append("turistaId", turista).append("criteriosBusqueda", criterios)
+                .append("fecha", new java.util.Date()).append("clave", clave);
+    }
+
+    /** Nombre, claves y si es único (el {@code unique} solo aparece en los índices únicos). */
+    private static List<Document> indicesConUnicidad(MongoDatabase base, String coleccion) {
+        List<Document> indices = new ArrayList<>();
+        base.getCollection(coleccion).listIndexes().forEach(indice -> indices.add(
+                new Document("name", indice.get("name")).append("key", indice.get("key"))
+                        .append("unique", Boolean.TRUE.equals(indice.getBoolean("unique")))));
+        indices.sort((a, b) -> a.getString("name").compareTo(b.getString("name")));
+        return indices;
     }
 
     private static Document aviso(String mensaje, String tipo, boolean activo) {

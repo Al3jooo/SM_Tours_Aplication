@@ -1,11 +1,11 @@
 # API de ms-auth
 
-Contrato de ms-auth para el frontend y para las pruebas. Todas las rutas van por el API Gateway (`/api/v1/auth/**`); el servicio escucha en el 8081 solo dentro de la red de Docker. Este documento nace con el CU «Administrar cuentas» (RF28, RF22, RF62; WF-12) y fija los endpoints del **Administrador**, el token y el endpoint interno. Los endpoints de inicio de sesión y registro (RF15, RF01, RF02) están descritos en `docs/trazabilidad.md` («Endpoints de ms-auth»). Decisiones en `docs/trazabilidad.md` («Administrar cuentas — decisiones»), [ADR-008](../adr/ADR-008-sincronizacion-estado-cuentas.md) y el [CU](../../casos-de-uso/CU-administrar-cuentas.md).
+Contrato de ms-auth para el frontend y para las pruebas. Todas las rutas van por el API Gateway (`/api/v1/auth/**`); el servicio escucha en el 8081 solo dentro de la red de Docker. Este documento nace con el CU «Administrar cuentas» (RF28, RF22, RF62; WF-12) y fija los endpoints del **Administrador**, el token y el endpoint interno. Los endpoints de inicio de sesión y registro (RF15, RF01, RF02) están descritos en `docs/trazabilidad.md` («Endpoints de ms-auth»). Decisiones en `docs/trazabilidad.md` («Administrar cuentas — decisiones»), [ADR-008](../adr/ADR-008-sincronizacion-estado-cuentas.md) y el [CU](../../casos-de-uso/CU-administrar-cuentas.md). La iteración B1 agrega el **perfil del turista** (RF53; [CU](../../casos-de-uso/CU-actualizar-perfil.md), «Turista (B1) — decisiones»).
 
 ## Convenciones
 
-- **Autenticación:** `Authorization: Bearer <JWT de ms-auth>`. Los endpoints de `/admin/**` exigen el rol **Administrador**.
-- **Errores:** ProblemDetail (RFC 9457) con `codigo` estable, como ms-catalog y ms-booking. `DATOS_INVALIDOS` lleva `campos`: un código por campo con el nombre JSON, nunca textos (`REQUERIDO`, `FORMATO`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`).
+- **Autenticación:** `Authorization: Bearer <JWT de ms-auth>`. Los endpoints de `/admin/**` exigen el rol **Administrador**; `/perfil`, el rol **Turista**; `/me`, cualquier rol.
+- **Errores:** ProblemDetail (RFC 9457) con `codigo` estable, como ms-catalog y ms-booking. `DATOS_INVALIDOS` lleva `campos`: un código por campo con el nombre JSON, nunca textos (`REQUERIDO`, `FORMATO`, `LONGITUD_MINIMA`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`, `DUPLICADO`).
 - **Fechas:** `aaaa-mm-dd` (el día de registro; el modelo no guarda la hora) e instantes ISO 8601 en UTC.
 - **Páginas de 10** (DEC-41), con `pagina` desde 0, como «Mis reservas»: `{elementos, pagina, tamano: 10, totalElementos, totalPaginas}`.
 
@@ -21,7 +21,7 @@ Contrato de ms-auth para el frontend y para las pruebas. Todas las rutas van por
 | `ver` | `usuario.version_cuenta` al iniciar sesión (DEC-29) |
 | `iat`, `exp` | `exp - iat` = **15 minutos** (antes, 60) |
 
-`version_cuenta` sube en 1 con cada cambio de estado de la cuenta (y, en el futuro, de rol: RF45). Cada servicio rechaza con **401 `SESION_INVALIDADA`** un token con `ver` menor que la versión conocida; un token sin `ver` cuenta como 0. ms-auth compara contra su propia tabla en **todos** sus endpoints autenticados (`/me` y `/admin/**`). La respuesta de `/login` no cambia (`expiraEn` es ahora 15 minutos después).
+`version_cuenta` sube en 1 con cada cambio de estado de la cuenta (y, en el futuro, de rol: RF45). Cada servicio rechaza con **401 `SESION_INVALIDADA`** un token con `ver` menor que la versión conocida; un token sin `ver` cuenta como 0. ms-auth compara contra su propia tabla en **todos** sus endpoints autenticados (`/me`, `/perfil` y `/admin/**`). La respuesta de `/login` no cambia (`expiraEn` es ahora 15 minutos después).
 
 ## Estados de la cuenta
 
@@ -124,6 +124,29 @@ Cualquier otra responde **409 `ESTADO_CAMBIADO`** (DEC-39), con `estadoActual`. 
 
 Un turista desactivado recibe **403 `CUENTA_INACTIVA`** al iniciar sesión (con la contraseña correcta) y **401 `SESION_INVALIDADA`** con un token de antes de la desactivación. Un prestador Rechazado recibe 403 `CUENTA_RECHAZADA`; uno Inactivo, 403 `CUENTA_INACTIVA`.
 
+## Perfil del turista (RF53)
+
+Solo el rol **Turista** (otro rol → 403 `ACCESO_DENEGADO`); el turista es siempre el del claim `sub`. Se editan los nombres, los apellidos, el país y las categorías de interés. **El correo y la contraseña no se editan** (DEC-79). No sube `version_cuenta` ni escribe en el outbox.
+
+`GET /api/v1/auth/perfil` → **200**
+
+```json
+{ "correo": "turista@samaria360.test", "primerNombre": "Ana", "segundoNombre": null,
+  "primerApellido": "Pérez", "segundoApellido": null, "paisOrigen": "CO",
+  "categoriasInteres": ["Naturaleza", "Cultura"] }
+```
+
+`PUT /api/v1/auth/perfil` · el mismo cuerpo sin `correo` → **200** con el perfil resultante (DEC-84).
+
+- **Reemplaza el perfil completo**, no es parcial: un `segundoNombre` o `segundoApellido` ausente o vacío queda en null.
+- Un `correo` en el cuerpo se ignora, como cualquier campo desconocido, y no cambia.
+- **Reglas (las del registro, RF01; DEC-85):**
+  - `primerNombre` y `primerApellido` obligatorios; los cuatro, de hasta 50 caracteres (puntos de código), recortados;
+  - `paisOrigen`: código ISO 3166-1 alfa-2 de `GET /paises`, sin distinguir mayúsculas;
+  - `categoriasInteres`: de 1 a 3, distintas, de `Naturaleza`, `Cultura` y `Aventura`. Se responden en ese orden.
+- Las categorías se **reemplazan como conjunto** en la misma transacción que los datos: si algo falla, no cambia nada.
+- **400** `DATOS_INVALIDOS` con `campos` (`REQUERIDO`, `FORMATO`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`, `DUPLICADO`); un cuerpo que no es JSON, sin `campos`. **401** `NO_AUTENTICADO` (también si el token es válido, pero no hay fila en `turista`) o `SESION_INVALIDADA`. **403** `ACCESO_DENEGADO`.
+
 ## Códigos de error
 
 | Código | HTTP | Cuándo |
@@ -131,7 +154,7 @@ Un turista desactivado recibe **403 `CUENTA_INACTIVA`** al iniciar sesión (con 
 | `DATOS_INVALIDOS` | 400 | `campos` como se indica arriba. Un cuerpo que no es JSON también, sin `campos` |
 | `NO_AUTENTICADO` | 401 | Sin token, vencido, inválido o de servicio (`rol = SERVICIO`) |
 | `SESION_INVALIDADA` | 401 | `ver` menor que `version_cuenta`: la cuenta cambió después de iniciar sesión |
-| `ACCESO_DENEGADO` | 403 | El rol no es Administrador |
+| `ACCESO_DENEGADO` | 403 | El rol no es Administrador (`/admin/**`) o no es Turista (`/perfil`) |
 | `CUENTA_NO_ENCONTRADA` | 404 | No existe, o es de otro rol |
 | `ESTADO_CAMBIADO` | 409 | La cuenta no está en el estado de origen de la transición; lleva `estadoActual` (DEC-39) |
 | `ERROR_INTERNO` | 500 | Cualquier otro error (si falla el evento, el cambio tampoco queda) |

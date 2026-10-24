@@ -37,6 +37,9 @@
 | WF-13-preguntas-frecuentes.puml | Preguntas frecuentes **(nuevo)** | Gestionar FAQs | RF26, RF47 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-14-avisos.puml | Avisos generales: banner y gestión **(nuevo)** | Crear y publicar aviso general | RF40 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-15-terminos.puml | Términos y condiciones **(nuevo)** | Consultar términos y condiciones | RF46 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-16-perfil-turista.puml | Perfil del turista **(nuevo)** | Actualizar datos personales, Actualizar intereses turísticos | RF53 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-17-mis-favoritos.puml | Mis favoritos **(nuevo)** | Guardar favoritos | RF54 | **Sí** (sesión B de B1; sin el detalle de atractivo). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-05-06-11-cambios-turista.puml | Cambios en WF-05, WF-06 y WF-11 **(nuevo)** | Consultar historial de búsquedas, Guardar favoritos, Compartir reserva completada | RF60, RF54, RF49 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
 
 ## WF-01 — Inicio de sesión
 
@@ -162,6 +165,38 @@ Cambios respecto del contenido propuesto, por lo que el modelo guarda (DEC-45 y 
 - Página estática, desde el pie (y el pie reducido y el texto legal de WF-01), en ES y EN.
 - Título y nota «Texto del prototipo académico — Universidad del Magdalena. No es un documento legal vigente».
 - Índice con enlaces a las 9 secciones de DEC-68. La sección 4, «Datos personales (Ley 1581 de 2012)», es el destino de «Políticas de privacidad» (pie y casilla del registro).
+
+## WF-16, WF-17 y los cambios en WF-05, WF-06 y WF-11 — Turista (nuevos)
+
+**Estado: propuestos por arquitectura, pendientes de validación del equipo (DEC-90, como DEC-36 y DEC-67).**
+- No los dibujó quien hizo los wireframes. Son wireframes en PlantUML Salt, solo de estructura (regiones, elementos y flujo).
+- Los `.png` y `.svg` los exporta el equipo.
+- Los implementa la sesión B de la iteración B1 «Turista» (DEC-83). Son solo para el rol Turista.
+
+**WF-16 — Perfil del turista** (CU «Actualizar datos personales» y «Actualizar intereses turísticos», `docs/casos-de-uso/CU-actualizar-perfil.md`; RF53):
+- Se llega desde el menú del avatar («Mi perfil»).
+- **Datos personales:**
+  - correo en solo lectura (no se edita, DEC-79);
+  - primer y segundo nombre, primer y segundo apellido (los segundos, opcionales) y país de origen, con las reglas de WF-02 (RF01);
+  - **Guardar cambios** y **Descartar**, con error por campo.
+- **Intereses turísticos:**
+  - casillas Naturaleza, Cultura y Aventura; al menos una (DEC-85);
+  - **Guardar intereses**.
+- Acceso a **Mis favoritos** (WF-17) y región de estado (`aria-live`).
+
+**WF-17 — Mis favoritos** (CU «Guardar favoritos», `docs/casos-de-uso/CU-guardar-favoritos.md`; RF54):
+- Contador «n de 100 favoritos» (DEC-86), del más reciente al más antiguo.
+- Cada favorito: imagen, nombre, categoría, insignia **No disponible** (servicio despublicado o de un prestador inactivo), **Ver detalle** y **Quitar**.
+  - «Ver detalle» solo en los servicios disponibles (WF-06).
+  - En los atractivos aparece deshabilitado: el detalle de atractivo llega en la iteración E (DEC-87).
+- Estado vacío con **Explorar la oferta**.
+
+**Cambios en pantallas existentes** (`WF-05-06-11-cambios-turista.puml`):
+- **WF-05 (RF60, RF54):**
+  - región **Últimas búsquedas**, solo con la sesión de un turista: hasta 10, la más reciente primero; un clic repite la búsqueda. Si la búsqueda usaba la ubicación, el frontend la vuelve a pedir (RF38);
+  - **corazón** en cada tarjeta, de servicio o de atractivo.
+- **WF-06 (RF54):** el corazón de la ficha pasa a estar activo. El ícono **Compartir** de la ficha **sigue deshabilitado**: RF49 solo traza el botón de las reservas Completadas de WF-11.
+- **WF-11 (RF49):** botón **Compartir** solo en las reservas Completadas. Comparte el enlace `/servicios/:idServicio` con la hoja de compartir del sistema o, si no existe, lo copia al portapapeles (DEC-81).
 
 ## Diferencias detectadas en la v2 (pendientes de resolver antes de implementar esas pantallas)
 

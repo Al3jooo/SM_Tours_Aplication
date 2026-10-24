@@ -1,0 +1,31 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "required": ["_id", "turistaId", "criteriosBusqueda", "fecha", "clave"],
+    "additionalProperties": false,
+    "properties": {
+      "_id": { "bsonType": "objectId" },
+      "turistaId": {
+        "bsonType": "string",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "description": "id_usuario del turista en auth_db (UUID en minúsculas, claim sub) — referencia lógica, sin FK física"
+      },
+      "criteriosBusqueda": {
+        "bsonType": "string",
+        "minLength": 2,
+        "maxLength": 2000,
+        "description": "JSON canónico de los criterios normalizados de GET /oferta, sin coordenadas ni página (Entregable 2, §2.4; DEC-88)"
+      },
+      "fecha": {
+        "bsonType": "date",
+        "description": "Última vez que el turista hizo esta búsqueda: la misma combinación solo la actualiza (DEC-88)"
+      },
+      "clave": {
+        "bsonType": "string",
+        "minLength": 1,
+        "maxLength": 2000,
+        "description": "Ampliación propia frente al Entregable 2: forma canónica de los criterios para la deduplicación atómica (índice único con turistaId)"
+      }
+    }
+  }
+}

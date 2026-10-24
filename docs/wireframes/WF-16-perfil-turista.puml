@@ -1,0 +1,48 @@
+' WF-16 — Perfil del turista (RF53). Propuesto por arquitectura, pendiente de validación del equipo (DEC-90).
+' Solo estructura: regiones, elementos y flujo. Diagramas: (1) datos personales; (2) intereses turísticos.
+' Se llega desde el menú del avatar («Mi perfil», solo para turistas). Desde aquí se abre «Mis favoritos» (WF-17).
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+{ Banner de avisos (común, ver WF-14) }
+==
+<b>Mi perfil
+{ <b>Datos personales | Intereses turísticos | [Mis favoritos] }
+--
+Correo electrónico (solo lectura; no se edita, DEC-79)
+"ana@correo.com" (deshabilitado)
+Primer nombre (obligatorio)        | Segundo nombre (opcional)
+"Ana                    "          | "                       "
+Primer apellido (obligatorio)      | Segundo apellido (opcional)
+"Pérez                  "          | "                       "
+País de origen (obligatorio)
+^Colombia^
+error por campo: obligatorio · máximo 50 caracteres · país no válido
+--
+[Guardar cambios] | [Descartar]
+Región de estado (aria-live): «Perfil actualizado» · error del servidor · sesión vencida → inicio de sesión
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+<b>Mi perfil
+{ Datos personales | <b>Intereses turísticos | [Mis favoritos] }
+--
+Elige al menos una categoría (RF53, DEC-85)
+[X] Naturaleza
+[X] Cultura
+[ ] Aventura
+error del campo: «Elige al menos una categoría»
+--
+[Guardar intereses] | [Descartar]
+Región de estado (aria-live): «Intereses actualizados» · error del servidor
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt

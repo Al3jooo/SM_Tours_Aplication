@@ -4,6 +4,7 @@ import co.edu.unimagdalena.samaria360.catalog.domain.exception.AvisoNoEncontrado
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.AvisoYaInactivoException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.ContenidoInvalidoException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.CriteriosBusquedaInvalidosException;
+import co.edu.unimagdalena.samaria360.catalog.domain.exception.LimiteFavoritosException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.LimitePreguntasException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.OfertaNoDisponibleException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.PreguntaNoEncontradaException;
@@ -73,6 +74,11 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
     @ExceptionHandler(LimitePreguntasException.class)
     ProblemDetail limitePreguntas(LimitePreguntasException ex) {
         return Problemas.crear(HttpStatus.CONFLICT, CodigoError.LIMITE_FAQ, ex.getMessage());
+    }
+
+    @ExceptionHandler(LimiteFavoritosException.class)
+    ProblemDetail limiteFavoritos(LimiteFavoritosException ex) {
+        return Problemas.crear(HttpStatus.CONFLICT, CodigoError.LIMITE_FAVORITOS, ex.getMessage());
     }
 
     @ExceptionHandler(AvisoNoEncontradoException.class)

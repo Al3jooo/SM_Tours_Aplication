@@ -11,10 +11,12 @@ Validadores de `catalog_db` en su **última versión**. Parten de la transcripci
 | `cuentas.schema.json` | `cuentas` | `catalog_db` | ms-catalog |
 | `faq.schema.json` | `faq` | `catalog_db` | ms-catalog |
 | `avisos.schema.json` | `avisos` | `catalog_db` | ms-catalog |
+| `favoritos.schema.json` | `favoritos` | `catalog_db` | ms-catalog |
+| `historial_busqueda.schema.json` | `historial_busqueda` | `catalog_db` | ms-catalog |
 
 Cada archivo contiene exactamente el objeto que va en `validator` de `db.createCollection` o de `collMod`. `servicios.schema.json` tiene dos claves, `$jsonSchema` y `$expr`: MongoDB exige las dos (un AND implícito).
 
-Las demás colecciones del Entregable 2 (`eventos`, `favoritos`, `historial_busqueda`, `itinerarios_sugeridos`, `base_conocimiento_turistico`, `calificaciones`, `reportes`, `logs_auditoria`, `notificaciones`) se transcribirán aquí cuando un caso de uso del prototipo las necesite.
+Las demás colecciones del Entregable 2 (`eventos`, `itinerarios_sugeridos`, `base_conocimiento_turistico`, `calificaciones`, `reportes`, `logs_auditoria`, `notificaciones`) se transcribirán aquí cuando un caso de uso del prototipo las necesite.
 
 ## Notas para la implementación
 
@@ -35,3 +37,13 @@ Las demás colecciones del Entregable 2 (`eventos`, `favoritos`, `historial_busq
   - sin vigencia automática;
   - índices `avisos_activos` (banner) y `avisos_fecha` (listado del Administrador).
   - Falta llevarla al Documento Entregable 2.
+- **Colección `favoritos` (M007; RF54; DEC-80, DEC-86):** los campos del Entregable 2 (§2.4) más una ampliación propia:
+  - `turistaId` (UUID en minúsculas, el claim `sub`), `entidadId` (el ObjectId del servicio o atractivo, **en texto**, 24 hex) y `tipoEntidad` (`servicio` o `atractivo`); la API usa `Servicio` y `Atractivo` y el adaptador convierte;
+  - **ampliación:** `fechaCreacion` (date), obligatoria, para el orden de «Mis favoritos»;
+  - `additionalProperties: false`: no se desnormaliza el nombre ni la imagen (se resuelven al listar con un `$in`, que convierte `entidadId` a ObjectId);
+  - índices `favoritos_turista_entidad` (único: un favorito por turista, tipo y entidad) y `favoritos_turista_fecha`.
+- **Colección `historial_busqueda` (M007; RF60; DEC-56, DEC-88):** los campos del Entregable 2 (§2.4) más una ampliación propia:
+  - `turistaId`, `criteriosBusqueda` (string: el JSON canónico de los criterios normalizados de `GET /oferta`, sin coordenadas ni página; máximo 2000) y `fecha` (date, la última vez que se hizo);
+  - **ampliación:** `clave` (string, máximo 2000), la forma canónica de los criterios, con índice único `(turistaId, clave)` para la deduplicación atómica;
+  - índice `historial_turista_fecha` para las 10 más recientes y la poda.
+  - Las dos ampliaciones faltan en el Documento Entregable 2 (punto 9 de «Pendientes para el SAD (modelo NoSQL)» en `docs/trazabilidad.md`).

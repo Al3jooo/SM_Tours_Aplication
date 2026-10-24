@@ -96,6 +96,9 @@ public class SecurityConfig {
                             "/api/v1/catalogo/avisos").permitAll();
                     // Preguntas frecuentes y avisos (RF26, RF40; DEC-65): con ver vigente, por la misma cadena.
                     acceso.requestMatchers("/api/v1/catalogo/admin/**").hasRole("Administrador");
+                    // Favoritos e historial de búsquedas (RF54, RF60; DEC-80, DEC-56): solo el Turista, con ver vigente.
+                    acceso.requestMatchers("/api/v1/catalogo/favoritos", "/api/v1/catalogo/favoritos/**",
+                            "/api/v1/catalogo/historial").hasRole("Turista");
                     acceso.requestMatchers("/actuator/health", "/actuator/health/**").permitAll();
                     if (dev) {
                         acceso.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
