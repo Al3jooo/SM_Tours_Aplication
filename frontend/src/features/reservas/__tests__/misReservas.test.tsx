@@ -77,9 +77,11 @@ describe('WF-11 «Mis reservas»: lista y filtros (RF12)', () => {
     expect(within(lista[1]).getByText(/· 08:00$/)).toBeInTheDocument()
     expect(within(lista[2]).getByText('Cancelada')).toBeInTheDocument()
     expect(within(lista[2]).queryByRole('button')).not.toBeInTheDocument()
-    // Las Completadas no se cancelan.
+    // Las Completadas no se cancelan; su única acción es «Compartir» (RF49, compartirReserva.test.tsx).
     expect(within(tarjeta('Kayak en Taganga')).getByText('Completada')).toBeInTheDocument()
-    expect(within(tarjeta('Kayak en Taganga')).queryByRole('button')).not.toBeInTheDocument()
+    expect(within(tarjeta('Kayak en Taganga')).getAllByRole('button').map((boton) => boton.textContent)).toEqual([
+      'Compartir',
+    ])
   })
 
   it('los filtros van en la URL, vuelven a la página 1 y llegan a la API', async () => {

@@ -223,3 +223,28 @@ export function IconoCalendario() {
     </Icono>
   )
 }
+
+/** Trazo del corazón: lo usan `IconoCorazon` y el popup del mapa, que se arma con nodos del DOM (DEC-94). */
+export const TRAZO_CORAZON =
+  'M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.9 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.3 0 5.6 3.1 4.4 6.6-1.7 4.8-9.2 9.4-9.2 9.4Z'
+
+/** Favorito (RF54): lleno si está guardado. La forma cambia, no solo el color (WCAG 1.4.1). */
+export function IconoCorazon({ lleno = false }: { lleno?: boolean }) {
+  return (
+    <Icono fill={lleno ? 'currentColor' : 'none'}>
+      <path d={TRAZO_CORAZON} />
+    </Icono>
+  )
+}
+
+/** Compartir (RF49). */
+export function IconoCompartir() {
+  return (
+    <Icono width="18" height="18">
+      <circle cx="18" cy="5.5" r="2.5" />
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="18.5" r="2.5" />
+      <path d="m8.2 10.8 7.6-4.1M8.2 13.2l7.6 4.1" />
+    </Icono>
+  )
+}

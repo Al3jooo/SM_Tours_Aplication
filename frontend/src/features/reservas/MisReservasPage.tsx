@@ -20,7 +20,8 @@ import './reservas.css'
 
 /**
  * WF-11 «Mis reservas» (pendiente de diseño: usa el lenguaje visual de WF-10). Lista del turista con filtros por fecha
- * de la actividad y estado (RF12), el estado de cada reserva (RF52) y «Cancelar» con confirmación (RF18, RF44).
+ * de la actividad y estado (RF12), el estado de cada reserva (RF52), «Cancelar» con confirmación (RF18, RF44) y
+ * «Compartir» en las Completadas (RF49), con «Enlace copiado» en la región de anuncios de la página.
  * La ruta es privada (RutaProtegida); con otro rol, un aviso.
  */
 export function MisReservasPage() {
@@ -238,6 +239,7 @@ function ListaMisReservas() {
                         setCancelacion({ enviando: false, error: null })
                         setACancelar(elegida)
                       }}
+                      onCompartido={(resultado) => setAnuncio(resultado === 'copiado' ? t('misReservas.compartir.copiado') : '')}
                       refTitulo={(elemento) => {
                         if (elemento) titulos.current.set(reserva.idReserva, elemento)
                         else titulos.current.delete(reserva.idReserva)

@@ -4,6 +4,7 @@ import { LoginPage } from '../features/auth/LoginPage'
 import { RegistroPage } from '../features/auth/registro/RegistroPage'
 import { SesionProvider } from '../features/auth/SesionProvider'
 import { EstadoCatalogo } from '../features/catalogo/componentes/EstadoCatalogo'
+import { FavoritosProvider } from '../features/favoritos/FavoritosProvider'
 import { InicioPage } from '../features/catalogo/InicioPage'
 import { LimiteErrores } from '../shared/components/LimiteErrores'
 import { navegador } from '../shared/navegador'
@@ -43,6 +44,11 @@ const AdministrarPreguntasPage = lazy(() =>
 const AdministrarAvisosPage = lazy(() =>
   import('../features/admin/AdministrarAvisosPage').then((m) => ({ default: m.AdministrarAvisosPage })),
 )
+/** «Turista» (DEC-92): perfil (WF-16) y «Mis favoritos» (WF-17), diferidas y solo para el Turista. */
+const PerfilPage = lazy(() => import('../features/perfil/PerfilPage').then((m) => ({ default: m.PerfilPage })))
+const MisFavoritosPage = lazy(() =>
+  import('../features/perfil/MisFavoritosPage').then((m) => ({ default: m.MisFavoritosPage })),
+)
 
 /** Una página diferida: estado de carga mientras llega y aviso con «Reintentar» si la descarga falla. */
 function Diferida({ children }: { children: ReactNode }) {
@@ -57,99 +63,120 @@ function Diferida({ children }: { children: ReactNode }) {
  * El router (BrowserRouter o MemoryRouter en pruebas) lo aporta quien monta la App.
  * Inicio (WF-04), exploración (WF-05), detalle (WF-06), reserva (WF-10), preguntas frecuentes (WF-13) y términos
  * (WF-15) son públicas, con el diseño de la plataforma (confirmar una reserva pide la sesión dentro de WF-10); «Mis
- * reservas» (WF-11) es privada y «Administrar cuentas» (WF-12), la gestión de preguntas frecuentes (WF-13) y la de
- * avisos (WF-14), privadas y solo para el Administrador. El inicio de sesión (WF-01) y el registro (WF-02, WF-03) usan
- * el diseño de acceso.
+ * reservas» (WF-11) es privada; el perfil (WF-16) y «Mis favoritos» (WF-17), privadas y solo para el Turista; y
+ * «Administrar cuentas» (WF-12), la gestión de preguntas frecuentes (WF-13) y la de avisos (WF-14), privadas y solo
+ * para el Administrador. El inicio de sesión (WF-01) y el registro (WF-02, WF-03) usan el diseño de acceso. Los
+ * favoritos del turista (DEC-93) se comparten entre pantallas, dentro de la sesión.
  */
 export function App() {
   return (
     <SesionProvider>
-      <Routes>
-        <Route element={<DisenoPrincipal />}>
-          <Route index element={<InicioPage />} />
-          <Route
-            path="/explorar"
-            element={
-              <Diferida>
-                <ExplorarPage />
-              </Diferida>
-            }
-          />
-          <Route
-            path="/servicios/:id"
-            element={
-              <Diferida>
-                <DetalleServicioPage />
-              </Diferida>
-            }
-          />
-          <Route
-            path="/servicios/:id/reservar"
-            element={
-              <Diferida>
-                <ReservaPage />
-              </Diferida>
-            }
-          />
-          <Route
-            path="/preguntas-frecuentes"
-            element={
-              <Diferida>
-                <PreguntasFrecuentesPage />
-              </Diferida>
-            }
-          />
-          <Route
-            path="/terminos"
-            element={
-              <Diferida>
-                <TerminosPage />
-              </Diferida>
-            }
-          />
-          <Route element={<RutaProtegida />}>
+      <FavoritosProvider>
+        <Routes>
+          <Route element={<DisenoPrincipal />}>
+            <Route index element={<InicioPage />} />
             <Route
-              path="/mis-reservas"
+              path="/explorar"
               element={
                 <Diferida>
-                  <MisReservasPage />
+                  <ExplorarPage />
                 </Diferida>
               }
             />
+            <Route
+              path="/servicios/:id"
+              element={
+                <Diferida>
+                  <DetalleServicioPage />
+                </Diferida>
+              }
+            />
+            <Route
+              path="/servicios/:id/reservar"
+              element={
+                <Diferida>
+                  <ReservaPage />
+                </Diferida>
+              }
+            />
+            <Route
+              path="/preguntas-frecuentes"
+              element={
+                <Diferida>
+                  <PreguntasFrecuentesPage />
+                </Diferida>
+              }
+            />
+            <Route
+              path="/terminos"
+              element={
+                <Diferida>
+                  <TerminosPage />
+                </Diferida>
+              }
+            />
+            <Route element={<RutaProtegida />}>
+              <Route
+                path="/mis-reservas"
+                element={
+                  <Diferida>
+                    <MisReservasPage />
+                  </Diferida>
+                }
+              />
+            </Route>
+            <Route element={<RutaProtegida rol="Turista" />}>
+              <Route
+                path="/perfil"
+                element={
+                  <Diferida>
+                    <PerfilPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/perfil/favoritos"
+                element={
+                  <Diferida>
+                    <MisFavoritosPage />
+                  </Diferida>
+                }
+              />
+            </Route>
+            <Route element={<RutaProtegida rol="Administrador" />}>
+              <Route
+                path="/admin/cuentas"
+                element={
+                  <Diferida>
+                    <AdministrarCuentasPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/admin/preguntas-frecuentes"
+                element={
+                  <Diferida>
+                    <AdministrarPreguntasPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/admin/avisos"
+                element={
+                  <Diferida>
+                    <AdministrarAvisosPage />
+                  </Diferida>
+                }
+              />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
-          <Route element={<RutaProtegida rol="Administrador" />}>
-            <Route
-              path="/admin/cuentas"
-              element={
-                <Diferida>
-                  <AdministrarCuentasPage />
-                </Diferida>
-              }
-            />
-            <Route
-              path="/admin/preguntas-frecuentes"
-              element={
-                <Diferida>
-                  <AdministrarPreguntasPage />
-                </Diferida>
-              }
-            />
-            <Route
-              path="/admin/avisos"
-              element={
-                <Diferida>
-                  <AdministrarAvisosPage />
-                </Diferida>
-              }
-            />
+          <Route element={<DisenoAcceso />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/registro" element={<RegistroPage />} />
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-        <Route element={<DisenoAcceso />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/registro" element={<RegistroPage />} />
-        </Route>
-      </Routes>
+        </Routes>
+      </FavoritosProvider>
     </SesionProvider>
   )
 }

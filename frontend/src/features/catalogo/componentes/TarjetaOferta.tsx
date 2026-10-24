@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 import { ICONOS_ACCESIBILIDAD } from '../../../shared/components/Iconos'
 import { BotonProximamente } from '../../../shared/components/Proximamente'
+import { BotonFavorito } from '../../favoritos/BotonFavorito'
 import type { EstadoResumen } from '../../reservas/reservasApi'
 import type { ResultadoOferta } from '../catalogoApi'
 import { rutaDetalle } from '../detalle/navegacionDetalle'
@@ -15,7 +16,8 @@ import { ImagenOferta } from './ImagenOferta'
  * Calificación (RF17) y afluencia (RF39) dependen de datos que aún no existen: se muestran como «—». La disponibilidad
  * de los servicios (RF11) sale del resumen de ms-booking para los próximos 7 días; mientras carga, si falla o en las
  * categorías que no se reservan, también «—». «Ver detalle» lleva a WF-06 en los servicios; en los atractivos sigue
- * pendiente.
+ * pendiente. En la lista, el corazón «Guardar en favoritos» (RF54, DEC-93) sirve para servicios y atractivos (DEC-87);
+ * los destacados de WF-04 no lo llevan.
  *
  * En la lista, `onResaltar` avisa cuando el puntero o el foco entran o salen (para resaltar su marcador en el mapa);
  * la tarjeta acepta el foco por programa (tabIndex -1) para cuando se pulsa su marcador.
@@ -135,6 +137,12 @@ export function TarjetaOferta({
             </Link>
           ) : (
             <BotonProximamente className="enlace">{t('catalogo.tarjeta.verDetalle')}</BotonProximamente>
+          )}
+          {variante === 'lista' && (
+            <BotonFavorito
+              className="tarjeta-oferta__favorito"
+              referencia={{ tipo: resultado.tipo, id: resultado.id, nombre: resultado.nombre }}
+            />
           )}
         </div>
       </div>

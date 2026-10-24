@@ -24,7 +24,9 @@
     "misReservas": "My bookings",
     "administrarCuentas": "Manage accounts",
     "administrarPreguntas": "FAQ",
-    "administrarAvisos": "Notices"
+    "administrarAvisos": "Notices",
+    "miPerfil": "My profile",
+    "misFavoritos": "My favorites"
   },
   "login": {
     "titulo": "Sign in to Samaria360",
@@ -607,6 +609,13 @@
       "volver": "No, go back",
       "cancelando": "Cancelling…",
       "cerrar": "Close"
+    },
+    "compartir": {
+      "boton": "Share {{servicio}}",
+      "visible": "Share",
+      "copiado": "Link copied.",
+      "enlace": "Link to share",
+      "copiaManual": "We could not copy it automatically: copy it from this field."
     }
   },
   "admin": {
@@ -830,5 +839,72 @@
         "NO_PERMITIDO": "Choose a type from the list."
       }
     }
+  },
+  "perfil": {
+    "titulo": "My profile",
+    "secciones": "Profile sections",
+    "pestanas": {
+      "datos": "Personal details",
+      "intereses": "Travel interests"
+    },
+    "misFavoritos": "My favorites",
+    "correo": "Email",
+    "correoAyuda": "It is your sign-in identity and cannot be changed.",
+    "ayudaCategorias": "Choose at least one category.",
+    "guardarDatos": "Save changes",
+    "guardarIntereses": "Save interests",
+    "guardando": "Saving…",
+    "descartar": "Discard",
+    "cargando": "Loading your profile…",
+    "anuncios": {
+      "datos": "Profile updated.",
+      "intereses": "Interests updated."
+    },
+    "errores": {
+      "carga": "We could not load your profile.",
+      "DATOS_INVALIDOS": "Check your details: one of the values is not valid.",
+      "SERVICIO_NO_DISPONIBLE": "The service is not available right now. Please try again in a few minutes.",
+      "ERROR_RED": "We could not reach the server. Check your connection and try again.",
+      "GENERICO": "An unexpected error occurred. Please try again later."
+    }
+  },
+  "favoritos": {
+    "boton": "Save to favorites: {{nombre}}",
+    "requiereSesion": "Sign in as a tourist to save favorites.",
+    "noCargados": "We could not load your favorites.",
+    "anuncios": {
+      "guardado": "Saved to favorites.",
+      "quitado": "Removed from favorites.",
+      "limite": "You reached the limit of 100 favorites. Remove some in “My favorites”.",
+      "servicioNoDisponible": "This service is no longer available.",
+      "lugarNoDisponible": "This place is no longer available.",
+      "error": "We could not update your favorites. Please try again."
+    },
+    "titulo": "My favorites",
+    "volverPerfil": "Back to my profile",
+    "contador": "{{n}} of {{limite}} favorites",
+    "orden": "newest first",
+    "cargando": "Loading your favorites…",
+    "errorCarga": "We could not load your favorites.",
+    "vacio": "You have no favorites yet.",
+    "vacioAyuda": "Tap the heart on search results or on a service page.",
+    "explorar": "Explore the offer",
+    "eliminado": "No longer in the catalog",
+    "disponible": "Available",
+    "noDisponible": "Not available",
+    "noDisponibleAyuda": "It was unpublished or its provider is inactive. We keep it until you remove it.",
+    "quitar": "Remove {{nombre}} from favorites",
+    "quitarVisible": "Remove"
+  },
+  "historial": {
+    "titulo": "Recent searches",
+    "texto": "“{{texto}}”",
+    "precioMax": "Up to {{precio}}",
+    "cerca": "Near me",
+    "cercaDistancia": "Near me · {{distancia}}",
+    "sinFiltros": "Search without filters",
+    "fecha": "Search from {{fecha}}.",
+    "pideUbicacion": "It will ask for your location again.",
+    "sinUbicacion": "You did not share your location: the search was repeated without the distance or the nearest-first order."
   }
 }

@@ -479,6 +479,18 @@
   gap: var(--espacio-2) var(--espacio-4);
 }
 
+.tarjeta-reserva__enlace {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+/* «Compartir» (RF49): icono y texto; el nombre accesible incluye el del servicio. */
+.boton-compartir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
 .tarjeta-reserva__motivo,
 .tarjeta-reserva__plazo {
   margin: 0;

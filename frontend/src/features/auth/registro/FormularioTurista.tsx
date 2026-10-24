@@ -5,7 +5,9 @@ import { IconoCandado, IconoSobre } from '../../../shared/components/Iconos'
 import { RUTA_POLITICA_PRIVACIDAD } from '../../../shared/rutasLegales'
 import { registrarTurista, type DatosRegistroTurista } from '../authApi'
 import { Campo } from './Campo'
+import { CasillasCategorias, idCasillaCategoria } from './CasillasCategorias'
 import { aRechazoRegistro, enfocarPrimerError, textoErrorCampo } from './envioRegistro'
+import { SelectorPais } from './SelectorPais'
 import { usePaises } from './usePaises'
 import { CATEGORIAS_INTERES, normalizarCorreo, validarTurista, type ErroresCampos } from './validacionRegistro'
 
@@ -23,7 +25,8 @@ const ORDEN = [
 ] as const
 
 /** Id del control que recibe el foco por campo: las categorías, en la primera casilla. */
-const ID_FOCO = (campo: string) => (campo === 'categoriasInteres' ? ID(`categoria-${CATEGORIAS_INTERES[0]}`) : ID(campo))
+const ID_FOCO = (campo: string) =>
+  campo === 'categoriasInteres' ? idCasillaCategoria('turista', CATEGORIAS_INTERES[0]) : ID(campo)
 
 /** WF-02: Formulario – Turista (RF01). Al terminar vuelve al login con el correo escrito (sin iniciar sesión, ADR-006). */
 export function FormularioTurista({ onRegistrado }: { onRegistrado: (correo: string) => void }) {
@@ -46,14 +49,6 @@ export function FormularioTurista({ onRegistrado }: { onRegistrado: (correo: str
 
   const cambiar = <K extends keyof DatosRegistroTurista>(campo: K, valor: DatosRegistroTurista[K]) =>
     setDatos((actual) => ({ ...actual, [campo]: valor }))
-
-  const alternarCategoria = (categoria: string) =>
-    cambiar(
-      'categoriasInteres',
-      datos.categoriasInteres.includes(categoria)
-        ? datos.categoriasInteres.filter((c) => c !== categoria)
-        : CATEGORIAS_INTERES.filter((c) => c === categoria || datos.categoriasInteres.includes(c)),
-    )
 
   const enviar = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault()
@@ -106,71 +101,12 @@ export function FormularioTurista({ onRegistrado }: { onRegistrado: (correo: str
         autoComplete="new-password" ayuda={t('registro.ayudaContrasena')} value={datos.contrasena}
         onChange={(e) => cambiar('contrasena', e.target.value)} error={error('contrasena')} />
 
-      <div className="campo">
-        <label htmlFor={ID('paisOrigen')}>{t('registro.paisOrigen')}</label>
-        <select
-          id={ID('paisOrigen')}
-          className="campo-lista-registro"
-          value={datos.paisOrigen}
-          disabled={paises.estado !== 'ok'}
-          aria-invalid={errores.paisOrigen ? true : undefined}
-          aria-describedby={errores.paisOrigen ? `${ID('paisOrigen')}-error` : undefined}
-          autoComplete="country"
-          onChange={(e) => cambiar('paisOrigen', e.target.value)}
-        >
-          <option value="">
-            {paises.estado === 'cargando' ? t('registro.paisesCargando') : t('registro.paisElegir')}
-          </option>
-          {paises.opciones.map((pais) => (
-            <option key={pais.codigo} value={pais.codigo}>
-              {pais.nombre}
-            </option>
-          ))}
-        </select>
-        {paises.estado === 'error' && (
-          <p className="registro__paises-error">
-            {t('registro.paisesError')}{' '}
-            <button type="button" className="boton-secundario" onClick={paises.reintentar}>
-              {t('catalogo.busqueda.reintentar')}
-            </button>
-          </p>
-        )}
-        {errores.paisOrigen && (
-          <p id={`${ID('paisOrigen')}-error`} className="campo__error">
-            {error('paisOrigen')}
-          </p>
-        )}
-      </div>
+      <SelectorPais id={ID('paisOrigen')} etiqueta={t('registro.paisOrigen')} paises={paises} valor={datos.paisOrigen}
+        onCambiar={(codigo) => cambiar('paisOrigen', codigo)} error={error('paisOrigen')} />
 
-      <fieldset
-        className="registro__grupo"
-        aria-describedby={
-          errores.categoriasInteres
-            ? `${ID('categoriasInteres')}-ayuda ${ID('categoriasInteres')}-error`
-            : `${ID('categoriasInteres')}-ayuda`
-        }
-      >
-        <legend>{t('registro.categoriasInteres')}</legend>
-        <p id={`${ID('categoriasInteres')}-ayuda`} className="campo__ayuda">
-          {t('registro.ayudaCategorias')}
-        </p>
-        {CATEGORIAS_INTERES.map((categoria) => (
-          <label key={categoria} className="casilla">
-            <input
-              id={ID(`categoria-${categoria}`)}
-              type="checkbox"
-              checked={datos.categoriasInteres.includes(categoria)}
-              onChange={() => alternarCategoria(categoria)}
-            />
-            {t(`registro.categorias.${categoria}`)}
-          </label>
-        ))}
-        {errores.categoriasInteres && (
-          <p id={`${ID('categoriasInteres')}-error`} className="campo__error">
-            {error('categoriasInteres')}
-          </p>
-        )}
-      </fieldset>
+      <CasillasCategorias prefijo="turista" leyenda={t('registro.categoriasInteres')} ayuda={t('registro.ayudaCategorias')}
+        seleccionadas={datos.categoriasInteres} onCambiar={(categorias) => cambiar('categoriasInteres', categorias)}
+        error={error('categoriasInteres')} />
 
       <CasillaPoliticas id={ID('aceptoPoliticas')} marcada={datos.aceptoPoliticas}
         onCambiar={(valor) => cambiar('aceptoPoliticas', valor)} error={error('aceptoPoliticas')} />

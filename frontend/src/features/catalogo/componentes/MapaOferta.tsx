@@ -3,6 +3,7 @@ import * as L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { TRAZO_CORAZON } from '../../../shared/components/Iconos'
 import type { ResultadoOferta, Ubicacion } from '../catalogoApi'
 import { rutaDetalle } from '../detalle/navegacionDetalle'
 import { CENTRO_SANTA_MARTA } from '../geo'
@@ -54,11 +55,82 @@ function iconoUbicacion(): L.DivIcon {
 }
 
 /**
- * Ventana emergente de un resultado (RF23): miniatura, nombre y, en los servicios, «Ver detalle». Se arma con nodos y
- * textContent, nunca con HTML que lleve datos de la API. El enlace es un <a href> real (abre en otra pestaña con las
- * teclas de siempre); un clic normal navega dentro de la app con `onVerDetalle`.
+ * Corazón del popup (RF54, DEC-94), con las mismas reglas que el de la tarjeta (DEC-93): el Turista marca o desmarca;
+ * un visitante va al login; con otro rol no hay `FavoritoPopup` y no se muestra.
  */
-function contenidoPopup(resultado: ResultadoOferta, t: TFunction, onVerDetalle: (id: string) => void): HTMLElement {
+export interface FavoritoPopup {
+  modo: 'turista' | 'visitante'
+  /** La lista de favoritos ya cargó (si no, el corazón queda con aria-disabled). */
+  listo: boolean
+  esFavorito: (resultado: ResultadoOferta) => boolean
+  /** Resuelve con el estado final (true = es favorito). */
+  alternar: (resultado: ResultadoOferta) => Promise<boolean>
+  irALogin: () => void
+}
+
+/**
+ * Botón del corazón armado con nodos (como el resto del popup). Lee el estado vigente al abrirse y al pulsarlo, así
+ * que decide PUT o DELETE con el valor actual; si el corazón de la tarjeta cambia con el popup abierto, este se pone
+ * al día al volver a abrirlo (limitación aceptada, DEC-94).
+ */
+function botonFavoritoPopup(
+  resultado: ResultadoOferta,
+  t: TFunction,
+  favorito: () => FavoritoPopup | undefined,
+): HTMLButtonElement | null {
+  const inicial = favorito()
+  if (!inicial) return null
+  const boton = document.createElement('button')
+  boton.type = 'button'
+  boton.className = 'popup-oferta__favorito'
+  boton.setAttribute('aria-label', t('favoritos.boton', { nombre: resultado.nombre }))
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('viewBox', '0 0 24 24')
+  svg.setAttribute('width', '20')
+  svg.setAttribute('height', '20')
+  svg.setAttribute('aria-hidden', 'true')
+  svg.setAttribute('focusable', 'false')
+  const trazo = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  trazo.setAttribute('d', TRAZO_CORAZON)
+  svg.append(trazo)
+  boton.append(svg)
+
+  if (inicial.modo === 'visitante') {
+    boton.addEventListener('click', () => favorito()?.irALogin())
+    return boton
+  }
+  const pintar = (marcado: boolean) => {
+    boton.setAttribute('aria-pressed', String(marcado))
+    trazo.setAttribute('fill', marcado ? 'currentColor' : 'none')
+  }
+  pintar(inicial.listo && inicial.esFavorito(resultado))
+  if (!inicial.listo) boton.setAttribute('aria-disabled', 'true')
+  boton.addEventListener('click', () => {
+    const actual = favorito()
+    if (!actual || actual.modo !== 'turista' || !actual.listo || boton.getAttribute('aria-busy') === 'true') return
+    boton.removeAttribute('aria-disabled')
+    pintar(!actual.esFavorito(resultado))
+    boton.setAttribute('aria-busy', 'true')
+    void actual
+      .alternar(resultado)
+      .then(pintar)
+      .finally(() => boton.removeAttribute('aria-busy'))
+  })
+  return boton
+}
+
+/**
+ * Ventana emergente de un resultado (RF23): miniatura, nombre y, en los servicios, «Ver detalle»; con la sesión de un
+ * turista o sin sesión, también el corazón (DEC-94). Se arma con nodos y textContent, nunca con HTML que lleve datos de
+ * la API. El enlace es un <a href> real (abre en otra pestaña con las teclas de siempre); un clic normal navega dentro
+ * de la app con `onVerDetalle`.
+ */
+function contenidoPopup(
+  resultado: ResultadoOferta,
+  t: TFunction,
+  onVerDetalle: (id: string) => void,
+  favorito: () => FavoritoPopup | undefined,
+): HTMLElement {
   const contenedor = document.createElement('div')
   contenedor.className = 'popup-oferta'
 
@@ -91,6 +163,8 @@ function contenidoPopup(resultado: ResultadoOferta, t: TFunction, onVerDetalle: 
     })
     contenedor.append(enlace)
   }
+  const corazon = botonFavoritoPopup(resultado, t, favorito)
+  if (corazon) contenedor.append(corazon)
   return contenedor
 }
 
@@ -141,6 +215,8 @@ interface PropiedadesMapa {
   onSeleccionar: (clave: string) => void
   /** «Ver detalle» del popup de un servicio. */
   onVerDetalle?: (idServicio: string) => void
+  /** Corazón del popup (DEC-94); sin él (otro rol o sesión validándose), no se muestra. */
+  favorito?: FavoritoPopup
 }
 
 /**
@@ -156,6 +232,7 @@ export function MapaOferta({
   resaltada,
   onSeleccionar,
   onVerDetalle,
+  favorito,
 }: PropiedadesMapa) {
   const { t } = useTranslation()
   const id = useId()
@@ -167,12 +244,14 @@ export function MapaOferta({
   const puntosEncuadre = useRef<L.LatLngTuple[]>([])
   const alSeleccionar = useRef(onSeleccionar)
   const alVerDetalle = useRef(onVerDetalle)
+  const favoritoActual = useRef(favorito)
   // El popup se arma al abrirse: usa el idioma y el manejador vigentes.
   const traducir = useRef(t)
 
   useEffect(() => {
     alSeleccionar.current = onSeleccionar
     alVerDetalle.current = onVerDetalle
+    favoritoActual.current = favorito
     traducir.current = t
   })
 
@@ -220,7 +299,12 @@ export function MapaOferta({
     for (const resultado of resultados) {
       const clave = claveResultado(resultado)
       const marcador = agregarMarcador(capa, resultado.coordenada, iconoResultado(resultado.tipo), resultado.nombre, 0, () =>
-        contenidoPopup(resultado, traducir.current, (idServicio) => alVerDetalle.current?.(idServicio)),
+        contenidoPopup(
+          resultado,
+          traducir.current,
+          (idServicio) => alVerDetalle.current?.(idServicio),
+          () => favoritoActual.current,
+        ),
       )
       marcador.on('click', () => alSeleccionar.current(clave))
       marcadores.current.set(clave, marcador)

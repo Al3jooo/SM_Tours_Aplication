@@ -141,9 +141,24 @@ export function SesionProvider({ children }: { children: ReactNode }) {
 
   const descartarAviso = useCallback(() => setAviso(null), [])
 
+  // El 401 (o 403 por cuenta inactiva) ya cierra la sesión por alExpirarSesion; cualquier otro error deja todo igual.
+  // Una respuesta tardía solo vale si el token guardado sigue siendo el mismo con el que se pidió.
+  const refrescarUsuario = useCallback(async () => {
+    const token = leerToken()
+    if (!token) return
+    try {
+      const usuario = await consultarUsuarioActual()
+      if (leerToken() === token) {
+        setSesion((actual) => (actual.estado === 'autenticado' ? { estado: 'autenticado', usuario } : actual))
+      }
+    } catch {
+      // Red, 5xx o un 401 ya atendido: no hay nada más que hacer.
+    }
+  }, [])
+
   const valor = useMemo<ValorSesion>(
-    () => ({ sesion, aviso, descartarAviso, iniciarSesion, cerrarSesion }),
-    [sesion, aviso, descartarAviso, iniciarSesion, cerrarSesion],
+    () => ({ sesion, aviso, descartarAviso, iniciarSesion, cerrarSesion, refrescarUsuario }),
+    [sesion, aviso, descartarAviso, iniciarSesion, cerrarSesion, refrescarUsuario],
   )
 
   return <SesionContext.Provider value={valor}>{children}</SesionContext.Provider>

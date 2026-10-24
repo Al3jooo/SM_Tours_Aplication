@@ -27,5 +27,9 @@ export default defineConfig({
     unstubGlobals: true,
     // Vitest vacía los .css por defecto; la guardia de contraste (src/app/tokens.test.ts) lee los tokens.
     css: { include: [/estilos\.css/] },
+    // O6 (DEC-101): la primera prueba de cada archivo paga la carga diferida de su pantalla (Vitest transforma el
+    // módulo dentro de la prueba) y, con toda la suite en paralelo, pasa de los 5 s por defecto en las PC del equipo.
+    // 30 s es el límite con el que la suite completa pasó en todas las corridas medidas; una prueba colgada igual falla.
+    testTimeout: 30_000,
   },
 })

@@ -95,18 +95,26 @@ class Validador {
   }
 }
 
+/** Datos del perfil del turista (RF53): los del registro sin correo, contraseña ni políticas (DEC-84). */
+export type DatosPerfil = Pick<
+  DatosRegistroTurista,
+  'primerNombre' | 'segundoNombre' | 'primerApellido' | 'segundoApellido' | 'paisOrigen' | 'categoriasInteres'
+>
+
 /**
+ * Reglas de RF01 que comparten el registro y el perfil (DEC-85, DEC-98): nombres, país y de 1 a 3 categorías.
  * @param paises códigos admitidos (de GET /api/v1/auth/paises); null si aún no cargaron, y entonces solo se comprueba
  *               que sean dos letras
  */
-export function validarTurista(datos: DatosRegistroTurista, paises: readonly string[] | null): ErroresCampos {
-  const v = new Validador()
+export function validarPerfil(datos: DatosPerfil, paises: readonly string[] | null): ErroresCampos {
+  return validarPerfilEn(new Validador(), datos, paises).errores
+}
+
+function validarPerfilEn(v: Validador, datos: DatosPerfil, paises: readonly string[] | null): Validador {
   v.requerido('primerNombre', datos.primerNombre)
   v.opcional('segundoNombre', datos.segundoNombre)
   v.requerido('primerApellido', datos.primerApellido)
   v.opcional('segundoApellido', datos.segundoApellido)
-  v.correo('correo', datos.correo)
-  v.contrasena(datos.contrasena)
   const pais = datos.paisOrigen.trim().toUpperCase()
   if (!pais) v.errores.paisOrigen = 'REQUERIDO'
   else if (!DOS_LETRAS.test(pais)) v.errores.paisOrigen = 'FORMATO'
@@ -116,6 +124,17 @@ export function validarTurista(datos: DatosRegistroTurista, paises: readonly str
   else if (categorias.some((c) => !(CATEGORIAS_INTERES as readonly string[]).includes(c))) {
     v.errores.categoriasInteres = 'NO_PERMITIDO'
   } else if (new Set(categorias).size !== categorias.length) v.errores.categoriasInteres = 'DUPLICADO'
+  return v
+}
+
+/**
+ * @param paises códigos admitidos (de GET /api/v1/auth/paises); null si aún no cargaron, y entonces solo se comprueba
+ *               que sean dos letras
+ */
+export function validarTurista(datos: DatosRegistroTurista, paises: readonly string[] | null): ErroresCampos {
+  const v = validarPerfilEn(new Validador(), datos, paises)
+  v.correo('correo', datos.correo)
+  v.contrasena(datos.contrasena)
   v.politicas(datos.aceptoPoliticas)
   return v.errores
 }

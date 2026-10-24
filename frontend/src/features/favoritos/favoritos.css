@@ -1,0 +1,72 @@
+/* Corazón «Guardar en favoritos» (RF54, DEC-93). Solo tokens de src/app/estilos.css y pares de color ya verificados en
+   tokens.test.ts. El estado no depende solo del color: el icono pasa de contorno a relleno (WCAG 1.4.1). */
+.boton-favorito {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: var(--espacio-2);
+  border: 1.5px solid var(--color-borde-campo);
+  border-radius: var(--radio-pill);
+  background: var(--color-superficie);
+  color: var(--color-atardecer-700);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--transicion);
+}
+
+.boton-favorito--texto {
+  padding-inline: var(--espacio-4);
+  color: var(--color-tinta);
+}
+
+.boton-favorito--texto svg {
+  color: var(--color-atardecer-700);
+}
+
+.boton-favorito:hover:not([aria-disabled='true']),
+.boton-favorito[aria-pressed='true'] {
+  border-color: var(--color-atardecer-700);
+}
+
+.boton-favorito[aria-pressed='true'] svg {
+  animation: latido-favorito 320ms ease-out;
+}
+
+.boton-favorito[aria-disabled='true'] {
+  border-style: dashed;
+  color: var(--color-deshabilitado);
+  cursor: not-allowed;
+}
+
+.boton-favorito[aria-busy='true'] {
+  cursor: progress;
+}
+
+@keyframes latido-favorito {
+  40% {
+    transform: scale(1.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boton-favorito[aria-pressed='true'] svg {
+    animation: none;
+  }
+}
+
+/* Región de los anuncios de favoritos: siempre en el DOM (para que se anuncie), sin alto mientras está vacía. */
+.aviso-favoritos {
+  margin: 0;
+  color: var(--color-mar-700);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+}
+
+.aviso-favoritos--error {
+  color: var(--color-error);
+}

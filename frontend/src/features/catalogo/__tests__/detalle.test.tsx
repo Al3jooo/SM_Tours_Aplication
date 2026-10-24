@@ -96,7 +96,8 @@ describe('Detalle de un servicio (WF-06)', () => {
     const ficha = await screen.findByRole('article', { name: 'Hotel Casa Tayrona' })
     expect(within(ficha).queryByText(/Próximamente/)).not.toBeInTheDocument()
 
-    for (const nombre of ['Guardar en favoritos', 'Compartir', 'Reportar información falsa o desactualizada']) {
+    // El favorito ya no está pendiente (RF54, B1): lo prueba favoritos.test.tsx. «Compartir» sigue deshabilitado (DEC-90).
+    for (const nombre of ['Compartir', 'Reportar información falsa o desactualizada']) {
       // jsdom une el texto del span solo-lector sin el espacio inicial; un navegador lo conserva.
       const boton = screen.getByRole('button', { name: new RegExp(`^${nombre} ?\\(No disponible\\)$`) })
       expect(boton).toHaveAttribute('aria-disabled', 'true')

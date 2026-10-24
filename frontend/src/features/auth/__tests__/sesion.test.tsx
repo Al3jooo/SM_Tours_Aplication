@@ -80,8 +80,8 @@ describe('Sesión', () => {
     avatar.focus()
     await usuario.keyboard('{Enter}')
 
-    // Para un turista, la primera opción es «Mis reservas» (WF-11).
-    const opcion = screen.getByRole('menuitem', { name: 'Mis reservas' })
+    // Para un turista, la primera opción es «Mi perfil» (WF-16, DEC-92).
+    const opcion = screen.getByRole('menuitem', { name: 'Mi perfil' })
     await waitFor(() => expect(opcion).toHaveFocus())
     expect(avatar).toHaveAttribute('aria-controls', screen.getByRole('menu').id)
     expect(avatar).toHaveAttribute('aria-expanded', 'true')
@@ -107,11 +107,17 @@ describe('Menú del avatar', () => {
     const { usuario, avatar } = await abrirMenu()
     await usuario.click(avatar)
 
+    // DEC-92: «Mi perfil» y «Mis favoritos» van antes de «Mis reservas».
     const opciones = within(screen.getByRole('menu')).getAllByRole('menuitem')
-    expect(opciones.map((opcion) => opcion.textContent)).toEqual(['Mis reservas', 'Cerrar sesión'])
-    expect(opciones[0]).toHaveAttribute('href', '/mis-reservas')
+    expect(opciones.map((opcion) => opcion.textContent)).toEqual([
+      'Mi perfil',
+      'Mis favoritos',
+      'Mis reservas',
+      'Cerrar sesión',
+    ])
+    expect(opciones[2]).toHaveAttribute('href', '/mis-reservas')
 
-    await usuario.click(opciones[0])
+    await usuario.click(opciones[2])
     // La navegación va en una transición: la ruta cambia cuando llega la página diferida.
     await waitFor(() => expect(ubicacionActual()).toBe('/mis-reservas'))
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()

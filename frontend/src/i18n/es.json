@@ -24,7 +24,9 @@
     "misReservas": "Mis reservas",
     "administrarCuentas": "Administrar cuentas",
     "administrarPreguntas": "Preguntas frecuentes",
-    "administrarAvisos": "Avisos"
+    "administrarAvisos": "Avisos",
+    "miPerfil": "Mi perfil",
+    "misFavoritos": "Mis favoritos"
   },
   "login": {
     "titulo": "Iniciar sesión en Samaria360",
@@ -607,6 +609,13 @@
       "volver": "No, volver",
       "cancelando": "Cancelando…",
       "cerrar": "Cerrar"
+    },
+    "compartir": {
+      "boton": "Compartir {{servicio}}",
+      "visible": "Compartir",
+      "copiado": "Enlace copiado.",
+      "enlace": "Enlace para compartir",
+      "copiaManual": "No pudimos copiarlo automáticamente: cópialo desde este campo."
     }
   },
   "admin": {
@@ -830,5 +839,72 @@
         "NO_PERMITIDO": "Elige un tipo de la lista."
       }
     }
+  },
+  "perfil": {
+    "titulo": "Mi perfil",
+    "secciones": "Secciones del perfil",
+    "pestanas": {
+      "datos": "Datos personales",
+      "intereses": "Intereses turísticos"
+    },
+    "misFavoritos": "Mis favoritos",
+    "correo": "Correo electrónico",
+    "correoAyuda": "Es tu identidad para iniciar sesión y no se puede cambiar.",
+    "ayudaCategorias": "Elige al menos una categoría.",
+    "guardarDatos": "Guardar cambios",
+    "guardarIntereses": "Guardar intereses",
+    "guardando": "Guardando…",
+    "descartar": "Descartar",
+    "cargando": "Cargando tu perfil…",
+    "anuncios": {
+      "datos": "Perfil actualizado.",
+      "intereses": "Intereses actualizados."
+    },
+    "errores": {
+      "carga": "No fue posible cargar tu perfil.",
+      "DATOS_INVALIDOS": "Revisa los datos: hay un valor que no es válido.",
+      "SERVICIO_NO_DISPONIBLE": "El servicio no está disponible por el momento. Inténtalo de nuevo en unos minutos.",
+      "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
+      "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo más tarde."
+    }
+  },
+  "favoritos": {
+    "boton": "Guardar en favoritos: {{nombre}}",
+    "requiereSesion": "Inicia sesión como turista para guardar favoritos.",
+    "noCargados": "No pudimos cargar tus favoritos.",
+    "anuncios": {
+      "guardado": "Guardado en favoritos.",
+      "quitado": "Quitado de favoritos.",
+      "limite": "Llegaste al límite de 100 favoritos. Quita alguno en «Mis favoritos».",
+      "servicioNoDisponible": "Este servicio ya no está disponible.",
+      "lugarNoDisponible": "Este lugar ya no está disponible.",
+      "error": "No fue posible actualizar tus favoritos. Inténtalo de nuevo."
+    },
+    "titulo": "Mis favoritos",
+    "volverPerfil": "Volver a mi perfil",
+    "contador": "{{n}} de {{limite}} favoritos",
+    "orden": "del más reciente al más antiguo",
+    "cargando": "Cargando tus favoritos…",
+    "errorCarga": "No fue posible cargar tus favoritos.",
+    "vacio": "Aún no tienes favoritos.",
+    "vacioAyuda": "Marca el corazón en los resultados de la búsqueda o en la ficha de un servicio.",
+    "explorar": "Explorar la oferta",
+    "eliminado": "Ya no está en el catálogo",
+    "disponible": "Disponible",
+    "noDisponible": "No disponible",
+    "noDisponibleAyuda": "Se despublicó o su prestador está inactivo. Lo conservamos hasta que lo quites.",
+    "quitar": "Quitar {{nombre}} de favoritos",
+    "quitarVisible": "Quitar"
+  },
+  "historial": {
+    "titulo": "Últimas búsquedas",
+    "texto": "“{{texto}}”",
+    "precioMax": "Hasta {{precio}}",
+    "cerca": "Cerca de mí",
+    "cercaDistancia": "Cerca de mí · {{distancia}}",
+    "sinFiltros": "Búsqueda sin filtros",
+    "fecha": "Búsqueda del {{fecha}}.",
+    "pideUbicacion": "Volverá a pedir tu ubicación.",
+    "sinUbicacion": "No compartiste tu ubicación: la búsqueda se repitió sin la distancia ni el orden por cercanía."
   }
 }

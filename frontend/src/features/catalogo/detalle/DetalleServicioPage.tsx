@@ -4,6 +4,8 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import { BotonNoDisponible } from '../../../shared/components/BotonNoDisponible'
 import { ICONOS_ACCESIBILIDAD } from '../../../shared/components/Iconos'
 import { centavos, formatearCentavos } from '../../reservas/dinero'
+import { AvisoFavoritos } from '../../favoritos/AvisoFavoritos'
+import { BotonFavorito } from '../../favoritos/BotonFavorito'
 import { CATEGORIAS_RESERVABLES } from '../../reservas/reservasApi'
 import { ImagenOferta } from '../componentes/ImagenOferta'
 import { etiquetaCategoria } from '../componentes/etiquetas'
@@ -19,12 +21,14 @@ const MAXIMO_MINIATURAS = 4
 /**
  * WF-06 (pública), con todas sus regiones en el orden del wireframe. Política de visibilidad (docs/trazabilidad.md):
  * - lo que trae el catálogo (contacto, accesibilidad, horario de RF58 y precios) se muestra;
- * - lo que falta, sea un dato que el servicio no trae o una función pendiente (calificación RF17, etiquetas, favorito
- *   RF54, compartir, alerta de afluencia RF39, WhatsApp, dirección y RNT, «Reportar» RF57 y destinos alternativos RF51),
+ * - lo que falta, sea un dato que el servicio no trae o una función pendiente (calificación RF17, etiquetas,
+ *   compartir, alerta de afluencia RF39, WhatsApp, dirección y RNT, «Reportar» RF57 y destinos alternativos RF51),
  *   tiene un único estado deshabilitado: sin texto visible de estado, con una señal que no depende del color («—» como
  *   valor o borde discontinuo) y «No disponible» solo para lectores de pantalla (WCAG 1.4.1). Los botones llevan
  *   aria-disabled y no hacen nada.
  * «Ver disponibilidad y reservar» (WF-10) solo aparece en las categorías que se reservan (Tour y Alojamiento).
+ * El corazón «Guardar en favoritos» (RF54) funciona como en WF-05 (DEC-93); «Compartir» sigue deshabilitado: RF49 solo
+ * traza el botón de las reservas Completadas de WF-11 (DEC-90).
  */
 export function DetalleServicioPage() {
   const { t } = useTranslation()
@@ -153,10 +157,11 @@ function FichaServicio({ servicio, volverA }: { servicio: DetalleServicio; volve
           </ul>
         </div>
         <div className="detalle__acciones-ficha">
-          <BotonNoDisponible>{t('detalle.favorito')}</BotonNoDisponible>
+          <BotonFavorito conTexto referencia={{ tipo: 'Servicio', id: servicio.id, nombre: servicio.nombreComercial }} />
           <BotonNoDisponible>{t('detalle.compartir')}</BotonNoDisponible>
         </div>
       </header>
+      <AvisoFavoritos />
 
       <div className="detalle__galeria">
         <div className="detalle__portada">
