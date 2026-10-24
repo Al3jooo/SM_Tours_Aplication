@@ -620,18 +620,26 @@
   },
   "admin": {
     "titulo": "Administrar cuentas",
-    "apoyo": "Valida a los prestadores registrados y gestiona el estado de las cuentas de prestadores y turistas.",
+    "apoyo": "Valida a los prestadores registrados, gestiona el estado de las cuentas de prestadores y turistas, y asigna los roles de Gestor y Administrador.",
     "pestanasEtiqueta": "Tipo de cuentas",
     "pestanas": {
       "pendientes": "Prestadores por validar",
       "pendientesContador": "Prestadores por validar ({{n}})",
       "prestadores": "Prestadores",
-      "turistas": "Turistas"
+      "turistas": "Turistas",
+      "personal": "Personal"
     },
     "buscar": "Buscar",
     "buscarPrestadores": "Nombre, correo o RNT",
     "buscarTuristas": "Nombre o correo",
+    "buscarPersonal": "Nombre o correo",
     "estado": "Estado",
+    "rol": "Rol",
+    "roles": {
+      "Turista": "Turista",
+      "Gestor": "Gestor",
+      "Administrador": "Administrador"
+    },
     "todos": "Todos",
     "botonBuscar": "Buscar",
     "resultados": "Cuentas",
@@ -648,7 +656,8 @@
       "accion": "Acción",
       "nombre": "Nombre",
       "correo": "Correo",
-      "pais": "País"
+      "pais": "País",
+      "rol": "Rol"
     },
     "estados": {
       "Pendiente": "Pendiente de validación",
@@ -662,12 +671,21 @@
       "inactivar": "Inactivar",
       "verMotivo": "Ver motivo",
       "reactivar": "Reactivar",
-      "desactivar": "Desactivar"
+      "desactivar": "Desactivar",
+      "asignarRol": "Asignar rol",
+      "pasarA": "Pasar a {{rol}}",
+      "revocarRol": "Revocar rol",
+      "tuCuenta": "Tu cuenta"
+    },
+    "motivos": {
+      "desactivada": "La cuenta está desactivada",
+      "sinRolBase": "Sin datos de turista"
     },
     "vacio": {
       "pendientes": "No hay prestadores pendientes de validación.",
       "prestadores": "No hay prestadores registrados.",
       "turistas": "No hay turistas registrados.",
+      "personal": "No hay gestores ni administradores.",
       "conFiltros": "Ninguna cuenta coincide con la búsqueda o el filtro."
     },
     "detalle": {
@@ -724,6 +742,24 @@
         "confirmar": "Eliminar"
       }
     },
+    "cambioRol": {
+      "titulo": {
+        "asignar": "Asignar rol a {{nombre}}",
+        "modificar": "Cambiar el rol de {{nombre}}",
+        "revocar": "Revocar el rol de {{nombre}}"
+      },
+      "rolActual": "Rol actual: {{rol}}",
+      "rolNuevo": "Rol nuevo",
+      "rolNuevoFijo": "Rol nuevo: {{rol}}",
+      "advertencia": "Mientras tenga este rol, la cuenta no podrá usar sus reservas, favoritos ni historial de búsquedas. Los datos se conservan y vuelven si se revoca el rol.",
+      "revocar": "La cuenta vuelve a ser Turista: recupera sus reservas, favoritos e historial y pierde los permisos de {{rol}}.",
+      "sesiones": "Sus sesiones abiertas se cerrarán y verá el rol nuevo al volver a iniciar sesión.",
+      "confirmar": {
+        "asignar": "Asignar rol",
+        "modificar": "Pasar a {{rol}}",
+        "revocar": "Revocar rol"
+      }
+    },
     "motivo": {
       "titulo": "Motivo del rechazo de {{nombre}}",
       "sinMotivo": "No hay un motivo registrado."
@@ -738,11 +774,22 @@
       "rechazado": "Se rechazó a {{nombre}}.",
       "inactivado": "Se inactivó la cuenta de {{nombre}}.",
       "desactivado": "Se desactivó la cuenta de {{nombre}}.",
-      "reactivado": "Se reactivó la cuenta de {{nombre}}."
+      "reactivado": "Se reactivó la cuenta de {{nombre}}.",
+      "rolAsignado": "{{nombre}} ahora es {{rol}} y aparece en la pestaña «Personal».",
+      "rolModificado": "{{nombre}} ahora es {{rol}}.",
+      "rolRevocado": "Se revocó el rol de {{nombre}}: vuelve a ser Turista y aparece en la pestaña «Turistas»."
     },
     "errores": {
       "ESTADO_CAMBIADO": "La cuenta cambió de estado; se recargó la lista.",
       "CUENTA_NO_ENCONTRADA": "La cuenta ya no existe; se recargó la lista.",
+      "ROL_CAMBIADO": "El rol de la cuenta cambió (ahora es {{rol}}); se recargó la lista.",
+      "ROL_CAMBIADO_SIN_ROL": "El rol de la cuenta cambió; se recargó la lista.",
+      "CUENTA_NO_ELEGIBLE": "La cuenta no admite el cambio de rol; se recargó la lista.",
+      "CUENTA_NO_ELEGIBLE_PRESTADOR": "Las cuentas de prestador no pueden recibir un rol; se recargó la lista.",
+      "CUENTA_NO_ELEGIBLE_DESACTIVADA": "La cuenta está desactivada y no puede recibir un rol; se recargó la lista.",
+      "CUENTA_NO_ELEGIBLE_SIN_ROL_BASE": "La cuenta no tiene datos de turista, así que su rol no se puede revocar; se recargó la lista.",
+      "CAMBIO_ROL_PROPIO": "No puedes cambiar el rol de tu propia cuenta; se recargó la lista.",
+      "ULTIMO_ADMINISTRADOR": "Debe quedar al menos un Administrador activo; se recargó la lista.",
       "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión y reintenta.",
       "SERVICIO_NO_DISPONIBLE": "El servicio de cuentas no está disponible en este momento. Reintenta en unos minutos.",
       "CONTENIDO_NO_DISPONIBLE": "El servicio de contenidos no está disponible en este momento. Reintenta en unos minutos.",

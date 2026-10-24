@@ -33,7 +33,7 @@
 | WF-09-registrar-atractivo.png | Registrar atractivo turístico | Registrar atractivo | RF06, RF07, RF24, RF27, RF33 | No |
 | WF-10-disponibilidad-reserva.png | Disponibilidad y reserva **(nuevo)** | Reservar servicio | RF11, RF20, RF37, RF44 | **Sí** (sin RNT, impuestos, pagos ni «Notificarme si se libera») |
 | — (WF-11, sin imagen) | Mis reservas **(pendiente de diseño)** | Reservar servicio | RF12, RF18, RF44, RF52 | Sí (diseño provisional) |
-| WF-12-administrar-cuentas.puml (+ `.png` y `.svg`) | Administrar cuentas **(nuevo)** | Administrar cuentas; Cambiar rol de cuenta | RF28, RF22, RF62, RF45 | **Sí** (sin la reactivación del prestador; la parte de RF45, en la sesión B de B2). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-12-administrar-cuentas.puml (+ `.png` y `.svg`) | Administrar cuentas **(nuevo)** | Administrar cuentas; Cambiar rol de cuenta | RF28, RF22, RF62, RF45 | **Sí** (sin la reactivación del prestador; RF45 implementado en B2). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-13-preguntas-frecuentes.puml | Preguntas frecuentes **(nuevo)** | Gestionar FAQs | RF26, RF47 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-14-avisos.puml | Avisos generales: banner y gestión **(nuevo)** | Crear y publicar aviso general | RF40 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-15-terminos.puml | Términos y condiciones **(nuevo)** | Consultar términos y condiciones | RF46 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |

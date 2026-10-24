@@ -49,8 +49,27 @@ export interface TuristaResumen {
   estado: EstadoTurista
 }
 
+/** Roles del personal (RF45): los que se asignan, se modifican y se revocan (DEC-103). */
+export const ROLES_PERSONAL = ['Gestor', 'Administrador'] as const
+export type RolPersonal = (typeof ROLES_PERSONAL)[number]
+/** `Turista` es el rol nuevo al revocar y el rol actual al asignar. */
+export type RolCambio = RolPersonal | 'Turista'
+
+/** Fila de «Personal»; también la respuesta del cambio de rol (con `rol: Turista` si se revocó). */
+export interface PersonalResumen {
+  idUsuario: string
+  /** Del turista; null si la cuenta no tiene fila en `turista` (las de la semilla). */
+  nombre: string | null
+  correo: string
+  rol: RolCambio
+  fechaRegistro: string
+  /** Tiene rol base Turista: solo esas cuentas vuelven a Turista (DEC-105). */
+  revocable: boolean
+}
+
 export interface FiltrosCuentas {
   estado?: string
+  rol?: string
   q?: string
 }
 
@@ -58,6 +77,7 @@ export interface FiltrosCuentas {
 function consulta(filtros: FiltrosCuentas, pagina: number): string {
   const parametros = new URLSearchParams()
   if (filtros.estado) parametros.set('estado', filtros.estado)
+  if (filtros.rol) parametros.set('rol', filtros.rol)
   if (filtros.q) parametros.set('q', filtros.q)
   parametros.set('pagina', String(Math.max(0, pagina - 1)))
   return parametros.toString()
@@ -104,5 +124,21 @@ export function desactivarTurista(idUsuario: string): Promise<TuristaResumen> {
 export function reactivarTurista(idUsuario: string): Promise<TuristaResumen> {
   return solicitar<TuristaResumen>(`${BASE}/turistas/${encodeURIComponent(idUsuario)}/reactivacion`, {
     method: 'POST',
+  })
+}
+
+/** «Consultar personal» (RF45): Gestores y Administradores, con `rol` opcional. */
+export function listarPersonal(filtros: FiltrosCuentas, pagina: number): Promise<PaginaCuentas<PersonalResumen>> {
+  return solicitar<PaginaCuentas<PersonalResumen>>(`${BASE}/personal?${consulta(filtros, pagina)}`)
+}
+
+/**
+ * RF45: asignar (de Turista), modificar (Gestor ↔ Administrador) o revocar (a Turista). `rolActual` es el rol que vio
+ * el Administrador: el control de concurrencia (DEC-103; si ya cambió, 409 ROL_CAMBIADO).
+ */
+export function cambiarRol(idUsuario: string, rolNuevo: RolCambio, rolActual: RolCambio): Promise<PersonalResumen> {
+  return solicitar<PersonalResumen>(`${BASE}/cuentas/${encodeURIComponent(idUsuario)}/cambio-rol`, {
+    method: 'POST',
+    cuerpo: { rolNuevo, rolActual },
   })
 }

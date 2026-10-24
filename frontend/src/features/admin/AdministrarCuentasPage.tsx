@@ -5,17 +5,22 @@ import { ApiError, servicioNoDisponible } from '../../shared/api/httpClient'
 import { BotonNoDisponible } from '../../shared/components/BotonNoDisponible'
 import { Paginacion } from '../../shared/components/Paginacion'
 import { SinPermiso } from '../../shared/components/SinPermiso'
+import { useSesion } from '../auth/useSesion'
 import {
+  cambiarRol,
   consultarPrestador,
   desactivarTurista,
   inactivarPrestador,
   reactivarTurista,
   validarPrestador,
+  type PersonalResumen,
   type PrestadorDetalle,
   type PrestadorResumen,
+  type RolCambio,
   type TuristaResumen,
 } from './adminApi'
 import { DetallePrestador, type EstadoDetalle } from './componentes/DetallePrestador'
+import { DialogoCambioRol, type ModoCambioRol } from './componentes/DialogoCambioRol'
 import { DialogoConfirmacion, type AccionConfirmable } from './componentes/DialogoConfirmacion'
 import { DialogoMotivo } from './componentes/DialogoMotivo'
 import { DialogoRechazo } from './componentes/DialogoRechazo'
@@ -28,6 +33,7 @@ import {
   leerCriteriosAdmin,
   MAXIMO_BUSQUEDA,
   PESTANAS,
+  rolesDe,
   type CriteriosAdmin,
   type Pestana,
 } from './criteriosAdmin'
@@ -40,6 +46,15 @@ type Dialogo =
   | { tipo: 'rechazo'; prestador: PrestadorDetalle }
   | { tipo: 'confirmacion'; accion: AccionConfirmable; idUsuario: string; nombre: string }
   | { tipo: 'motivo'; idUsuario: string; nombre: string }
+  | {
+      tipo: 'cambioRol'
+      modo: ModoCambioRol
+      idUsuario: string
+      nombre: string
+      rolActual: RolCambio
+      /** Fijo al modificar o revocar; al asignar lo elige el Administrador en el diálogo. */
+      rolNuevo?: RolCambio
+    }
 
 interface Envio {
   enviando: boolean
@@ -51,8 +66,21 @@ interface Envio {
 
 const SIN_ENVIO: Envio = { enviando: false, error: null, campo: null }
 
-/** Errores que cambian la lista por debajo (DEC-39): se avisa, se cierra todo y se recarga. */
-const CAMBIAN_LA_LISTA = new Set(['ESTADO_CAMBIADO', 'CUENTA_NO_ENCONTRADA'])
+/** Errores que cambian la lista por debajo (DEC-39; los de RF45, DEC-119): se avisa, se cierra todo y se recarga. */
+const CAMBIAN_LA_LISTA = new Set([
+  'ESTADO_CAMBIADO',
+  'CUENTA_NO_ENCONTRADA',
+  'ROL_CAMBIADO',
+  'CUENTA_NO_ELEGIBLE',
+  'CAMBIO_ROL_PROPIO',
+  'ULTIMO_ADMINISTRADOR',
+])
+
+/** Motivos de 409 CUENTA_NO_ELEGIBLE con mensaje propio (DEC-105); otro motivo usa el mensaje general. */
+const MOTIVOS_NO_ELEGIBLE = new Set(['PRESTADOR', 'DESACTIVADA', 'SIN_ROL_BASE'])
+
+/** Roles con nombre en `admin.roles`. */
+const ROLES_CON_NOMBRE = new Set(['Turista', 'Gestor', 'Administrador'])
 
 /** Código que se muestra para un error que no es de la lista ni de la sesión. */
 function codigoMostrado(error: ApiError): string {
@@ -61,16 +89,20 @@ function codigoMostrado(error: ApiError): string {
 }
 
 /**
- * WF-12 «Administrar cuentas» (CU «Administrar cuentas»; RF28, RF22, RF62), solo para el Administrador (RutaProtegida
- * con `rol`, DEC-51). Pestañas, filtros y página en la URL. Región de estado `aria-live` para el éxito, la lista vacía
- * y el 409 ESTADO_CAMBIADO (DEC-39).
+ * WF-12 «Administrar cuentas» (CU «Administrar cuentas»; RF28, RF22, RF62) y «Cambiar rol de cuenta» (RF45: pestaña
+ * «Personal» y «Asignar rol» en Turistas), solo para el Administrador (RutaProtegida con `rol`, DEC-51). Pestañas,
+ * filtros y página en la URL. Región de estado `aria-live` para el éxito, la lista vacía y los 409 y 404 que cambian la
+ * lista (DEC-39, DEC-119).
  */
 export function AdministrarCuentasPage() {
   const { t, i18n } = useTranslation()
   const id = useId()
   const [parametros, setParametros] = useSearchParams()
   const criterios = useMemo(() => leerCriteriosAdmin(parametros), [parametros])
-  const { estado, pendientes, recargar, reemplazarTurista } = useCuentas(criterios)
+  const { estado, pendientes, recargar, reemplazarFila } = useCuentas(criterios)
+  const { sesion } = useSesion()
+  /** La fila propia del Administrador en «Personal» no tiene acciones (DEC-116). */
+  const idPropio = sesion.estado === 'autenticado' ? sesion.usuario.idUsuario : null
 
   const [texto, setTexto] = useState(criterios.q)
   const [qAplicada, setQAplicada] = useState(criterios.q)
@@ -106,6 +138,20 @@ export function AdministrarCuentasPage() {
     else tituloResultados.current?.focus()
   })
 
+  /**
+   * DEC-121: una página que llega vacía y está más allá de la última (p. ej. tras asignar o revocar el único elemento
+   * de la última página, o una URL con `pagina` fuera de rango) lleva a la última que existe, sin una entrada nueva en
+   * el historial y sin borrar el anuncio. Solo corre cuando llega una lista: no se repite.
+   */
+  useEffect(() => {
+    if (estado.estado !== 'ok') return
+    const { elementos, totalPaginas } = estado.lista.pagina
+    if (elementos.length === 0 && criterios.pagina > 1 && totalPaginas >= 1 && criterios.pagina > totalPaginas) {
+      setParametros(escribirCriteriosAdmin({ ...criterios, pagina: totalPaginas }), { replace: true })
+    }
+    // Solo cuando cambia la lista.
+  }, [estado])
+
   if (sinPermiso || (estado.estado === 'error' && estado.error === 'sinPermiso')) {
     return <SinPermiso />
   }
@@ -122,7 +168,7 @@ export function AdministrarCuentasPage() {
   const cambiarPestana = (pestana: Pestana) => {
     if (pestana === criterios.pestana) return
     setDetalle(null)
-    navegar({ pestana, estado: '', q: '', pagina: 1 })
+    navegar({ pestana, estado: '', rol: '', q: '', pagina: 1 })
   }
 
   const alPulsarEnPestanas = (evento: KeyboardEvent<HTMLDivElement>) => {
@@ -154,12 +200,31 @@ export function AdministrarCuentasPage() {
     origen.current?.focus()
   }
 
+  const nombreRol = (rol: string) => t(`admin.roles.${rol}`)
+
+  /** Texto del 409 o 404 que cambia la lista: el de RF45 lleva el rol actual o el motivo (DEC-119). */
+  const mensajeDeCambio = (error: ApiError): string => {
+    if (error.codigo === 'ROL_CAMBIADO') {
+      const rol = error.problema?.rolActual
+      return typeof rol === 'string' && ROLES_CON_NOMBRE.has(rol)
+        ? t('admin.errores.ROL_CAMBIADO', { rol: nombreRol(rol) })
+        : t('admin.errores.ROL_CAMBIADO_SIN_ROL')
+    }
+    if (error.codigo === 'CUENTA_NO_ELEGIBLE') {
+      const motivo = error.problema?.motivo
+      return typeof motivo === 'string' && MOTIVOS_NO_ELEGIBLE.has(motivo)
+        ? t(`admin.errores.CUENTA_NO_ELEGIBLE_${motivo}`)
+        : t('admin.errores.CUENTA_NO_ELEGIBLE')
+    }
+    return t(`admin.errores.${error.codigo}`)
+  }
+
   /** 409 o 404 (DEC-39): aviso en la región, se cierran el diálogo y el detalle y se recargan la lista y el contador. */
-  const trasCambioDeEstado = (codigo: string) => {
+  const trasCambioDeEstado = (error: ApiError) => {
     setDialogo(null)
     setDetalle(null)
     setEnvio(SIN_ENVIO)
-    setAnuncio(t(`admin.errores.${codigo}`))
+    setAnuncio(mensajeDeCambio(error))
     pedirFoco()
     recargar()
   }
@@ -177,7 +242,7 @@ export function AdministrarCuentasPage() {
         return null
       }
       if (CAMBIAN_LA_LISTA.has(error.codigo)) {
-        trasCambioDeEstado(error.codigo)
+        trasCambioDeEstado(error)
       } else if (error.status === 401) {
         // La sesión ya se cerró (httpClient); RutaProtegida lleva al login con el aviso.
         setEnvio(SIN_ENVIO)
@@ -205,7 +270,7 @@ export function AdministrarCuentasPage() {
       .catch((error: unknown) => {
         if (consulta !== consultaDetalle.current) return
         if (error instanceof ApiError && CAMBIAN_LA_LISTA.has(error.codigo)) {
-          trasCambioDeEstado(error.codigo)
+          trasCambioDeEstado(error)
         } else if (error instanceof ApiError && clasificarError(error) === 'sinPermiso') {
           setSinPermiso(true)
         } else if (!(error instanceof ApiError && error.status === 401)) {
@@ -245,10 +310,36 @@ export function AdministrarCuentasPage() {
     // próxima recarga) y el foco va a su acción nueva (foco estable, WCAG 2.4.3; DEC-52).
     const resultado = await ejecutar(() => (accion === 'desactivar' ? desactivarTurista : reactivarTurista)(idUsuario))
     if (!resultado) return
-    reemplazarTurista(resultado)
+    reemplazarFila(resultado)
     setDialogo(null)
     setAnuncio(t(accion === 'desactivar' ? 'admin.exito.desactivado' : 'admin.exito.reactivado', { nombre }))
     pedirFoco(idUsuario)
+  }
+
+  /**
+   * RF45 (DEC-120). Modificar: la respuesta tiene la forma de la fila, que se reemplaza en su sitio, y el foco va a su
+   * acción nueva. Asignar o revocar: la cuenta cambia de pestaña, así que se recarga la página actual (DEC-121 si queda
+   * vacía) y el foco va al título.
+   */
+  const confirmarCambioRol = async (
+    modo: ModoCambioRol,
+    idUsuario: string,
+    rolActual: RolCambio,
+    rolNuevo: RolCambio,
+  ) => {
+    const resultado = await ejecutar(() => cambiarRol(idUsuario, rolNuevo, rolActual))
+    if (!resultado) return
+    setDialogo(null)
+    const datos = { nombre: resultado.nombre ?? resultado.correo, rol: nombreRol(resultado.rol) }
+    if (modo === 'modificar') {
+      reemplazarFila(resultado)
+      setAnuncio(t('admin.exito.rolModificado', datos))
+      pedirFoco(idUsuario)
+      return
+    }
+    setAnuncio(t(modo === 'asignar' ? 'admin.exito.rolAsignado' : 'admin.exito.rolRevocado', datos))
+    pedirFoco()
+    recargar()
   }
 
   const registrarBoton = (idUsuario: string) => (elemento: HTMLButtonElement | null) => {
@@ -315,18 +406,100 @@ export function AdministrarCuentasPage() {
     }
   }
 
+  /** Acción deshabilitada con su motivo visible (DEC-22, DEC-122): el lector de pantalla lo lee como descripción. */
+  const noDisponible = (texto: string, nombre: string, idMotivo: string, motivo: string) => (
+    <>
+      <BotonNoDisponible descripcion={idMotivo}>
+        {texto}
+        <span className="solo-lector">: {nombre}</span>
+      </BotonNoDisponible>
+      <span id={idMotivo} className="motivo-no-disponible">
+        {motivo}
+      </span>
+    </>
+  )
+
   const accionTurista = (turista: TuristaResumen) => {
     const accion: AccionConfirmable = turista.estado === 'Activo' ? 'desactivar' : 'reactivar'
     return (
-      <button
-        ref={registrarBoton(turista.idUsuario)}
-        type="button"
-        className="boton-secundario"
-        onClick={() => abrirDialogo({ tipo: 'confirmacion', accion, idUsuario: turista.idUsuario, nombre: turista.nombre })}
-      >
-        {t(`admin.acciones.${accion}`)}
-        <span className="solo-lector">: {turista.nombre}</span>
-      </button>
+      <div className="acciones-contenido">
+        <button
+          ref={registrarBoton(turista.idUsuario)}
+          type="button"
+          className="boton-secundario"
+          onClick={() => abrirDialogo({ tipo: 'confirmacion', accion, idUsuario: turista.idUsuario, nombre: turista.nombre })}
+        >
+          {t(`admin.acciones.${accion}`)}
+          <span className="solo-lector">: {turista.nombre}</span>
+        </button>
+        {/* RF45: solo un turista Activo recibe un rol (DEC-105, DEC-117), sin esperar el 409 DESACTIVADA. */}
+        {turista.estado === 'Activo' ? (
+          <button
+            type="button"
+            className="boton-secundario"
+            onClick={() =>
+              abrirDialogo({
+                tipo: 'cambioRol',
+                modo: 'asignar',
+                idUsuario: turista.idUsuario,
+                nombre: turista.nombre,
+                rolActual: 'Turista',
+              })
+            }
+          >
+            {t('admin.acciones.asignarRol')}
+            <span className="solo-lector">: {turista.nombre}</span>
+          </button>
+        ) : (
+          noDisponible(
+            t('admin.acciones.asignarRol'),
+            turista.nombre,
+            `${id}-motivo-${turista.idUsuario}`,
+            t('admin.motivos.desactivada'),
+          )
+        )}
+      </div>
+    )
+  }
+
+  /**
+   * RF45 (DEC-116): Gestor → «Pasar a Administrador»; Administrador → «Pasar a Gestor»; «Revocar rol» solo si es
+   * `revocable` (si no, deshabilitado con su motivo). La cuenta propia no tiene acciones: el backend respondería 409
+   * CAMBIO_ROL_PROPIO.
+   */
+  const accionPersonal = (cuenta: PersonalResumen) => {
+    if (cuenta.idUsuario === idPropio) {
+      return <span className="cuenta-propia">{t('admin.acciones.tuCuenta')}</span>
+    }
+    const nombre = cuenta.nombre ?? cuenta.correo
+    const otro: RolCambio = cuenta.rol === 'Administrador' ? 'Gestor' : 'Administrador'
+    const abrir = (modo: ModoCambioRol, rolNuevo: RolCambio) =>
+      abrirDialogo({ tipo: 'cambioRol', modo, idUsuario: cuenta.idUsuario, nombre, rolActual: cuenta.rol, rolNuevo })
+    return (
+      <div className="acciones-contenido">
+        <button
+          ref={registrarBoton(cuenta.idUsuario)}
+          type="button"
+          className="boton-secundario"
+          onClick={() => abrir('modificar', otro)}
+        >
+          {t('admin.acciones.pasarA', { rol: nombreRol(otro) })}
+          <span className="solo-lector">: {nombre}</span>
+        </button>
+        {cuenta.revocable ? (
+          <button type="button" className="boton-secundario" onClick={() => abrir('revocar', 'Turista')}>
+            {t('admin.acciones.revocarRol')}
+            <span className="solo-lector">: {nombre}</span>
+          </button>
+        ) : (
+          noDisponible(
+            t('admin.acciones.revocarRol'),
+            nombre,
+            `${id}-motivo-${cuenta.idUsuario}`,
+            t('admin.motivos.sinRolBase'),
+          )
+        )}
+      </div>
     )
   }
 
@@ -347,6 +520,23 @@ export function AdministrarCuentasPage() {
           pais: turista.pais ? nombrePais(turista.pais, i18n.language) : '—',
           estado: <InsigniaCuenta estado={turista.estado} />,
           accion: accionTurista(turista),
+        },
+      }))
+      return <TablaCuentas titulo={titulo} columnas={columnas} filas={filas} />
+    }
+    if (lista.tipo === 'personal') {
+      const columnas: ColumnaCuentas[] = ['nombre', 'correo', 'rol', 'registrado', 'accion'].map((clave) => ({
+        clave,
+        titulo: t(`admin.columnas.${clave}`),
+      }))
+      const filas: FilaCuentas[] = lista.pagina.elementos.map((cuenta) => ({
+        id: cuenta.idUsuario,
+        celdas: {
+          nombre: cuenta.nombre ?? '—',
+          correo: cuenta.correo,
+          rol: nombreRol(cuenta.rol),
+          registrado: formatearFecha(cuenta.fechaRegistro, i18n.language),
+          accion: accionPersonal(cuenta),
         },
       }))
       return <TablaCuentas titulo={titulo} columnas={columnas} filas={filas} />
@@ -376,6 +566,13 @@ export function AdministrarCuentasPage() {
     ? t(hayFiltrosAdmin(criterios) ? 'admin.vacio.conFiltros' : `admin.vacio.${criterios.pestana}`)
     : ''
   const estadosFiltro = estadosDe(criterios.pestana)
+  const rolesFiltro = rolesDe(criterios.pestana)
+  const ayudaBusqueda: Record<Pestana, string> = {
+    pendientes: 'admin.buscarPrestadores',
+    prestadores: 'admin.buscarPrestadores',
+    turistas: 'admin.buscarTuristas',
+    personal: 'admin.buscarPersonal',
+  }
 
   return (
     <div className="admin-cuentas">
@@ -426,7 +623,7 @@ export function AdministrarCuentasPage() {
                 type="search"
                 value={texto}
                 maxLength={MAXIMO_BUSQUEDA}
-                placeholder={t(criterios.pestana === 'turistas' ? 'admin.buscarTuristas' : 'admin.buscarPrestadores')}
+                placeholder={t(ayudaBusqueda[criterios.pestana])}
                 onChange={(evento) => setTexto(evento.target.value)}
               />
             </div>
@@ -444,6 +641,25 @@ export function AdministrarCuentasPage() {
                   {estadosFiltro.map((valor) => (
                     <option key={valor} value={valor}>
                       {t(`admin.estados.${valor}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+          {rolesFiltro.length > 0 && (
+            <div className="campo">
+              <label htmlFor={`${id}-rol`}>{t('admin.rol')}</label>
+              <div className="campo__control">
+                <select
+                  id={`${id}-rol`}
+                  value={criterios.rol}
+                  onChange={(evento) => navegar({ rol: evento.target.value, pagina: 1 })}
+                >
+                  <option value="">{t('admin.todos')}</option>
+                  {rolesFiltro.map((valor) => (
+                    <option key={valor} value={valor}>
+                      {nombreRol(valor)}
                     </option>
                   ))}
                 </select>
@@ -530,6 +746,20 @@ export function AdministrarCuentasPage() {
           enviando={envio.enviando}
           error={envio.error}
           onConfirmar={() => void confirmar(dialogo.accion, dialogo.idUsuario, dialogo.nombre)}
+          onCerrar={cerrarDialogo}
+        />
+      )}
+      {dialogo?.tipo === 'cambioRol' && (
+        <DialogoCambioRol
+          modo={dialogo.modo}
+          nombre={dialogo.nombre}
+          rolActual={dialogo.rolActual}
+          rolNuevo={dialogo.rolNuevo}
+          enviando={envio.enviando}
+          error={envio.error}
+          onConfirmar={(rolNuevo) =>
+            void confirmarCambioRol(dialogo.modo, dialogo.idUsuario, dialogo.rolActual, rolNuevo)
+          }
           onCerrar={cerrarDialogo}
         />
       )}

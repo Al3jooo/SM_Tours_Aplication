@@ -620,18 +620,26 @@
   },
   "admin": {
     "titulo": "Manage accounts",
-    "apoyo": "Validate registered providers and manage the status of provider and tourist accounts.",
+    "apoyo": "Validate registered providers, manage the status of provider and tourist accounts, and assign the Manager and Administrator roles.",
     "pestanasEtiqueta": "Account type",
     "pestanas": {
       "pendientes": "Providers to validate",
       "pendientesContador": "Providers to validate ({{n}})",
       "prestadores": "Providers",
-      "turistas": "Tourists"
+      "turistas": "Tourists",
+      "personal": "Staff"
     },
     "buscar": "Search",
     "buscarPrestadores": "Name, email or RNT",
     "buscarTuristas": "Name or email",
+    "buscarPersonal": "Name or email",
     "estado": "Status",
+    "rol": "Role",
+    "roles": {
+      "Turista": "Tourist",
+      "Gestor": "Manager",
+      "Administrador": "Administrator"
+    },
     "todos": "All",
     "botonBuscar": "Search",
     "resultados": "Accounts",
@@ -648,7 +656,8 @@
       "accion": "Action",
       "nombre": "Name",
       "correo": "Email",
-      "pais": "Country"
+      "pais": "Country",
+      "rol": "Role"
     },
     "estados": {
       "Pendiente": "Pending validation",
@@ -662,12 +671,21 @@
       "inactivar": "Deactivate",
       "verMotivo": "View reason",
       "reactivar": "Reactivate",
-      "desactivar": "Deactivate"
+      "desactivar": "Deactivate",
+      "asignarRol": "Assign role",
+      "pasarA": "Change to {{rol}}",
+      "revocarRol": "Revoke role",
+      "tuCuenta": "Your account"
+    },
+    "motivos": {
+      "desactivada": "The account is deactivated",
+      "sinRolBase": "No tourist profile"
     },
     "vacio": {
       "pendientes": "There are no providers pending validation.",
       "prestadores": "There are no registered providers.",
       "turistas": "There are no registered tourists.",
+      "personal": "There are no managers or administrators.",
       "conFiltros": "No account matches the search or the filter."
     },
     "detalle": {
@@ -724,6 +742,24 @@
         "confirmar": "Delete"
       }
     },
+    "cambioRol": {
+      "titulo": {
+        "asignar": "Assign a role to {{nombre}}",
+        "modificar": "Change the role of {{nombre}}",
+        "revocar": "Revoke the role of {{nombre}}"
+      },
+      "rolActual": "Current role: {{rol}}",
+      "rolNuevo": "New role",
+      "rolNuevoFijo": "New role: {{rol}}",
+      "advertencia": "While it has this role, the account can't use its bookings, favorites or search history. The data is kept and returns if the role is revoked.",
+      "revocar": "The account becomes a Tourist again: it gets back its bookings, favorites and history and loses the {{rol}} permissions.",
+      "sesiones": "Its open sessions will be closed and it will see the new role after signing in again.",
+      "confirmar": {
+        "asignar": "Assign role",
+        "modificar": "Change to {{rol}}",
+        "revocar": "Revoke role"
+      }
+    },
     "motivo": {
       "titulo": "Reason for rejecting {{nombre}}",
       "sinMotivo": "No reason was recorded."
@@ -738,11 +774,22 @@
       "rechazado": "{{nombre}} was rejected.",
       "inactivado": "The account of {{nombre}} was deactivated.",
       "desactivado": "The account of {{nombre}} was deactivated.",
-      "reactivado": "The account of {{nombre}} was reactivated."
+      "reactivado": "The account of {{nombre}} was reactivated.",
+      "rolAsignado": "{{nombre}} is now {{rol}} and appears in the “Staff” tab.",
+      "rolModificado": "{{nombre}} is now {{rol}}.",
+      "rolRevocado": "The role of {{nombre}} was revoked: the account is a Tourist again and appears in the “Tourists” tab."
     },
     "errores": {
       "ESTADO_CAMBIADO": "The account status changed; the list was reloaded.",
       "CUENTA_NO_ENCONTRADA": "The account no longer exists; the list was reloaded.",
+      "ROL_CAMBIADO": "The account's role changed (it is now {{rol}}); the list was reloaded.",
+      "ROL_CAMBIADO_SIN_ROL": "The account's role changed; the list was reloaded.",
+      "CUENTA_NO_ELEGIBLE": "The account doesn't allow a role change; the list was reloaded.",
+      "CUENTA_NO_ELEGIBLE_PRESTADOR": "Provider accounts can't be given a role; the list was reloaded.",
+      "CUENTA_NO_ELEGIBLE_DESACTIVADA": "The account is deactivated and can't be given a role; the list was reloaded.",
+      "CUENTA_NO_ELEGIBLE_SIN_ROL_BASE": "The account has no tourist profile, so its role can't be revoked; the list was reloaded.",
+      "CAMBIO_ROL_PROPIO": "You can't change the role of your own account; the list was reloaded.",
+      "ULTIMO_ADMINISTRADOR": "At least one active Administrator must remain; the list was reloaded.",
       "ERROR_RED": "Could not connect to the server. Check your connection and retry.",
       "SERVICIO_NO_DISPONIBLE": "The accounts service is not available right now. Retry in a few minutes.",
       "CONTENIDO_NO_DISPONIBLE": "The content service is not available right now. Retry in a few minutes.",

@@ -385,6 +385,54 @@ export function paginaAdmin(elementos: unknown[], { pagina = 0, totalElementos =
   return { elementos, pagina, tamano: 10, totalElementos, totalPaginas: Math.ceil(totalElementos / 10) }
 }
 
+// ------------------------------------------------------------------ ms-auth, Cambiar rol de cuenta (RF45, B2)
+
+export const USUARIO_GESTOR = {
+  ...USUARIO_ADMIN,
+  idUsuario: '00000000-0000-4000-8000-000000000015',
+  correo: 'gestor@samaria360.test',
+  rol: 'Gestor',
+  nombreVisible: 'Sofía Gil',
+}
+
+/** Filas de GET /api/v1/auth/admin/personal. Con fila en `turista` (revocable) y de la semilla (sin nombre). */
+export const PERSONAL_GESTOR = {
+  idUsuario: '00000000-0000-4000-8000-000000000016',
+  nombre: 'Luis Gómez',
+  correo: 'luis@mail.com',
+  rol: 'Gestor',
+  fechaRegistro: '2026-10-18',
+  revocable: true,
+}
+
+export const PERSONAL_GESTOR_SEMILLA = {
+  idUsuario: '00000000-0000-4000-8000-000000000003',
+  nombre: null,
+  correo: 'gestor@samaria360.test',
+  rol: 'Gestor',
+  fechaRegistro: '2026-10-18',
+  revocable: false,
+}
+
+export const PERSONAL_ADMIN = {
+  idUsuario: '00000000-0000-4000-8000-000000000017',
+  nombre: 'Ana Ruiz',
+  correo: 'ana@mail.com',
+  rol: 'Administrador',
+  fechaRegistro: '2026-10-19',
+  revocable: true,
+}
+
+/** La cuenta del Administrador de la sesión (USUARIO_ADMIN): sin acciones (DEC-116). */
+export const PERSONAL_ADMIN_PROPIO = {
+  idUsuario: USUARIO_ADMIN.idUsuario,
+  nombre: null,
+  correo: USUARIO_ADMIN.correo,
+  rol: 'Administrador',
+  fechaRegistro: '2026-10-18',
+  revocable: false,
+}
+
 // ------------------------------------------------------------------ ms-catalog, contenido público (/api/v1/catalogo)
 
 /** Preguntas en el orden del servidor: alfabético por título (DEC-63). */

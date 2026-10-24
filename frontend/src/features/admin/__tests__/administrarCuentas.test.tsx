@@ -404,15 +404,16 @@ describe('Paginación, filtros y URL (DEC-41, DEC-51)', () => {
   })
 
   it('las pestañas se recorren con las flechas (WAI-ARIA tablist)', async () => {
+    // Desde B2 la última pestaña es «Personal» (RF45, DEC-115).
     const { usuario } = montar('/admin/cuentas', {
-      [TURISTAS]: () => respuestaJson(200, paginaAdmin([])),
+      [`GET ${BASE}/personal`]: () => respuestaJson(200, paginaAdmin([])),
     })
     const primera = await screen.findByRole('tab', { name: 'Prestadores por validar (1)' })
     primera.focus()
     await usuario.keyboard('{ArrowLeft}')
-    expect(screen.getByRole('tab', { name: 'Turistas' })).toHaveFocus()
-    await waitFor(() => expect(ubicacionActual()).toBe('/admin/cuentas?pestana=turistas'))
-    expect(await screen.findByText('No hay turistas registrados.')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Personal' })).toHaveFocus()
+    await waitFor(() => expect(ubicacionActual()).toBe('/admin/cuentas?pestana=personal'))
+    expect(await screen.findByText('No hay gestores ni administradores.')).toBeInTheDocument()
   })
 })
 
