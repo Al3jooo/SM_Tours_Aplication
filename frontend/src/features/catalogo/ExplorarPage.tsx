@@ -2,18 +2,24 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { BotonProximamente } from '../../shared/components/Proximamente'
+import { useSesion } from '../auth/useSesion'
+import { AvisoFavoritos } from '../favoritos/AvisoFavoritos'
+import { useFavoritos } from '../favoritos/useFavoritos'
 import { useDisponibilidadResumen } from '../reservas/useDisponibilidadResumen'
-import type { CriteriosBusqueda, Orden, ResultadoOferta, Ubicacion } from './catalogoApi'
+import type { CriteriosBusqueda, Orden, PaginaOferta, ResultadoOferta, Ubicacion } from './catalogoApi'
 import { BotonUbicacion } from './componentes/BotonUbicacion'
 import { EstadoCatalogo } from './componentes/EstadoCatalogo'
 import { FiltrosOferta, type CambiosFiltros } from './componentes/FiltrosOferta'
-import { MapaOferta, claveResultado } from './componentes/MapaOferta'
+import { MapaOferta, claveResultado, type FavoritoPopup } from './componentes/MapaOferta'
 import { Paginacion } from '../../shared/components/Paginacion'
 import { TarjetaOferta } from './componentes/TarjetaOferta'
+import { UltimasBusquedas, type EstadoRepetir } from './componentes/UltimasBusquedas'
 import { escribirCriterios, leerCriterios, sinMasFiltrosDescartados } from './criteriosUrl'
 import { rutaDetalle } from './detalle/navegacionDetalle'
+import { cuerpoHistorial } from './historialApi'
 import { useBusquedaOferta } from './useBusquedaOferta'
 import { useEsEscritorio } from './useEsEscritorio'
+import { useHistorialBusquedas } from './useHistorialBusquedas'
 import { useUbicacion } from './useUbicacion'
 import './catalogo.css'
 
@@ -28,6 +34,11 @@ type Vista = 'lista' | 'mapa'
  * WF-05: exploración (pública). Los filtros, el orden y la página viven en la URL; la ubicación, solo en memoria.
  * La lista de resultados es el contenido principal y el mapa es complementario: en escritorio se ven lado a lado; en
  * una columna, el selector «Lista / Mapa» muestra uno a la vez.
+ *
+ * Con la sesión de un turista (B1): «Últimas búsquedas» (RF60) y el corazón de favoritos en tarjetas y popups (RF54).
+ * Cada búsqueda distinta (sin contar la página) que llega con éxito se registra en el historial, aparte de la búsqueda
+ * pública y sin coordenadas (DEC-95). Al repetir una que usaba la ubicación, se vuelve a pedir; si no se comparte, la
+ * búsqueda corre sin distancia ni orden por cercanía y se avisa en la región de ubicación (DEC-96, RF38).
  */
 export function ExplorarPage() {
   const { t } = useTranslation()
@@ -40,6 +51,10 @@ export function ExplorarPage() {
   const ubicacion: Ubicacion | undefined = geo.estado === 'disponible' ? geo.ubicacion : undefined
   const busqueda = useBusquedaOferta(useMemo(() => ({ ...criterios, ubicacion }), [criterios, ubicacion]))
   const esEscritorio = useEsEscritorio()
+  const { sesion } = useSesion()
+  const esTurista = sesion.estado === 'autenticado' && sesion.usuario.rol === 'Turista'
+  const historial = useHistorialBusquedas(esTurista)
+  const favoritos = useFavoritos()
   const [vista, setVista] = useState<Vista>('lista')
   const [resaltada, setResaltada] = useState<string | null>(null)
   const tarjetas = useRef(new Map<string, HTMLElement>())
@@ -60,6 +75,58 @@ export function ExplorarPage() {
     ubicacionAtendida.current = ubicacion
     if (criterios.pagina > 1) setParametros(escribirCriterios({ ...criterios, pagina: 1 }), { replace: true })
   }, [ubicacion, criterios, setParametros])
+
+  // RF60 (DEC-95): se registra cada resultado nuevo que llega con éxito (una página distinta de la ya vista), con los
+  // criterios vigentes sin la página. Si llega mientras se pide la ubicación, espera: si la ubicación llega, la
+  // búsqueda cambia y se registra esa; si no, esta. La misma clave dos veces seguidas se registra una sola vez.
+  const usarUbicacion = ubicacion !== undefined
+  const claveHistorial = useMemo(() => {
+    const cuerpo = cuerpoHistorial(criterios, usarUbicacion)
+    return cuerpo ? JSON.stringify(cuerpo) : null
+  }, [criterios, usarUbicacion])
+  const paginaVista = useRef<PaginaOferta | null>(null)
+  const porRegistrar = useRef<string | null>(null)
+  const registrada = useRef<string | null>(null)
+  const { registrar } = historial
+  const paginaRecibida = busqueda.estado === 'ok' ? busqueda.pagina : null
+  useEffect(() => {
+    if (paginaRecibida && paginaRecibida !== paginaVista.current) {
+      paginaVista.current = paginaRecibida
+      porRegistrar.current = claveHistorial
+    }
+    if (!porRegistrar.current || geo.estado === 'solicitando') return
+    const clave = porRegistrar.current
+    porRegistrar.current = null
+    // Los criterios ya cambiaron (p. ej. llegó la ubicación): se registrará el resultado de la búsqueda nueva.
+    if (clave !== claveHistorial || !esTurista || registrada.current === clave) return
+    registrada.current = clave
+    registrar(JSON.parse(clave))
+  }, [paginaRecibida, claveHistorial, esTurista, geo.estado, registrar])
+
+  // Repetir una búsqueda de «Últimas búsquedas» (DEC-96): una vez por entrada del historial del navegador.
+  const repetida = useRef<string | null>(null)
+  const esperandoUbicacion = useRef(false)
+  const [sinUbicacionAlRepetir, setSinUbicacionAlRepetir] = useState(false)
+  const estadoRepetir = ubicacionRuta.state as Partial<EstadoRepetir> | null
+  const { estado: estadoGeo, centrar } = geo
+  useEffect(() => {
+    if (!estadoRepetir?.repetirBusqueda || repetida.current === ubicacionRuta.key) return
+    repetida.current = ubicacionRuta.key
+    enfocarAlCargar.current = true
+    setSinUbicacionAlRepetir(false)
+    if (!estadoRepetir.pedirUbicacion || estadoGeo === 'disponible') return
+    if (estadoGeo === 'noSoportada') {
+      setSinUbicacionAlRepetir(true)
+      return
+    }
+    esperandoUbicacion.current = true
+    centrar()
+  }, [estadoRepetir, ubicacionRuta.key, estadoGeo, centrar])
+  useEffect(() => {
+    if (!esperandoUbicacion.current || estadoGeo === 'solicitando' || estadoGeo === 'inactiva') return
+    esperandoUbicacion.current = false
+    setSinUbicacionAlRepetir(estadoGeo !== 'disponible')
+  }, [estadoGeo])
 
   // Una URL con «Más filtros» de otra categoría (o sin categoría) se limpia sin mostrar un error: la API los rechazaría.
   useEffect(() => {
@@ -95,6 +162,18 @@ export function ExplorarPage() {
 
   const botonUbicacion = <BotonUbicacion estado={geo.estado} onCentrar={geo.centrar} />
 
+  // Corazón del popup (DEC-94): las mismas reglas que el de la tarjeta; con otro rol, ninguno.
+  const favoritoPopup: FavoritoPopup | undefined = favoritos?.modo
+    ? {
+        modo: favoritos.modo,
+        listo: favoritos.estado === 'ok',
+        esFavorito: (resultado) => favoritos.esFavorito(resultado.tipo, resultado.id),
+        alternar: (resultado) => favoritos.alternar({ tipo: resultado.tipo, id: resultado.id, nombre: resultado.nombre }),
+        irALogin: () =>
+          irA('/login', { state: { desde: ubicacionRuta.pathname + ubicacionRuta.search + ubicacionRuta.hash } }),
+      }
+    : undefined
+
   return (
     <div className="explorar">
       <nav className="migas" aria-label={t('explorar.migas')}>
@@ -116,6 +195,8 @@ export function ExplorarPage() {
         onQuitarCategoria={() => navegar({ ...criterios, categoria: undefined, masFiltros: undefined, pagina: 1 })}
         onQuitarMasFiltro={(restantes) => navegar({ ...criterios, masFiltros: restantes, pagina: 1 })}
       />
+
+      {esTurista && <UltimasBusquedas elementos={historial.elementos} />}
 
       <div className="explorar__barra">
         {/* En una columna: selector de vista y botón de ubicación a mano también en la lista. */}
@@ -140,7 +221,10 @@ export function ExplorarPage() {
               {geo.lejos && <> {t('ubicacion.lejos')}</>}
             </>
           )}
-          {geo.estado === 'error' && t(`ubicacion.${geo.motivo}`)}
+          {/* Un solo mensaje a la vez: al repetir una búsqueda sin la ubicación, este reemplaza al error de ubicación. */}
+          {sinUbicacionAlRepetir
+            ? t('historial.sinUbicacion')
+            : geo.estado === 'error' && t(`ubicacion.${geo.motivo}`)}
         </p>
       </div>
 
@@ -197,6 +281,7 @@ export function ExplorarPage() {
                 {t('explorar.sinUbicacion')}
               </p>
             )}
+            <AvisoFavoritos />
           </div>
 
           {busqueda.estado === 'cargando' && <EstadoCatalogo tipo="cargando" />}
@@ -258,6 +343,7 @@ export function ExplorarPage() {
             resaltada={resaltada}
             onSeleccionar={seleccionarDesdeMapa}
             onVerDetalle={verDetalle}
+            favorito={favoritoPopup}
           />
           <div className="leyenda-afluencia">
             <p className="leyenda-afluencia__titulo">

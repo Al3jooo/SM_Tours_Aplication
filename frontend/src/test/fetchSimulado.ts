@@ -63,9 +63,25 @@ export function respuestaAvisosVacia(): Response {
 }
 
 /**
+ * Llamadas del turista que salen solas en WF-05 y WF-06 (DEC-101, como DEC-78): «MÉTODO ruta», exactas y sin consulta.
+ * Si la prueba no las simula, `simularFetch` responde lista vacía (los GET) o 204 (el POST); quedan registradas. Las
+ * pruebas que verifican su contenido simulan su propia respuesta.
+ */
+const RESPUESTAS_TURISTA: Record<string, () => Response> = {
+  'GET /api/v1/catalogo/favoritos': respuestaAvisosVacia,
+  'GET /api/v1/catalogo/historial': respuestaAvisosVacia,
+  'POST /api/v1/catalogo/historial': () => new Response(null, { status: 204 }),
+}
+
+export function respuestaTuristaPorDefecto(url: string, metodo: string): (() => Response) | undefined {
+  return RESPUESTAS_TURISTA[`${metodo} ${url}`]
+}
+
+/**
  * Reemplaza fetch por rutas "MÉTODO /ruta" (con o sin la consulta). Devuelve el registro de solicitudes para verificar, por
  * ejemplo, la cabecera Authorization. Si la prueba no simula `GET /api/v1/catalogo/avisos`, responde una lista vacía
- * (DEC-78); la solicitud igual queda registrada.
+ * (DEC-78); tampoco hace falta simular los favoritos ni el historial del turista (DEC-101). Las solicitudes igual
+ * quedan registradas.
  */
 export function simularFetch(rutas: Record<string, Manejador>) {
   const solicitudes: SolicitudSimulada[] = []
@@ -82,7 +98,8 @@ export function simularFetch(rutas: Record<string, Manejador>) {
     const manejador =
       rutas[`${solicitud.metodo} ${solicitud.url}`] ??
       rutas[`${solicitud.metodo} ${solicitud.url.split('?')[0]}`] ??
-      (esAvisosDelBanner(solicitud.url, solicitud.metodo) ? respuestaAvisosVacia : undefined)
+      (esAvisosDelBanner(solicitud.url, solicitud.metodo) ? respuestaAvisosVacia : undefined) ??
+      respuestaTuristaPorDefecto(solicitud.url, solicitud.metodo)
     if (!manejador) {
       throw new Error(`fetch sin simulación: ${solicitud.metodo} ${solicitud.url}`)
     }
@@ -418,4 +435,82 @@ export const AVISO_INACTIVO = {
 
 export function listaElementos(elementos: unknown[]) {
   return { elementos }
+}
+
+// ------------------------------------------------------------------ turista: perfil, favoritos e historial (B1)
+
+/** GET /api/v1/auth/perfil de USUARIO_TURISTA (RF53). */
+export const PERFIL_TURISTA = {
+  correo: USUARIO_TURISTA.correo,
+  primerNombre: 'Ana',
+  segundoNombre: null,
+  primerApellido: 'Pérez',
+  segundoApellido: null,
+  paisOrigen: 'CO',
+  categoriasInteres: ['Naturaleza', 'Cultura'],
+}
+
+/** Favoritos resueltos (GET /api/v1/catalogo/favoritos, RF54). */
+export const FAVORITO_HOTEL = {
+  tipo: 'Servicio',
+  id: HOTEL.id,
+  nombre: HOTEL.nombre,
+  categoria: 'Alojamiento',
+  imagen: HOTEL.imagen,
+  fechaCreacion: '2026-10-23T10:00:00Z',
+  disponible: true,
+}
+
+export const FAVORITO_CASCADA = {
+  tipo: 'Atractivo',
+  id: CASCADA_CERRADA.id,
+  nombre: CASCADA_CERRADA.nombre,
+  categoria: 'Naturaleza',
+  imagen: CASCADA_CERRADA.imagen,
+  fechaCreacion: '2026-10-22T10:00:00Z',
+  disponible: true,
+}
+
+export const FAVORITO_TOUR_NO_DISPONIBLE = {
+  tipo: 'Servicio',
+  id: 's-tour-sierra',
+  nombre: 'Tour Sierra Nevada',
+  categoria: 'Tour',
+  imagen: null,
+  fechaCreacion: '2026-10-21T10:00:00Z',
+  disponible: false,
+}
+
+/** Criterios guardados (GET /api/v1/catalogo/historial, RF60): todos los campos, con null en los que no se usaron. */
+export function criteriosHistorial(criterios: Record<string, unknown> = {}) {
+  return {
+    texto: null,
+    categoria: null,
+    precioMax: null,
+    usarUbicacion: false,
+    distanciaKm: null,
+    accesibilidad: [],
+    orden: null,
+    serviciosIncluidos: [],
+    huespedes: null,
+    tipoHabitacion: null,
+    menuVegetariano: null,
+    tipoCocina: null,
+    nivelDificultad: null,
+    duracionMaxHoras: null,
+    tipoVehiculoEquipo: null,
+    ...criterios,
+  }
+}
+
+export const BUSQUEDA_PLAYA = {
+  id: '6a2000000000000000000001',
+  fecha: '2026-10-23T15:00:00Z',
+  criterios: criteriosHistorial({ texto: 'playa', categoria: 'Alojamiento', precioMax: 200000, serviciosIncluidos: ['WiFi'] }),
+}
+
+export const BUSQUEDA_CERCA = {
+  id: '6a2000000000000000000002',
+  fecha: '2026-10-22T15:00:00Z',
+  criterios: criteriosHistorial({ usarUbicacion: true, distanciaKm: 5, orden: 'Distancia' }),
 }

@@ -27,6 +27,11 @@ export interface ValorSesion {
   iniciarSesion: (correo: string, contrasena: string) => Promise<void>
   /** RF55. Quien la llama decide a dónde navegar. */
   cerrarSesion: () => void
+  /**
+   * Vuelve a pedir /me para actualizar los datos del encabezado (p. ej. el nombre después de editar el perfil, DEC-97).
+   * Nunca falla: con un error de red o 5xx se conservan la sesión y los datos actuales; un 401 la cierra (DEC-50).
+   */
+  refrescarUsuario: () => Promise<void>
 }
 
 /** Tiempo máximo para validar con /me una sesión guardada: el enlace «Inicio de sesión» nunca queda oculto indefinidamente. */

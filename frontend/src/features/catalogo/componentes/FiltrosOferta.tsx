@@ -23,7 +23,7 @@ export type CambiosFiltros = Pick<
 >
 
 /** Un chip por filtro de «Más filtros» aplicado: su texto y los filtros que quedan al quitarlo. */
-interface ChipMasFiltro {
+export interface ChipMasFiltro {
   clave: string
   texto: string
   sin: Filtros
@@ -199,8 +199,11 @@ export function FiltrosOferta({
   )
 }
 
-/** Textos de los chips: los valores de los datos se muestran tal cual; los servicios incluidos, traducidos. */
-function chipsMasFiltros(filtros: Filtros, t: TFunction, idioma: string): ChipMasFiltro[] {
+/**
+ * Textos de los chips: los valores de los datos se muestran tal cual; los servicios incluidos, traducidos. También los
+ * usa «Últimas búsquedas» (RF60, DEC-96) para describir una búsqueda con las mismas palabras.
+ */
+export function chipsMasFiltros(filtros: Filtros, t: TFunction, idioma: string): ChipMasFiltro[] {
   const chips: ChipMasFiltro[] = []
   const conValor = (etiqueta: string, valor: string) =>
     t('explorar.masFiltros.chip', { filtro: t(`explorar.masFiltros.${etiqueta}`), valor })

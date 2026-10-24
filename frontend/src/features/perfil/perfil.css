@@ -1,0 +1,259 @@
+/* WF-16 «Mi perfil» y WF-17 «Mis favoritos» (RF53, RF54). Solo tokens de src/app/estilos.css. Los campos, la lista de
+   países y las casillas reutilizan los estilos del login y del registro (`.campo`, `.campo-lista-registro`,
+   `.registro__grupo`). */
+
+.perfil,
+.mis-favoritos {
+  display: grid;
+  gap: var(--espacio-5);
+  width: min(100%, 52rem);
+  margin: 0 auto;
+  padding: var(--espacio-6) var(--espacio-4) var(--espacio-7);
+}
+
+.perfil h1,
+.mis-favoritos h1 {
+  margin: 0;
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-3xl);
+  line-height: var(--interlineado-titulos);
+  color: var(--color-mar-900);
+}
+
+.mis-favoritos h1:focus {
+  outline: none;
+}
+
+.mis-favoritos h1:focus-visible {
+  outline: var(--foco);
+  outline-offset: 4px;
+}
+
+/* Pestañas «Datos personales» e «Intereses turísticos» (tablist WAI-ARIA) y el acceso a «Mis favoritos». */
+.perfil__navegacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.pestanas-perfil {
+  display: flex;
+  gap: var(--espacio-2);
+  overflow-x: auto;
+}
+
+.pestanas-perfil [role='tab'] {
+  position: relative;
+  flex: none;
+  padding: var(--espacio-3) var(--espacio-4);
+  border: 0;
+  background: none;
+  color: var(--color-tinta-suave);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--transicion);
+}
+
+.pestanas-perfil [role='tab']:hover,
+.pestanas-perfil [role='tab'][aria-selected='true'] {
+  color: var(--color-mar-700);
+}
+
+.pestanas-perfil [role='tab'][aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  right: var(--espacio-3);
+  bottom: -1px;
+  left: var(--espacio-3);
+  height: 3px;
+  border-radius: var(--radio-pill);
+  background: var(--color-mar-700);
+}
+
+.perfil__favoritos {
+  margin-bottom: var(--espacio-2);
+  text-decoration: none;
+}
+
+.perfil__panel .campo {
+  min-width: 0;
+}
+
+/* Correo en solo lectura (DEC-79): se puede seleccionar y copiar, pero se ve distinto de un campo editable. */
+.perfil__panel .campo__control:has(input[readonly]) {
+  border-style: dashed;
+}
+
+.perfil__columnas {
+  display: grid;
+  gap: var(--espacio-4);
+}
+
+@media (min-width: 40rem) {
+  .perfil__columnas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.perfil .casilla {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  cursor: pointer;
+}
+
+.perfil .casilla input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  accent-color: var(--color-mar-700);
+}
+
+.perfil__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+}
+
+.perfil__estado {
+  margin: 0;
+  color: var(--color-mar-700);
+  font-weight: 600;
+}
+
+.perfil__estado--error {
+  color: var(--color-error);
+}
+
+/* WF-17 */
+.perfil__volver {
+  margin: 0;
+}
+
+.perfil__volver a {
+  color: var(--color-mar-700);
+  font-weight: 600;
+}
+
+.mis-favoritos__contador {
+  margin: 0;
+  color: var(--color-tinta-suave);
+}
+
+.mis-favoritos__vacio {
+  display: grid;
+  gap: var(--espacio-3);
+  justify-items: start;
+  padding: var(--espacio-6);
+  border: 1px dashed var(--color-borde-campo);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+}
+
+.mis-favoritos__vacio p {
+  margin: 0;
+}
+
+.mis-favoritos__vacio .boton-principal {
+  text-decoration: none;
+}
+
+.mis-favoritos__lista {
+  display: grid;
+  gap: var(--espacio-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarjeta-favorito {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: var(--espacio-3) var(--espacio-4);
+  align-items: center;
+  padding: var(--espacio-3);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+}
+
+.tarjeta-favorito .imagen-oferta {
+  overflow: hidden;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radio-sm);
+}
+
+.tarjeta-favorito .imagen-oferta__foto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tarjeta-favorito__cuerpo {
+  display: grid;
+  gap: var(--espacio-1);
+  min-width: 0;
+}
+
+.tarjeta-favorito__nombre {
+  margin: 0;
+  font-size: var(--texto-lg);
+  overflow-wrap: anywhere;
+}
+
+.tarjeta-favorito__categoria,
+.tarjeta-favorito__ayuda {
+  margin: 0;
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-sm);
+}
+
+.tarjeta-favorito__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: var(--espacio-2);
+}
+
+.tarjeta-favorito__acciones a {
+  text-decoration: none;
+}
+
+@media (min-width: 40rem) {
+  .tarjeta-favorito {
+    grid-template-columns: 8rem minmax(0, 1fr) auto;
+  }
+
+  .tarjeta-favorito__acciones {
+    grid-column: auto;
+    justify-content: flex-end;
+  }
+}
+
+/* «Disponible» / «No disponible»: texto e icono, no solo color (WCAG 1.4.1). */
+.insignia-favorito {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--espacio-1);
+  margin: 0;
+  padding: 0.125rem var(--espacio-2);
+  border-radius: var(--radio-pill);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+}
+
+.insignia-favorito--disponible {
+  background: var(--color-mar-100);
+  color: var(--color-mar-900);
+}
+
+.insignia-favorito--no-disponible {
+  background: var(--color-error-fondo);
+  color: var(--color-error);
+}

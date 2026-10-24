@@ -135,6 +135,32 @@ Contrato en [`docs/sad/api/ms-catalog.md`](../docs/sad/api/ms-catalog.md); decis
 - `admin` puede importar de `contenido`; `contenido` nunca importa de `admin`.
 - En las pruebas, la guardia y `simularFetch` responden una lista vacía solo a `GET /api/v1/catalogo/avisos` exacta (DEC-78).
 
+## Turista (WF-16, WF-17 y cambios en WF-05, WF-06 y WF-11)
+
+Contratos en [`docs/sad/api/ms-auth.md`](../docs/sad/api/ms-auth.md) («Perfil del turista») y
+[`docs/sad/api/ms-catalog.md`](../docs/sad/api/ms-catalog.md) («Favoritos» e «Historial de búsquedas»); decisiones DEC-92
+a DEC-102 en `docs/trazabilidad.md`.
+
+| Ruta | Pantalla | Acceso |
+|---|---|---|
+| `/perfil?seccion=` | WF-16 (`perfil/PerfilPage.tsx`), diferida | Privada, solo el Turista (`RutaProtegida rol="Turista"`) |
+| `/perfil/favoritos` | WF-17 (`perfil/MisFavoritosPage.tsx`), diferida | Privada, solo el Turista |
+
+- **Perfil (RF53):** el PUT reemplaza el perfil completo; cada pestaña envía su borrador con lo **guardado** de la otra y
+  nunca el correo. Los campos, el país y las categorías son los del registro (`SelectorPais`, `CasillasCategorias`,
+  `validarPerfil`). Después de guardar, `refrescarUsuario()` de la sesión vuelve a pedir `/me` para el nombre del
+  encabezado.
+- **Favoritos (RF54):** `favoritos/FavoritosProvider.tsx` guarda la lista de la sesión (una carga, diferida hasta el
+  primer corazón o WF-17; si falla, el siguiente montaje reintenta). `BotonFavorito` es el corazón de WF-05 y WF-06; el
+  del popup del mapa se arma con nodos en `MapaOferta`. Los anuncios van en `AvisoFavoritos`, una región por pantalla.
+- **Historial (RF60):** `ExplorarPage` registra cada resultado nuevo de una búsqueda del turista (`POST /historial`, sin
+  coordenadas ni página) y muestra «Últimas búsquedas» (`componentes/UltimasBusquedas.tsx`, `textoBusqueda.ts`). Repetir
+  una búsqueda que usaba la ubicación la vuelve a pedir (`state.pedirUbicacion`).
+- **Compartir (RF49):** `reservas/compartirReserva.ts` prueba la Web Share API, luego el portapapeles y, si no, devuelve
+  `manual` para mostrar el enlace en un campo de solo lectura.
+- **Pruebas:** `simularFetch` responde por defecto `GET /favoritos`, `GET /historial` (lista vacía) y `POST /historial`
+  (204), con coincidencia exacta (DEC-101).
+
 ## Pendientes de pruebas
 
 Las pruebas no hacen peticiones de red reales. Una guardia en `src/test/setup.ts` hace fallar cualquier prueba que
@@ -354,6 +380,11 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Acordeón | `.acordeon-faq` | Tarjetas en superficie; `h2 > button[aria-expanded][aria-controls]` con «+»/«−» en un círculo mar-100; abierto o en hover, mar-700. Se pueden abrir varias. |
 | Buscador en vivo | `.preguntas-frecuentes__buscador` + región `status` | Campo `type="search"` con su ayuda; la región anuncia «Se muestran n de N preguntas» o «sin coincidencias» con «Borrar búsqueda». |
 | Página de texto legal | `.terminos`, `__nota`, `__indice`, `__seccion` | Nota café-700 sobre sol-100; índice en superficie con enlaces mar-700; cada sección con `scroll-margin-top` para que el encabezado fijo no la tape. |
+| Corazón de favoritos | `BotonFavorito`, `.boton-favorito` (`features/favoritos/favoritos.css`); `.popup-oferta__favorito` en el popup | Píldora en superficie con borde de campo e icono atardecer-700; guardado: icono relleno y borde atardecer-700 (la forma cambia, no solo el color). `aria-pressed` y el nombre del elemento en el nombre accesible; sin la lista, borde discontinuo y `aria-disabled`. Con `conTexto` (WF-06), «Guardar en favoritos» visible. |
+| Anuncio de favoritos | `AvisoFavoritos`, `.aviso-favoritos` | Región `role="status"` siempre presente; mar-700 (éxito) o error. Una por pantalla. |
+| Últimas búsquedas | `.ultimas-busquedas` (`features/catalogo/catalogo.css`) | Título tinta-suave en versalitas y enlaces con el estilo de `.chip`; la fecha va como descripción accesible. |
+| Tarjeta de favorito | `.tarjeta-favorito`, `.insignia-favorito--disponible` / `--no-disponible` (`features/perfil/perfil.css`) | Imagen 3:2, nombre, categoría e insignia con icono y texto (mar-900/mar-100 o error/error-fondo); acciones a la derecha desde 40 rem. |
+| Pestañas del perfil | `.pestanas-perfil` (`features/perfil/perfil.css`) | El mismo patrón `tablist` que `.pestanas-cuentas`, sin depender de `admin.css`. |
 | Formulario en línea | `.formulario-aviso` | Superficie con borde superior atardecer-600; contador a la derecha, en error al pasarse; acción principal `aria-disabled` en arena con tinta-suave. |
 
 ### Maquetación y responsivo

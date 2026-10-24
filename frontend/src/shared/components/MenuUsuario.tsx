@@ -6,13 +6,21 @@ import { iniciales } from './iniciales'
 export interface UsuarioEncabezado {
   nombreVisible: string
   correo: string
-  /** «Mis reservas» (WF-11) solo aparece para el Turista; las pantallas de gestión (WF-12 a WF-14), para el Administrador. */
+  /**
+   * «Mi perfil» (WF-16), «Mis favoritos» (WF-17) y «Mis reservas» (WF-11) solo aparecen para el Turista; las pantallas
+   * de gestión (WF-12 a WF-14), para el Administrador.
+   */
   rol?: string
 }
 
 /** Las pantallas propias de cada rol en el menú, en orden (ruta y clave i18n). */
 const OPCIONES_POR_ROL: Record<string, { ruta: string; texto: string }[]> = {
-  Turista: [{ ruta: '/mis-reservas', texto: 'encabezado.misReservas' }],
+  // DEC-92: perfil (WF-16), favoritos dentro del perfil (WF-17, RF54) y reservas (WF-11).
+  Turista: [
+    { ruta: '/perfil', texto: 'encabezado.miPerfil' },
+    { ruta: '/perfil/favoritos', texto: 'encabezado.misFavoritos' },
+    { ruta: '/mis-reservas', texto: 'encabezado.misReservas' },
+  ],
   // DEC-70: cuentas (WF-12), preguntas frecuentes (WF-13) y avisos (WF-14).
   Administrador: [
     { ruta: '/admin/cuentas', texto: 'encabezado.administrarCuentas' },
@@ -22,8 +30,8 @@ const OPCIONES_POR_ROL: Record<string, { ruta: string; texto: string }[]> = {
 }
 
 /**
- * Avatar con iniciales y menú: las pantallas del rol («Mis reservas» del turista, WF-11; la gestión del Administrador,
- * WF-12 a WF-14) y «Cerrar sesión» (RF55). Accesible con teclado: Enter abre y lleva el foco a la primera opción,
+ * Avatar con iniciales y menú: las pantallas del rol (perfil, favoritos y reservas del turista, WF-16, WF-17 y WF-11;
+ * la gestión del Administrador, WF-12 a WF-14) y «Cerrar sesión» (RF55). Accesible con teclado: Enter abre y lleva el foco a la primera opción,
  * Escape cierra y devuelve el foco al avatar.
  */
 export function MenuUsuario({ usuario, onCerrarSesion }: { usuario: UsuarioEncabezado; onCerrarSesion: () => void }) {
