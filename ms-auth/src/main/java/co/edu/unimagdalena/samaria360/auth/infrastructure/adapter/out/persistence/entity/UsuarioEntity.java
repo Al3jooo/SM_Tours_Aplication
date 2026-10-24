@@ -26,8 +26,10 @@ public class UsuarioEntity {
     private UUID idUsuario;
 
     // EAGER (por defecto en @ManyToOne): el rol se necesita fuera de transacción con open-in-view=false.
+    // updatable = false: el rol lo cambia solo el UPDATE condicional del cambio de rol (CambioRolJdbcAdapter, DEC-106);
+    // guardar una entidad leída antes (el login) no debe reescribir id_rol.
     @ManyToOne(optional = false)
-    @JoinColumn(name = "id_rol", nullable = false)
+    @JoinColumn(name = "id_rol", nullable = false, updatable = false)
     private RolEntity rol;
 
     @Column(name = "correo", nullable = false, unique = true)

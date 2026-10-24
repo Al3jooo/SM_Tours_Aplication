@@ -19,7 +19,7 @@ public class VerificarSesionService implements VerificarSesionUseCase {
     }
 
     @Override
-    public boolean sesionVigente(UUID idUsuario, long ver) {
-        return politica.vigente(cuentas.versionDe(idUsuario), ver);
+    public boolean sesionVigente(UUID idUsuario, long ver, String rol) {
+        return politica.vigente(cuentas.versionDe(idUsuario), ver, rol);
     }
 }

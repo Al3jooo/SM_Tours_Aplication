@@ -68,6 +68,7 @@ class AvisoApiIntegracionTest {
         reloj.ajustar(AHORA);
         existentes = new HashSet<>();
         avisos().find().forEach(documento -> existentes.add(documento.get("_id")));
+        filaDeCuenta(administrador, "Administrador", 1);
     }
 
     @AfterEach
@@ -83,6 +84,15 @@ class AvisoApiIntegracionTest {
 
     private String admin() {
         return TokensDePrueba.usuario(administrador, "Administrador", 1);
+    }
+
+    /**
+     * Fila de la proyección {@code cuentas}: desde RF45, un Gestor o un Administrador sin fila recibe 401 (DEC-110). La
+     * borra el {@code @AfterEach} o la misma prueba.
+     */
+    private void filaDeCuenta(UUID id, String rol, long version) {
+        mongo.getCollection("cuentas").insertOne(new Document("_id", id.toString()).append("rol", rol)
+                .append("estadoCuenta", "Activo").append("version", version).append("actualizadoEn", new Date()));
     }
 
     private static String cuerpo(String mensaje, String tipo) throws Exception {
@@ -241,7 +251,11 @@ class AvisoApiIntegracionTest {
     @ParameterizedTest
     @ValueSource(strings = {"Turista", "Prestador", "Gestor"})
     void otroRolRecibe403AccesoDenegado(String rol) throws Exception {
-        String token = TokensDePrueba.usuario(UUID.randomUUID(), rol, 0);
+        UUID id = UUID.randomUUID();
+        String token = TokensDePrueba.usuario(id, rol, 1);
+        if (rol.equals("Gestor")) {
+            filaDeCuenta(id, rol, 1);
+        }
 
         for (MvcResult resultado : List.of(enviar(get(ADMIN), token, null),
                 enviar(post(ADMIN), token, cuerpo("Mensaje", "Clima")),
@@ -249,14 +263,14 @@ class AvisoApiIntegracionTest {
             assertThat(resultado.getResponse().getStatus()).isEqualTo(403);
             assertThat(this.<String>leer(resultado, "$.codigo")).isEqualTo("ACCESO_DENEGADO");
         }
+        mongo.getCollection("cuentas").deleteOne(Filters.eq("_id", id.toString()));
         assertThat(avisos().countDocuments(Filters.eq("activo", true))).isPositive();
     }
 
     @Test
     void unAdministradorConVerViejoRecibe401SesionInvalidada() throws Exception {
-        mongo.getCollection("cuentas").insertOne(new Document("_id", administrador.toString())
-                .append("rol", "Administrador").append("estadoCuenta", "Activo").append("version", 3L)
-                .append("actualizadoEn", new Date()));
+        mongo.getCollection("cuentas").updateOne(Filters.eq("_id", administrador.toString()),
+                new Document("$set", new Document("version", 3L)));
         String viejo = TokensDePrueba.usuario(administrador, "Administrador", 2);
 
         for (MvcResult resultado : List.of(enviar(post(ADMIN), viejo, cuerpo("Mensaje", "Clima")),

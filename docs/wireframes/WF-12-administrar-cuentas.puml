@@ -71,3 +71,50 @@ Región de estado (aria-live): éxito | 409 ESTADO_CAMBIADO «La cuenta cambió
 de estado; se recargó la lista» (DEC-39) | lista vacía
 }
 @endsalt
+
+@startsalt
+{+
+' RF45 (B2, DEC-114): pestaña «Personal» para modificar o revocar el rol. Propuesto por arquitectura, pendiente de
+' validación del equipo. La implementa la sesión B.
+{/ Prestadores por validar | Prestadores | Turistas | <b>Personal }
+{ Buscar | "nombre o correo  " | Rol | ^Todos^ | [Buscar] }
+{#
+<b>Nombre | <b>Correo | <b>Rol | <b>Registrado | <b>Acción
+Marta Lee | marta@mail.com | Gestor | 18/10/2026 | [Cambiar rol] [Revocar]
+— | gestor@samaria360.test | Gestor | 18/10/2026 | [Cambiar rol] Revocar (deshabilitado: sin rol base)
+Ana Ruiz | ana@mail.com | Administrador | 19/10/2026 | [Cambiar rol] [Revocar]
+(su propia cuenta) | admin@samaria360.test | Administrador | 18/10/2026 | Sin acciones (no cambia su propia cuenta)
+}
+{ [< Anterior] | Página 1 de n | [Siguiente >] }
+}
+@endsalt
+
+@startsalt
+{+
+' RF45: «Asignar rol» en la pestaña Turistas (solo para un turista Activo).
+{/ Prestadores por validar | Prestadores | <b>Turistas | Personal }
+{#
+<b>Nombre | <b>Correo | <b>País | <b>Estado | <b>Acción
+Marta Lee | marta@mail.com | Estados Unidos | Activo | [Desactivar] [Asignar rol]
+Pablo Mora | pablo@mail.com | Colombia | Desactivado | [Reactivar] Asignar rol (deshabilitado: cuenta desactivada)
+}
+}
+@endsalt
+
+@startsalt
+{+
+<b>Cambiar el rol de «Marta Lee»
+Rol actual: Turista
+Rol nuevo: | ^Gestor^
+(Gestor | Administrador; al revocar: Turista)
+--
+«Mientras tenga este rol, la cuenta no podrá usar sus reservas, favoritos
+ni historial; los datos se conservan y vuelven si se revoca el rol (DEC-112).
+Sus sesiones abiertas se cerrarán y verá el rol nuevo al volver a entrar.»
+{ [Cancelar] | [Confirmar] }
+--
+Región de estado (aria-live): éxito | 409 ROL_CAMBIADO «El rol de la cuenta cambió;
+se recargó la lista» | 409 CUENTA_NO_ELEGIBLE | 409 ULTIMO_ADMINISTRADOR
+«Debe quedar al menos un Administrador activo» | 409 CAMBIO_ROL_PROPIO
+}
+@endsalt

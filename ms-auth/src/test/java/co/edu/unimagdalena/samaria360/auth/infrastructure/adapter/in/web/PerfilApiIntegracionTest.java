@@ -164,7 +164,7 @@ class PerfilApiIntegracionTest {
     @Test
     void elPrestadorYElAdministradorReciben403() throws Exception {
         for (String token : List.of(token(ID_PRESTADOR, "prestador@samaria360.test", Rol.Prestador, 0),
-                token(ID_ADMIN, "admin@samaria360.test", Rol.Administrador, 0))) {
+                token(ID_ADMIN, "admin@samaria360.test", Rol.Administrador, versionDelAdmin()))) {
             for (MockHttpServletRequestBuilder solicitud : List.of(get(PERFIL),
                     put(PERFIL).contentType(MediaType.APPLICATION_JSON).content(VALIDO))) {
                 MvcResult resultado = conToken(solicitud, token);
@@ -178,7 +178,8 @@ class PerfilApiIntegracionTest {
     void regresion_meSigueAccesibleParaElPrestadorYElAdministrador() throws Exception {
         assertThat(conToken(get("/api/v1/auth/me"), token(ID_PRESTADOR, "prestador@samaria360.test", Rol.Prestador, 0))
                 .getResponse().getStatus()).isEqualTo(200);
-        assertThat(conToken(get("/api/v1/auth/me"), token(ID_ADMIN, "admin@samaria360.test", Rol.Administrador, 0))
+        assertThat(conToken(get("/api/v1/auth/me"),
+                token(ID_ADMIN, "admin@samaria360.test", Rol.Administrador, versionDelAdmin()))
                 .getResponse().getStatus()).isEqualTo(200);
     }
 
@@ -214,6 +215,13 @@ class PerfilApiIntegracionTest {
 
     private String turista(UUID id, long version) {
         return token(id, correo(id), Rol.Turista, version);
+    }
+
+    /** V15 subió la versión del Administrador de la semilla (DEC-108): un token con ver 0 ya no vale. */
+    private long versionDelAdmin() {
+        Long version = jdbc.queryForObject("SELECT version_cuenta FROM usuario WHERE id_usuario = ?", Long.class,
+                ID_ADMIN);
+        return version == null ? 0 : version;
     }
 
     private String token(UUID id, String correo, Rol rol, long version) {

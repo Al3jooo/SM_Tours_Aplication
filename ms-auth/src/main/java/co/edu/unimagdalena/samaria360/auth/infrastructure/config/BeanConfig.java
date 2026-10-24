@@ -1,10 +1,12 @@
 package co.edu.unimagdalena.samaria360.auth.infrastructure.config;
 
 import co.edu.unimagdalena.samaria360.auth.application.port.in.AdministrarCuentasUseCase;
+import co.edu.unimagdalena.samaria360.auth.application.port.in.CambiarRolUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.GestionarPerfilUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.IniciarSesionUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.RegistrarPrestadorUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.RegistrarTuristaUseCase;
+import co.edu.unimagdalena.samaria360.auth.application.port.out.CambioRolRepositoryPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.CuentasAdminRepositoryPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.DestinoCuentasPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.NotificadorCuentaPort;
@@ -16,7 +18,9 @@ import co.edu.unimagdalena.samaria360.auth.application.port.out.RelojPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.TokenProviderPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.UsuarioRepositoryPort;
 import co.edu.unimagdalena.samaria360.auth.application.service.AdministrarCuentasService;
+import co.edu.unimagdalena.samaria360.auth.application.service.CambiarRolService;
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarCuentasService;
+import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarPersonalService;
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarPaisesService;
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarUsuarioActualService;
 import co.edu.unimagdalena.samaria360.auth.application.service.GestionarPerfilService;
@@ -26,6 +30,7 @@ import co.edu.unimagdalena.samaria360.auth.application.service.RegistrarTuristaS
 import co.edu.unimagdalena.samaria360.auth.application.service.RelevarCuentasService;
 import co.edu.unimagdalena.samaria360.auth.application.service.VerificarSesionService;
 import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaAcceso;
+import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaAdministradores;
 import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaBloqueo;
 import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaReintento;
 import co.edu.unimagdalena.samaria360.auth.domain.service.PoliticaSesion;
@@ -133,6 +138,29 @@ public class BeanConfig {
     public AdministrarCuentasUseCase administrarCuentasUseCase(AdministrarCuentasService servicio,
                                                                PlatformTransactionManager transacciones) {
         return new AdministrarCuentasTransaccional(servicio, new TransactionTemplate(transacciones));
+    }
+
+    @Bean
+    public PoliticaAdministradores politicaAdministradores() {
+        return new PoliticaAdministradores();
+    }
+
+    @Bean
+    public ConsultarPersonalService consultarPersonalService(CambioRolRepositoryPort cuentas) {
+        return new ConsultarPersonalService(cuentas);
+    }
+
+    @Bean
+    public CambiarRolService cambiarRolService(CambioRolRepositoryPort cuentas, OutboxPort outbox, RelojPort reloj,
+                                               PoliticaAdministradores politica) {
+        return new CambiarRolService(cuentas, outbox, reloj, politica);
+    }
+
+    /** El que reciben los adaptadores de entrada: todo el cambio de rol y su evento en una sola transacción (DEC-82). */
+    @Bean
+    @Primary
+    public CambiarRolUseCase cambiarRolUseCase(CambiarRolService servicio, PlatformTransactionManager transacciones) {
+        return new CambiarRolTransaccional(servicio, new TransactionTemplate(transacciones));
     }
 
     @Bean

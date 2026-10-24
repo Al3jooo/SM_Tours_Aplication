@@ -4,7 +4,7 @@ Contrato del CU «Reservar servicio» (RF11, RF18, RF20, RF32, RF37, RF44) para 
 
 ## Convenciones
 
-- **Autenticación:** `Authorization: Bearer <JWT de ms-auth>`. Reservar, consultar y cancelar exigen el rol **Turista**; el turista es el `sub` del token. La disponibilidad es pública. Todo Bearer que llegue, también a un endpoint público, se valida: un token con el claim `ver` menor que la versión de la cuenta recibe **401 `SESION_INVALIDADA`** ([ADR-008](../adr/ADR-008-sincronizacion-estado-cuentas.md)); sin fila para la cuenta, o sin `ver`, se acepta.
+- **Autenticación:** `Authorization: Bearer <JWT de ms-auth>`. Reservar, consultar y cancelar exigen el rol **Turista**; el turista es el `sub` del token. La disponibilidad es pública. Todo Bearer que llegue, también a un endpoint público, se valida: un token con el claim `ver` menor que la versión de la cuenta recibe **401 `SESION_INVALIDADA`** ([ADR-008](../adr/ADR-008-sincronizacion-estado-cuentas.md)). Sin fila para la cuenta, se acepta un token de Turista o de Prestador (también sin `ver`), pero un token de Gestor o Administrador recibe 401 `SESION_INVALIDADA` (DEC-110, enmienda RF45 de ADR-008).
 - **Fechas:** `aaaa-mm-dd`; horas: `hh:mm` (la respuesta usa `hh:mm:ss`); instantes: ISO 8601 en UTC (`2030-03-30T13:00:00Z`). Todo se interpreta en la hora de Santa Marta (`America/Bogota`).
 - **Dinero:** COP, número decimal.
 - **Errores:** ProblemDetail (RFC 9457) con `codigo` estable, como ms-auth y ms-catalog. `DATOS_INVALIDOS` lleva `campos`: un código por campo con el nombre JSON, nunca textos.

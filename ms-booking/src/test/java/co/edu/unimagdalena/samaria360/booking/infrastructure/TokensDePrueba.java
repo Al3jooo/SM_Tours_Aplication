@@ -57,6 +57,11 @@ public final class TokensDePrueba {
         return firmar(id, "Prestador", null);
     }
 
+    /** Token de cualquier rol con el claim {@code ver}, p. ej. un Gestor o un Administrador (RF45, DEC-110). */
+    public static String usuario(UUID id, String rol, long ver) {
+        return firmar(id, rol, ver);
+    }
+
     public static String bearer(String token) {
         return "Bearer " + token;
     }

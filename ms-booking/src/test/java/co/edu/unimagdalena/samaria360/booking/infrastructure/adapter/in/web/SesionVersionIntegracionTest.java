@@ -5,6 +5,8 @@ import co.edu.unimagdalena.samaria360.booking.infrastructure.TokensDePrueba;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -41,8 +43,12 @@ class SesionVersionIntegracionTest {
     }
 
     private void proyeccion(long version) {
-        jdbc.update("INSERT INTO cuenta (id_usuario, rol, estado, version, actualizado_en)"
-                + " VALUES (?, 'Turista', 'Desactivado', ?, now())", turista, version);
+        proyeccion("Turista", "Desactivado", version);
+    }
+
+    private void proyeccion(String rol, String estado, long version) {
+        jdbc.update("INSERT INTO cuenta (id_usuario, rol, estado, version, actualizado_en) VALUES (?, ?, ?, ?, now())",
+                turista, rol, estado, version);
     }
 
     private MvcResult reservar(String token) throws Exception {
@@ -78,6 +84,38 @@ class SesionVersionIntegracionTest {
         assertThat(mias.getResponse().getStatus()).isEqualTo(401);
         assertThat(JsonPath.<String>read(texto(mias), "$.codigo")).isEqualTo("SESION_INVALIDADA");
         assertThat(cancelar.getResponse().getStatus()).isEqualTo(401);
+    }
+
+    /** DEC-110, cierre de L3: un Gestor o un Administrador sin fila en la proyección no tiene sesión. */
+    @ParameterizedTest
+    @ValueSource(strings = {"Gestor", "Administrador"})
+    void sinFilaUnRolPrivilegiadoResponde401SesionInvalidada(String rol) throws Exception {
+        MvcResult resultado = misReservas(TokensDePrueba.usuario(turista, rol, 4));
+
+        assertThat(resultado.getResponse().getStatus()).isEqualTo(401);
+        assertThat(JsonPath.<String>read(texto(resultado), "$.codigo")).isEqualTo("SESION_INVALIDADA");
+    }
+
+    /** Con fila y {@code ver} vigente, el validador lo acepta y la autorización por rol responde 403 en /mias. */
+    @ParameterizedTest
+    @ValueSource(strings = {"Gestor", "Administrador"})
+    void conFilaUnRolPrivilegiadoConVerVigentePasaLaSesionYConVerViejoResponde401(String rol) throws Exception {
+        proyeccion(rol, "Activo", 2);
+
+        MvcResult vigente = misReservas(TokensDePrueba.usuario(turista, rol, 2));
+        assertThat(vigente.getResponse().getStatus()).isEqualTo(403);
+        assertThat(JsonPath.<String>read(texto(vigente), "$.codigo")).isEqualTo("ACCESO_DENEGADO");
+        MvcResult viejo = misReservas(TokensDePrueba.usuario(turista, rol, 1));
+        assertThat(viejo.getResponse().getStatus()).isEqualTo(401);
+        assertThat(JsonPath.<String>read(texto(viejo), "$.codigo")).isEqualTo("SESION_INVALIDADA");
+    }
+
+    @Test
+    void unPrestadorSinFilaSigueComoAntes() throws Exception {
+        MvcResult resultado = misReservas(TokensDePrueba.prestador(turista));
+
+        assertThat(resultado.getResponse().getStatus()).isEqualTo(403);
+        assertThat(JsonPath.<String>read(texto(resultado), "$.codigo")).isEqualTo("ACCESO_DENEGADO");
     }
 
     @Test

@@ -4,8 +4,8 @@
 - **Fecha:** 2026-10-21
 - **Fase:** Construcción (RUP)
 - **Componentes:** `ms-auth` (`auth_db`), `ms-catalog` (`catalog_db`) y `ms-booking` (`reservas_db`)
-- **Requisitos:** RF22, RF28, RF62 (RF45 queda servido por el diseño), RNF01, RNF02, RNF06
-- **Registra las decisiones:** DEC-26 y DEC-29
+- **Requisitos:** RF22, RF28, RF62 y, desde la enmienda B2, RF45; RNF01, RNF02, RNF06
+- **Registra las decisiones:** DEC-26 y DEC-29; la enmienda B2, DEC-106 a DEC-111
 
 ## Contexto
 
@@ -77,6 +77,74 @@ Pruebas que verifican cada punto:
 | Migraciones V11 a V14 | `MigracionesAdministrarCuentasIntegracionTest` |
 | N8. El gateway rechaza las rutas no normalizadas antes de enrutar | `EnrutamientoTest` (`unaRutaConPuntosOSeparadoresCodificadosEs400SinLlegarANingunServicio`, `unSegmentoQueSoloEmpiezaConPuntoSigueSiendoValido`) |
 | N8. El servicio rechaza una ruta no normalizada que llegue directo (`StrictHttpFirewall`) | `CuentaInternaApiIntegracionTest` de ms-booking (`unaRutaNoNormalizadaHaciaLosEndpointsInternosEs400`) |
+
+## Enmienda RF45 (B2)
+
+- **Fecha:** 2026-10-24
+- **Fase:** Construcción (RUP), iteración B2 «Cambiar rol de cuenta» ([CU](../../casos-de-uso/CU-cambiar-rol-cuenta.md))
+- **Registra las decisiones:** DEC-82 (del equipo) y DEC-106 a DEC-111 (de arquitectura)
+
+Esta enmienda no crea un ADR nuevo (DEC-82): el cambio de rol usa el mismo mecanismo del punto 1 al 4.
+
+### 1. El cambio de rol usa el mismo outbox
+
+- `POST /api/v1/auth/admin/cuentas/{id}/cambio-rol` hace, en una sola transacción (`CambiarRolTransaccional`, desde la primera lectura hasta el evento):
+  - el UPDATE condicional de `usuario.id_rol` y `version_cuenta + 1`, sobre el rol y la versión esperados y la cuenta Activa (DEC-106);
+  - el cambio de las filas de `gestor` y `administrador`. La de `turista` no se toca;
+  - el INSERT del evento `CuentaActualizada`.
+- **El evento no cambia** (DEC-107): ya llevaba `rol`. El `estadoCuenta` del personal es `Activo`, porque solo una cuenta Activa cambia de rol (DEC-105).
+- **Al menos un Administrador activo** (DEC-82, DEC-106): si el cambio quita a un Administrador, la transacción bloquea antes las filas de los Administradores activos (`SELECT … FOR UPDATE`, en orden de id). Con dos cambios simultáneos, el segundo espera y PostgreSQL reevalúa la condición sobre la fila confirmada: ya no ve al que se degradó y responde 409 `ULTIMO_ADMINISTRADOR`. Se descartó `pg_advisory_xact_lock`: serializa todos los cambios con una llave global.
+- **El login no reescribe el rol** (DEC-106): `UsuarioEntity.rol` es `updatable = false`, como `version_cuenta`.
+
+### 2. V15: backfill de las cuentas privilegiadas (DEC-108)
+
+- `V15__backfill_cuentas_privilegiadas.sql` encola un evento por cada cuenta de Gestor o Administrador, con sus dos entregas. Antes **sube su versión en 1**: los consumidores exigen una versión de 1 en adelante y las cuentas partían de 0.
+- Selecciona por el nombre del rol, no por datos de la semilla: sin personal no inserta nada. Flyway la aplica una vez y el consumidor es idempotente por versión.
+- **Efecto aceptado:** un token de Gestor o Administrador anterior a V15 recibe 401 `SESION_INVALIDADA` una vez.
+- `V16__revisado_por_usuario.sql` (DEC-109) apunta `prestador.revisado_por` a `usuario`. Era la única FK hacia un subtipo de personal, y sin el cambio no se podía revocar ni modificar a un Administrador que hubiera revisado prestadores. Se conserva quién revisó (RF28).
+
+### 3. Regla de 401 para los roles privilegiados (DEC-110): L3 cerrado
+
+- El punto 4 de la decisión decía «sin fila en la proyección lo acepta». Se precisa así:
+  - un token de **Gestor o Administrador** cuyo `sub` no tiene fila en `cuentas` (ms-catalog) o en `cuenta` (ms-booking) recibe **401 `SESION_INVALIDADA`**;
+  - **Turista y Prestador** sin fila se siguen aceptando, en modo permisivo hasta el `exp`.
+- La regla vive en el dominio de cada consumidor (`PoliticaSesion`, con `RolCuenta.privilegiado`), y `ValidadorVersionSesion` le pasa el claim `rol` del token. Es la misma duplicación entre los dos servicios que ya existía: no hay librería compartida.
+- Con V15, toda cuenta privilegiada tiene evento, y su `ver` se invalida como el de cualquier otra. **L3 queda cerrado** (DEC-65).
+- **Ventana aceptada, sin mitigación:**
+  - mientras el relevo no entrega (≈1 s; más si un consumidor está caído), una cuenta privilegiada sin fila recibe 401: al desplegar y justo después de asignarle un rol a un turista que nunca tuvo eventos;
+  - es *fail-closed* para los roles privilegiados, que es lo que se busca. El frontend muestra el mensaje de DEC-49;
+  - en ms-booking el efecto es casi nulo: el personal no tiene rutas allí y las públicas salen sin token (DEC-47).
+- ms-auth no cambia: compara con su propia tabla, donde toda cuenta tiene fila.
+
+### 4. Alta manual de personal (DEC-111, precisa DEC-25)
+
+Después de V15, una cuenta de Gestor o Administrador creada a mano en la base necesita su evento, o recibirá 401 en ms-catalog y ms-booking hasta que exista. Junto con el alta (usuario y subtipo) se ejecuta, en la misma transacción:
+
+```sql
+WITH alta AS (
+    UPDATE usuario SET version_cuenta = version_cuenta + 1 WHERE id_usuario = :id
+    RETURNING id_usuario, version_cuenta, estado_cuenta::text AS estado
+), evento AS (
+    INSERT INTO outbox_evento (tipo, id_usuario, carga, creado_en)
+    SELECT 'CuentaActualizada', id_usuario,
+           jsonb_build_object('idUsuario', id_usuario::text, 'rol', :rol, 'estadoCuenta', estado,
+                              'version', version_cuenta), now()
+    FROM alta RETURNING id_evento
+)
+INSERT INTO outbox_entrega (id_evento, destino, proximo_intento)
+SELECT id_evento, d.destino, now() FROM evento CROSS JOIN (VALUES ('ms-catalog'), ('ms-booking')) AS d (destino);
+```
+
+### 5. Cumplimiento de la enmienda
+
+| Punto | Prueba |
+|---|---|
+| 1. Rol, subtipos, versión y evento juntos o ninguno; 409 | `CambioRolApiIntegracionTest` (`siFallaElEventoNoQuedaNiElRolNiElSubtipoNiLaVersion`), `CambioRolJdbcAdapterTest`, `CambiarRolServiceTest`, `CuentaConRolTest` |
+| 1. Al menos un Administrador activo, con concurrencia | `CambioRolApiIntegracionTest` (`dosAdministradoresQueSeDegradanEntreSiALaVezDejanUnoActivo`, `dosDegradacionesSimultaneasPorHttpNuncaDejanCeroAdministradores`), `PoliticaAdministradoresTest` |
+| 1. El login no revierte el rol | `CambioRolJdbcAdapterTest` (`guardarUnUsuarioCargadoAntesDelCambioDeRolNoRevierteElRol`) |
+| 2. V15 y V16 | `MigracionesCambioRolIntegracionTest` |
+| 3. Privilegiado sin fila → 401; con fila, `ver` | `PoliticaSesionTest`, `VerificarSesionServiceTest`, `SesionVersionApiIntegracionTest` (ms-catalog), `SesionVersionIntegracionTest` (ms-booking) |
+| 3. El evento de una cuenta desconocida crea la fila; revocar invalida el token anterior | `CuentaInternaApiIntegracionTest` de ms-catalog y de ms-booking |
 
 ## Cuándo revisarla
 

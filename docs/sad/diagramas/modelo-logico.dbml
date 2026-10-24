@@ -152,7 +152,7 @@ Table Usuario [headercolor: #CDBDF0] {
   intentos_fallidos integer [not null]
   estado_cuenta estado_cuenta [not null, note: 'Activo, Inactivo (RF22, prestador) o Desactivado (RF62, turista; DEC-44)']
   bloqueado_hasta timestamptz [null]
-  version_cuenta bigint [not null, note: 'V12; default 0, CHECK >= 0. Sube en 1 con cada cambio de estado o de rol; viaja en el claim ver del JWT (DEC-29)']
+  version_cuenta bigint [not null, note: 'V12; default 0, CHECK >= 0. Sube en 1 con cada cambio de estado o de rol (RF45); viaja en el claim ver del JWT (DEC-29). V15 la subió una vez para Gestores y Administradores y les encoló un evento (DEC-108)']
 }
 
 Table Prestador [headercolor: #A3DDD2] {
@@ -166,7 +166,7 @@ Table Prestador [headercolor: #A3DDD2] {
   acepto_politicas boolean [not null, note: 'Sin valor por defecto (V9; decisión D6)']
   motivo_rechazo varchar(500) [null, note: 'V11; justificación del rechazo (RF28, DEC-42). CHECK: obligatoria si estado_validacion = Rechazado']
   revisado_en timestamptz [null, note: 'V11; cuándo revisó el Administrador']
-  revisado_por uuid [null, note: 'V11; el Administrador que revisó (FK a Administrador)']
+  revisado_por uuid [null, note: 'V11; quién revisó. Desde V16, FK a Usuario: se conserva aunque pierda el rol de Administrador (RF45, DEC-109)']
 }
 
 Table Gestor [headercolor: #AFCDEF] {
@@ -193,7 +193,7 @@ Ref: Reserva.id_turista > Turista.id_usuario
 Ref: Reserva.id_prestador > Prestador.id_usuario
 Ref: Reserva_Cupo_Dia.id_reserva > Reserva.id_reserva
 Ref: Reserva_Cupo_Dia.id_inventario > Inventario_Cupo.id_inventario
-Ref: Prestador.revisado_por > Administrador.id_usuario
+Ref: Prestador.revisado_por > Usuario.id_usuario // V16 (antes, a Administrador: V11)
 Ref: Outbox_Evento.id_usuario > Usuario.id_usuario
 Ref: Outbox_Entrega.id_evento > Outbox_Evento.id_evento
 Ref: Cuenta.id_usuario - Usuario.id_usuario // referencia lógica entre bases, sin FK física (como Reserva.id_turista)

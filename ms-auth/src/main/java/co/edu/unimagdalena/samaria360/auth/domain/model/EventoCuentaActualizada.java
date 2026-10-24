@@ -25,4 +25,10 @@ public record EventoCuentaActualizada(UUID idUsuario, Rol rol, EstadoAdministrat
         return new EventoCuentaActualizada(cambio.idUsuario(), cambio.rol(), cambio.estadoNuevo(),
                 cambio.versionNueva(), ahora);
     }
+
+    /** Cambio de rol (RF45): el rol nuevo; el estado sigue Activo porque solo una cuenta Activa cambia de rol (DEC-105). */
+    public static EventoCuentaActualizada de(CambioRol cambio, Instant ahora) {
+        return new EventoCuentaActualizada(cambio.idUsuario(), cambio.rolNuevo(), EstadoAdministrativo.Activo,
+                cambio.versionNueva(), ahora);
+    }
 }

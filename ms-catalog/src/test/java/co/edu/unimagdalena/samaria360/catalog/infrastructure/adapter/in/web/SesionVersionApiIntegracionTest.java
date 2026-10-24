@@ -6,6 +6,8 @@ import com.jayway.jsonpath.JsonPath;
 import org.bson.Document;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpHeaders;
@@ -14,6 +16,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,8 +45,12 @@ class SesionVersionApiIntegracionTest {
     }
 
     private void proyeccion(long version) {
-        mongo.getCollection("cuentas").insertOne(new Document("_id", usuario.toString()).append("rol", "Turista")
-                .append("estadoCuenta", "Desactivado").append("version", version).append("actualizadoEn", new Date()));
+        proyeccion("Turista", "Desactivado", version);
+    }
+
+    private void proyeccion(String rol, String estado, long version) {
+        mongo.getCollection("cuentas").insertOne(new Document("_id", usuario.toString()).append("rol", rol)
+                .append("estadoCuenta", estado).append("version", version).append("actualizadoEn", new Date()));
     }
 
     private MvcResult oferta(String token) throws Exception {
@@ -63,6 +70,31 @@ class SesionVersionApiIntegracionTest {
     void sinFilaEnLaProyeccionSeAceptaUnTokenConOSinVer() throws Exception {
         assertThat(oferta(TokensDePrueba.usuario(usuario, "Turista", 7)).getResponse().getStatus()).isEqualTo(200);
         assertThat(oferta(TokensDePrueba.usuarioSinVer(usuario, "Turista")).getResponse().getStatus()).isEqualTo(200);
+        assertThat(oferta(TokensDePrueba.usuario(usuario, "Prestador", 0)).getResponse().getStatus()).isEqualTo(200);
+    }
+
+    /** DEC-110, cierre de L3: un Gestor o un Administrador sin fila en la proyección no tiene sesión. */
+    @ParameterizedTest
+    @ValueSource(strings = {"Gestor", "Administrador"})
+    void sinFilaEnLaProyeccionUnRolPrivilegiadoResponde401SesionInvalidada(String rol) throws Exception {
+        for (String token : List.of(TokensDePrueba.usuario(usuario, rol, 5), TokensDePrueba.usuarioSinVer(usuario, rol))) {
+            MvcResult resultado = oferta(token);
+            assertThat(resultado.getResponse().getStatus()).isEqualTo(401);
+            assertThat(JsonPath.<String>read(resultado.getResponse().getContentAsString(StandardCharsets.UTF_8),
+                    "$.codigo")).isEqualTo("SESION_INVALIDADA");
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Gestor", "Administrador"})
+    void conFilaUnRolPrivilegiadoConVerVigenteSeAceptaYConVerViejoResponde401(String rol) throws Exception {
+        proyeccion(rol, "Activo", 2);
+
+        assertThat(oferta(TokensDePrueba.usuario(usuario, rol, 2)).getResponse().getStatus()).isEqualTo(200);
+        MvcResult viejo = oferta(TokensDePrueba.usuario(usuario, rol, 1));
+        assertThat(viejo.getResponse().getStatus()).isEqualTo(401);
+        assertThat(JsonPath.<String>read(viejo.getResponse().getContentAsString(StandardCharsets.UTF_8),
+                "$.codigo")).isEqualTo("SESION_INVALIDADA");
     }
 
     @Test

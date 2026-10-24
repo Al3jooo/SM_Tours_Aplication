@@ -21,8 +21,16 @@ public enum CodigoError {
     SESION_INVALIDADA,
     /** La cuenta ya no está en el estado desde el que se pidió el cambio (DEC-39). */
     ESTADO_CAMBIADO,
-    /** No existe un turista o prestador con ese id (administración de cuentas). */
+    /** No existe un turista o prestador con ese id (administración de cuentas), o ninguna cuenta (cambio de rol). */
     CUENTA_NO_ENCONTRADA,
+    /** La cuenta ya no tiene el rol desde el que se pidió el cambio (RF45, DEC-104); lleva {@code rolActual}. */
+    ROL_CAMBIADO,
+    /** La cuenta no admite el cambio de rol: Prestador, desactivada o sin rol base al revocar; lleva {@code motivo}. */
+    CUENTA_NO_ELEGIBLE,
+    /** El Administrador intentó cambiar el rol de su propia cuenta (DEC-82). */
+    CAMBIO_ROL_PROPIO,
+    /** El cambio dejaría el sistema sin Administradores activos (DEC-82). */
+    ULTIMO_ADMINISTRADOR,
     ACCESO_DENEGADO,
     DATOS_INVALIDOS,
     SOLICITUD_INVALIDA,

@@ -11,8 +11,9 @@ import java.util.UUID;
 
 /**
  * Después de la firma, {@code iss} y {@code exp}: el claim {@code ver} contra la versión de la proyección {@code cuentas}
- * (DEC-29, ADR-008). Sin fila para la cuenta se acepta; un token sin {@code ver} cuenta como 0. También rechaza lo que
- * no es un token de usuario: uno de servicio ({@code rol = SERVICIO}) o uno cuyo {@code sub} no es un UUID.
+ * (DEC-29, ADR-008). Sin fila para la cuenta se acepta, salvo que el rol del token sea Gestor o Administrador (DEC-110);
+ * un token sin {@code ver} cuenta como 0. También rechaza lo que no es un token de usuario: uno de servicio
+ * ({@code rol = SERVICIO}) o uno cuyo {@code sub} no es un UUID.
  */
 public class ValidadorVersionSesion implements OAuth2TokenValidator<Jwt> {
 
@@ -28,7 +29,8 @@ public class ValidadorVersionSesion implements OAuth2TokenValidator<Jwt> {
 
     @Override
     public OAuth2TokenValidatorResult validate(Jwt jwt) {
-        if (ROL_SERVICIO.equals(jwt.getClaimAsString("rol"))) {
+        String rol = jwt.getClaimAsString("rol");
+        if (ROL_SERVICIO.equals(rol)) {
             return fallo(OAuth2ErrorCodes.INVALID_TOKEN, "Un token de servicio no sirve para la API pública");
         }
         UUID idUsuario;
@@ -39,7 +41,7 @@ public class ValidadorVersionSesion implements OAuth2TokenValidator<Jwt> {
         }
         Object ver = jwt.getClaim("ver");
         long version = ver instanceof Number numero ? numero.longValue() : 0;
-        if (!sesiones.sesionVigente(idUsuario, version)) {
+        if (!sesiones.sesionVigente(idUsuario, version, rol)) {
             return fallo(SESION_INVALIDADA, "La cuenta cambió después de iniciar sesión");
         }
         return OAuth2TokenValidatorResult.success();

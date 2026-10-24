@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 /**
@@ -159,6 +160,37 @@ class CuentaInternaApiIntegracionTest {
                 .content(cuerpo("Turista", "Activo", 1))).andReturn();
 
         assertThat(resultado.getResponse().getStatus()).isEqualTo(400);
+    }
+
+    /**
+     * RF45 (DEC-107, DEC-110): el evento de una cuenta desconocida crea la fila; con ella, el token del Administrador
+     * vale. Al revocar, el evento con rol Turista y la versión nueva invalida el token anterior.
+     */
+    @Test
+    void elEventoDeUnAdministradorDesconocidoCreaLaFilaYElDeLaRevocacionInvalidaElTokenAnterior() throws Exception {
+        UUID id = UUID.randomUUID();
+        assertThat(oferta(TokensDePrueba.usuario(id, "Administrador", 2)).getResponse().getStatus()).isEqualTo(401);
+
+        assertThat(enviar(id, servicio(), cuerpo("Administrador", "Activo", 2)).getResponse().getStatus())
+                .isEqualTo(204);
+        assertThat(proyeccion(id).getString("rol")).isEqualTo("Administrador");
+        assertThat(oferta(TokensDePrueba.usuario(id, "Administrador", 2)).getResponse().getStatus()).isEqualTo(200);
+
+        assertThat(enviar(id, servicio(), cuerpo("Turista", "Activo", 3)).getResponse().getStatus()).isEqualTo(204);
+        Document revocada = proyeccion(id);
+        assertThat(revocada.getString("rol")).isEqualTo("Turista");
+        assertThat(revocada.get("version")).isEqualTo(3L);
+        MvcResult viejo = oferta(TokensDePrueba.usuario(id, "Administrador", 2));
+        assertThat(viejo.getResponse().getStatus()).isEqualTo(401);
+        assertThat(JsonPath.<String>read(texto(viejo), "$.codigo")).isEqualTo("SESION_INVALIDADA");
+        assertThat(oferta(TokensDePrueba.usuario(id, "Turista", 2)).getResponse().getStatus()).isEqualTo(401);
+        assertThat(oferta(TokensDePrueba.usuario(id, "Turista", 3)).getResponse().getStatus()).isEqualTo(200);
+        mongo.getCollection("cuentas").deleteOne(new Document("_id", id.toString()));
+    }
+
+    private MvcResult oferta(String token) throws Exception {
+        return mvc.perform(get("/api/v1/catalogo/oferta").header(HttpHeaders.AUTHORIZATION,
+                TokensDePrueba.bearer(token))).andReturn();
     }
 
     private static String texto(MvcResult resultado) throws Exception {
