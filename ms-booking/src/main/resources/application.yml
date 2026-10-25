@@ -46,9 +46,11 @@ samaria360:
   reservas:
     hora-check-in: "15:00"
     hora-check-out: "12:00"
-  inventario-demo:
-    # Generador de inventario de demostración (D5), sustituto temporal de RF19. Docker Compose lo habilita.
-    habilitado: ${INVENTARIO_DEMO_HABILITADO:false}
+  disponibilidad:
+    # DEC-155: plazo total para materializar la oferta de las tarjetas (resumen), por debajo de los 5 s del gateway.
+    # Si se agota, 503 SERVICIO_NO_DISPONIBLE. La oferta se materializa bajo demanda (DEC-135); el generador D5 ya no
+    # existe (DEC-156).
+    plazo-materializacion-resumen: 2500ms
   completar-reservas:
     # RF52: Confirmada → Completada cuando fecha_fin ya pasó. Corre al arrancar y después cada 15 minutos.
     habilitado: true

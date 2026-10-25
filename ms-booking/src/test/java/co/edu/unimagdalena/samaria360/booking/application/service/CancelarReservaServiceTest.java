@@ -3,6 +3,7 @@ package co.edu.unimagdalena.samaria360.booking.application.service;
 import co.edu.unimagdalena.samaria360.booking.application.fake.CatalogoFalso;
 import co.edu.unimagdalena.samaria360.booking.application.fake.Eventos;
 import co.edu.unimagdalena.samaria360.booking.application.fake.InventarioEnMemoria;
+import co.edu.unimagdalena.samaria360.booking.application.fake.OfertaMaterializadaEnMemoria;
 import co.edu.unimagdalena.samaria360.booking.application.fake.RelojFijo;
 import co.edu.unimagdalena.samaria360.booking.application.fake.ReservaRepositoryEnMemoria;
 import co.edu.unimagdalena.samaria360.booking.application.port.in.ComandoReserva;
@@ -44,9 +45,10 @@ class CancelarReservaServiceTest {
 
     @BeforeEach
     void reservarTresPersonas() {
-        ReservarServicioService reservar = new ReservarServicioService(reservas, inventario,
-                new CatalogoFalso(eventos).con(Ofertas.tour()), reloj,
-                new PoliticaReserva(HorarioReservas.POR_DEFECTO));
+        CatalogoFalso catalogo = new CatalogoFalso(eventos).con(Ofertas.tour());
+        ReservarServicioService reservar = new ReservarServicioService(reservas, inventario, catalogo,
+                new MaterializarInventarioService(catalogo, inventario, new OfertaMaterializadaEnMemoria(eventos), reloj),
+                reloj, new PoliticaReserva(HorarioReservas.POR_DEFECTO));
         reserva = reservar.reservar(new ComandoReserva(TURISTA, UUID.randomUUID(), Ofertas.TOUR, null,
                 DIA.toString(), null, "08:00", null, 3, new BigDecimal("240000"))).reserva();
         assertThat(inventario.disponibles(OCHO)).isEqualTo(9);

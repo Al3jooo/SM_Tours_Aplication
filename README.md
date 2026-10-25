@@ -121,8 +121,9 @@ Para crear cuentas nuevas: **«Registrarse»** en la pantalla de inicio de sesi�
   migraciones de catalog_db que falten (`infra/mongo/migraciones`, registradas en la colección `migraciones`). Así un
   volumen creado con una versión anterior se pone al día **sin borrar datos**. ms-auth, ms-booking y ms-catalog
   esperan a que terminen bien (`service_completed_successfully`); en `docker compose ps -a` aparecen como `Exited (0)`.
-- **Reservas:** ms-booking genera solo los cupos de los próximos 60 días (generador de inventario demo, sustituto
-  temporal de RF19). La demostración del CU, con la prueba de concurrencia, está en
+- **Reservas:** ms-booking materializa los cupos de los próximos 60 días bajo demanda, a partir de la oferta que cada
+  servicio define en ms-catalog (días de operación y salidas; DEC-135): la primera consulta de disponibilidad, de las
+  tarjetas o de una reserva los crea. La demostración del CU, con la prueba de concurrencia, está en
   [`docs/demo/reservas/`](docs/demo/reservas/README.md).
 
 **Memoria.** Docker Desktop con WSL 2 le da por defecto a su máquina virtual el 50 % de la RAM: unos 4 GB en un

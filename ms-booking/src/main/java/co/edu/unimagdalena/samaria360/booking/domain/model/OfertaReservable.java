@@ -14,10 +14,12 @@ import java.util.UUID;
  * @param aforoMaxGrupo solo en tours
  * @param duracionHoras solo en tours
  * @param unidades      solo en alojamientos
+ * @param oferta        días de operación y salidas que se materializan en el inventario (DEC-135); null si el
+ *                      catálogo no la trae (Gastronomía y Alquiler)
  */
 public record OfertaReservable(String idServicio, UUID idPrestador, String nombre, String categoria,
                                BigDecimal precioBase, Integer aforoMaxGrupo, BigDecimal duracionHoras,
-                               List<UnidadReservable> unidades) {
+                               List<UnidadReservable> unidades, OfertaOperativa oferta) {
 
     public OfertaReservable {
         unidades = unidades == null ? List.of() : List.copyOf(unidades);

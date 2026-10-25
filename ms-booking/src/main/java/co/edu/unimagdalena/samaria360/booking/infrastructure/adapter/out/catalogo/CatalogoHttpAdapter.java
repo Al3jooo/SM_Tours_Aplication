@@ -2,8 +2,7 @@ package co.edu.unimagdalena.samaria360.booking.infrastructure.adapter.out.catalo
 
 import co.edu.unimagdalena.samaria360.booking.domain.exception.CatalogoNoDisponibleException;
 import co.edu.unimagdalena.samaria360.booking.application.port.out.CatalogoPort;
-import co.edu.unimagdalena.samaria360.booking.application.port.out.PaginaCatalogo;
-import co.edu.unimagdalena.samaria360.booking.domain.model.CategoriaReservable;
+import co.edu.unimagdalena.samaria360.booking.domain.model.OfertaOperativa;
 import co.edu.unimagdalena.samaria360.booking.domain.model.OfertaReservable;
 import co.edu.unimagdalena.samaria360.booking.domain.model.UnidadReservable;
 import co.edu.unimagdalena.samaria360.booking.infrastructure.config.CatalogoPropiedades;
@@ -17,15 +16,21 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
  * ms-catalog por HTTP (D4, ADR-007): el endpoint público de detalle, que solo devuelve servicios Publicados de
- * prestadores activos, y la búsqueda pública para el generador. Sin privilegios por estar en la red interna.
+ * prestadores activos, con la oferta que se materializa en el inventario (DEC-135). Sin privilegios por estar en la
+ * red interna.
  * <ul>
  *   <li>Timeouts: {@code samaria360.catalogo.timeout-conexion} (500 ms) y {@code timeout-lectura} (1,5 s).</li>
  *   <li>Un reintento, <b>solo</b> ante errores de red o 5xx; nunca ante 404 ni otros 4xx. Va dentro de la llamada
@@ -60,20 +65,6 @@ public class CatalogoHttpAdapter implements CatalogoPort {
                     }
                     verificarEstado(respuesta.getStatusCode());
                     return Optional.of(aOferta(respuesta.bodyTo(DetalleServicioCatalogo.class)));
-                }));
-    }
-
-    @Override
-    public PaginaCatalogo listarPublicados(CategoriaReservable categoria, int pagina) {
-        return protegida(() -> cliente.get()
-                .uri("/api/v1/catalogo/oferta?categoria={categoria}&pagina={pagina}", categoria.name(), pagina)
-                .exchange((solicitud, respuesta) -> {
-                    verificarEstado(respuesta.getStatusCode());
-                    PaginaOfertaCatalogo cuerpo = respuesta.bodyTo(PaginaOfertaCatalogo.class);
-                    List<String> ids = cuerpo == null || cuerpo.elementos() == null ? List.of()
-                            : cuerpo.elementos().stream().filter(e -> "Servicio".equals(e.tipo()))
-                            .map(PaginaOfertaCatalogo.Elemento::id).toList();
-                    return new PaginaCatalogo(ids, cuerpo == null ? 0 : cuerpo.totalPaginas());
                 }));
     }
 
@@ -140,18 +131,60 @@ public class CatalogoHttpAdapter implements CatalogoPort {
             }
         }
         return new OfertaReservable(detalle.id(), UUID.fromString(detalle.idPrestador()), detalle.nombreComercial(),
-                detalle.categoria(), detalle.precioBase(), aforo, duracion, unidades);
+                detalle.categoria(), detalle.precioBase(), aforo, duracion, unidades, aOfertaOperativa(detalle.oferta()));
+    }
+
+    /**
+     * Lector tolerante (DEC-157): sin oferta (Gastronomía, Alquiler) no hay nada que materializar. Un día o una hora
+     * fuera del contrato de ms-catalog ({@code Lunes}…{@code Domingo}, {@code HH:mm}) es una respuesta inesperada.
+     */
+    private static OfertaOperativa aOfertaOperativa(OfertaCatalogo oferta) {
+        if (oferta == null) {
+            return null;
+        }
+        if (oferta.diasOperacion() == null || oferta.diasOperacion().isEmpty()) {
+            throw new RespuestaInesperadaCatalogoException("La oferta del catálogo no tiene días de operación");
+        }
+        Set<DayOfWeek> dias = EnumSet.noneOf(DayOfWeek.class);
+        for (String dia : oferta.diasOperacion()) {
+            dias.add(diaSemana(dia));
+        }
+        List<LocalTime> salidas = new ArrayList<>();
+        if (oferta.salidas() != null) {
+            for (String salida : oferta.salidas()) {
+                try {
+                    salidas.add(LocalTime.parse(salida));
+                } catch (DateTimeParseException | NullPointerException error) {
+                    throw new RespuestaInesperadaCatalogoException("Salida del catálogo con otro formato: " + salida);
+                }
+            }
+        }
+        return new OfertaOperativa(dias, salidas);
+    }
+
+    /** Los días de ms-catalog van sin tildes ({@code DiaSemana}, DEC-136). */
+    private static DayOfWeek diaSemana(String dia) {
+        if (dia == null) {
+            throw new RespuestaInesperadaCatalogoException("Día de operación nulo en la oferta del catálogo");
+        }
+        return switch (dia) {
+            case "Lunes" -> DayOfWeek.MONDAY;
+            case "Martes" -> DayOfWeek.TUESDAY;
+            case "Miercoles" -> DayOfWeek.WEDNESDAY;
+            case "Jueves" -> DayOfWeek.THURSDAY;
+            case "Viernes" -> DayOfWeek.FRIDAY;
+            case "Sabado" -> DayOfWeek.SATURDAY;
+            case "Domingo" -> DayOfWeek.SUNDAY;
+            default -> throw new RespuestaInesperadaCatalogoException("Día de operación desconocido: " + dia);
+        };
     }
 
     /** Lo que se usa de {@code GET /api/v1/catalogo/servicios/{id}}; los demás campos se ignoran. */
     record DetalleServicioCatalogo(String id, String idPrestador, String nombreComercial, String categoria,
-                                   BigDecimal precioBase, JsonNode detalleCategoria) {
+                                   BigDecimal precioBase, JsonNode detalleCategoria, OfertaCatalogo oferta) {
     }
 
-    /** Lo que se usa de {@code GET /api/v1/catalogo/oferta}. */
-    record PaginaOfertaCatalogo(List<Elemento> elementos, int totalPaginas) {
-
-        record Elemento(String id, String tipo) {
-        }
+    /** {@code oferta} del detalle (DEC-150): {@code salidas} solo en Tour; null en Gastronomía y Alquiler. */
+    record OfertaCatalogo(List<String> diasOperacion, List<String> salidas) {
     }
 }

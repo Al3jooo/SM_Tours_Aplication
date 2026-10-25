@@ -2,9 +2,9 @@
 
 Con el sistema levantado (`docker compose up -d --build`, ver el README de la raíz). Todas las llamadas van por el API Gateway (`http://localhost:8080`). El contrato está en [`docs/sad/api/ms-booking.md`](../../sad/api/ms-booking.md).
 
-**Inventario.** ms-booking genera solo los cupos de los próximos 60 días (generador de inventario demo, decisión D5, sustituto temporal de RF19). Lo hace al arrancar, cuando ms-catalog responde: si las primeras llamadas fallan porque el catálogo todavía arranca, se reintenta cada minuto.
-- **Tours:** las 08:00 y las 14:00, con el aforo del grupo.
-- **Alojamientos:** cada unidad y cada noche, con sus habitaciones. Hotel Casa Tayrona tiene dos unidades: Doble (12 habitaciones) y Suite familiar (3).
+**Inventario.** ms-booking materializa bajo demanda los cupos de los próximos 60 días a partir de la oferta del catálogo (DEC-135, DEC-152; reemplaza al generador de inventario demo D5, DEC-156): la primera consulta de disponibilidad, del resumen de las tarjetas o de una reserva los crea, sin tocar los que ya existen. La semilla tiene la oferta que rellenó M008: todos los días.
+- **Tours:** una fila por salida de cada día de operación (en la semilla, las 08:00 y las 14:00), con el aforo del grupo.
+- **Alojamientos:** cada unidad y cada noche de operación, con sus habitaciones. Hotel Casa Tayrona tiene dos unidades: Doble (12 habitaciones) y Suite familiar (3).
 
 ## `reservas.http`
 

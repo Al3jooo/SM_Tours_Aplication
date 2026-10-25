@@ -25,7 +25,10 @@ public interface InventarioPort {
     /** Devuelve cupos de una reserva cancelada; el CHECK impide superar los totales. */
     void liberar(long idInventario, int cantidad);
 
-    /** {@code INSERT … ON CONFLICT DO NOTHING}: las filas que ya existen no cambian (D5). @return filas nuevas */
+    /**
+     * {@code INSERT … ON CONFLICT DO NOTHING}: las filas que ya existen no cambian, tampoco sus cupos (DEC-135,
+     * DEC-158). @return filas nuevas
+     */
     int asegurar(List<FilaInventarioNueva> filas);
 
     /** @param idUnidad null = todas las unidades (o un tour) */

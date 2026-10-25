@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.Map;
 
 import static co.edu.unimagdalena.samaria360.booking.domain.model.Ofertas.AHORA;
@@ -152,8 +151,7 @@ class PoliticaReservaTest {
 
     @Test
     void unTourSinPrecioNoEsReservable() {
-        OfertaReservable sinPrecio = new OfertaReservable(Ofertas.TOUR, Ofertas.PRESTADOR, "Tour", "Tour", null, 10,
-                BigDecimal.ONE, List.of());
+        OfertaReservable sinPrecio = Ofertas.tourSinPrecio();
 
         assertThatThrownBy(() -> politica.planificar(Ofertas.tour(HOY.plusDays(1), LocalTime.NOON, 1, "1"), sinPrecio,
                 AHORA)).isInstanceOf(OfertaNoDisponibleException.class);

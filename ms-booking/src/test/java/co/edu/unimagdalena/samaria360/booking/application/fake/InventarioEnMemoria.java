@@ -93,6 +93,7 @@ public class InventarioEnMemoria implements InventarioPort {
 
     @Override
     public int asegurar(List<FilaInventarioNueva> nuevas) {
+        eventos.registrar("inventario.asegurar");
         int insertadas = 0;
         for (FilaInventarioNueva nueva : nuevas) {
             if (!filas.containsKey(nueva.dia())) {

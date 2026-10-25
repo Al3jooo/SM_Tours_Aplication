@@ -6,13 +6,18 @@ import co.edu.unimagdalena.samaria360.booking.domain.model.OfertaReservable;
 import co.edu.unimagdalena.samaria360.booking.infrastructure.CatalogoSimulado;
 import co.edu.unimagdalena.samaria360.booking.infrastructure.CatalogoSimulado.Unidad;
 import co.edu.unimagdalena.samaria360.booking.infrastructure.PruebaIntegracion;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
+import java.time.LocalTime;
+import java.util.EnumSet;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,10 +36,14 @@ class CatalogoHttpAdapterIntegracionTest {
     @Autowired
     private Resilience4JCircuitBreakerFactory circuitos;
 
+    /**
+     * Solo si el circuito ya existe: {@code circuitBreaker("catalogo")} lo crearía en el registro con la configuración
+     * por defecto (100 llamadas) antes del primer {@code run()}, que es el que aplica la de {@code ResilienciaConfig}.
+     */
     @BeforeEach
     @AfterEach
     void cerrarCircuito() {
-        circuitos.getCircuitBreakerRegistry().circuitBreaker("catalogo").reset();
+        circuitos.getCircuitBreakerRegistry().find("catalogo").ifPresent(CircuitBreaker::reset);
     }
 
     @Test
@@ -50,6 +59,52 @@ class CatalogoHttpAdapterIntegracionTest {
             assertThat(unidad.numHabitaciones()).isEqualTo(12);
             assertThat(unidad.precioNoche()).isEqualByComparingTo("150000");
         });
+    }
+
+    // ------------------------------------------------------------------ oferta (DEC-150, DEC-157)
+
+    @Test
+    void laOfertaDeUnTourTraeSusDiasYSalidas() {
+        String tour = catalogo.publicarTour("Tour", 10, "1000", List.of("Sabado", "Domingo", "Miercoles"),
+                List.of("14:00", "08:00"));
+
+        OfertaReservable oferta = catalogoPort.buscarReservable(tour).orElseThrow();
+
+        assertThat(oferta.oferta().dias()).containsExactlyInAnyOrder(DayOfWeek.WEDNESDAY, DayOfWeek.SATURDAY,
+                DayOfWeek.SUNDAY);
+        assertThat(oferta.oferta().salidas()).containsExactly(LocalTime.of(8, 0), LocalTime.of(14, 0));
+    }
+
+    @Test
+    void laOfertaDeUnAlojamientoNoTraeSalidas() {
+        String hotel = catalogo.publicarHotel("Hotel", CatalogoSimulado.TODOS_LOS_DIAS,
+                new Unidad(CatalogoSimulado.nuevoId(), "Doble", 12, 2, "150000"));
+
+        OfertaReservable oferta = catalogoPort.buscarReservable(hotel).orElseThrow();
+
+        assertThat(oferta.oferta().dias()).isEqualTo(EnumSet.allOf(DayOfWeek.class));
+        assertThat(oferta.oferta().salidas()).isEmpty();
+    }
+
+    @Test
+    void sinOfertaElDetalleSeLeeIgual() {
+        String restaurante = catalogo.publicarRestaurante("Restaurante");
+
+        OfertaReservable oferta = catalogoPort.buscarReservable(restaurante).orElseThrow();
+
+        assertThat(oferta.categoria()).isEqualTo("Gastronomia");
+        assertThat(oferta.oferta()).isNull();
+    }
+
+    @Test
+    void unDiaOUnaHoraFueraDelContratoEsUnaRespuestaInesperada() {
+        String diaRaro = catalogo.publicarTour("Tour", 10, "1000", List.of("Funday"), List.of("08:00"));
+        String horaRara = catalogo.publicarTour("Tour", 10, "1000", List.of("Lunes"), List.of("8 am"));
+
+        assertThatThrownBy(() -> catalogoPort.buscarReservable(diaRaro))
+                .isInstanceOf(RespuestaInesperadaCatalogoException.class);
+        assertThatThrownBy(() -> catalogoPort.buscarReservable(horaRara))
+                .isInstanceOf(RespuestaInesperadaCatalogoException.class);
     }
 
     @Test

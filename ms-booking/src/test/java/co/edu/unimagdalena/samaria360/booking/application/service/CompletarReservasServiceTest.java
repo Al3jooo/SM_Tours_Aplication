@@ -3,6 +3,7 @@ package co.edu.unimagdalena.samaria360.booking.application.service;
 import co.edu.unimagdalena.samaria360.booking.application.fake.CatalogoFalso;
 import co.edu.unimagdalena.samaria360.booking.application.fake.Eventos;
 import co.edu.unimagdalena.samaria360.booking.application.fake.InventarioEnMemoria;
+import co.edu.unimagdalena.samaria360.booking.application.fake.OfertaMaterializadaEnMemoria;
 import co.edu.unimagdalena.samaria360.booking.application.fake.RelojFijo;
 import co.edu.unimagdalena.samaria360.booking.application.fake.ReservaRepositoryEnMemoria;
 import co.edu.unimagdalena.samaria360.booking.application.port.in.ComandoReserva;
@@ -34,8 +35,10 @@ class CompletarReservasServiceTest {
             .con(new DiaInventario(Ofertas.TOUR, null, DIA, LocalTime.of(14, 0)), CategoriaReservable.Tour, 12, 12);
     private final ReservaRepositoryEnMemoria reservas = new ReservaRepositoryEnMemoria(eventos);
     private final RelojFijo reloj = new RelojFijo(Ofertas.AHORA);
-    private final ReservarServicioService reservar = new ReservarServicioService(reservas, inventario,
-            new CatalogoFalso(eventos).con(Ofertas.tour()), reloj, new PoliticaReserva(HorarioReservas.POR_DEFECTO));
+    private final CatalogoFalso catalogo = new CatalogoFalso(eventos).con(Ofertas.tour());
+    private final ReservarServicioService reservar = new ReservarServicioService(reservas, inventario, catalogo,
+            new MaterializarInventarioService(catalogo, inventario, new OfertaMaterializadaEnMemoria(eventos), reloj),
+            reloj, new PoliticaReserva(HorarioReservas.POR_DEFECTO));
     private final CompletarReservasService completar = new CompletarReservasService(reservas, reloj);
 
     @Test

@@ -13,6 +13,7 @@ import co.edu.unimagdalena.samaria360.booking.domain.exception.FechaNoDisponible
 import co.edu.unimagdalena.samaria360.booking.domain.exception.IdempotenciaConflictoException;
 import co.edu.unimagdalena.samaria360.booking.domain.exception.OfertaNoDisponibleException;
 import co.edu.unimagdalena.samaria360.booking.domain.model.CupoDescontado;
+import co.edu.unimagdalena.samaria360.booking.domain.model.DiaInventario;
 import co.edu.unimagdalena.samaria360.booking.domain.model.FilaInventario;
 import co.edu.unimagdalena.samaria360.booking.domain.model.OfertaReservable;
 import co.edu.unimagdalena.samaria360.booking.domain.model.Reserva;
@@ -21,6 +22,7 @@ import co.edu.unimagdalena.samaria360.booking.domain.model.SolicitudReserva;
 import co.edu.unimagdalena.samaria360.booking.domain.service.PoliticaReserva;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,8 +30,9 @@ import java.util.Optional;
 /**
  * Reservar en dos fases (D3, D4, D6). El decorador transaccional de infraestructura las coordina:
  * <ol>
- *   <li>{@link #preparar}, <b>sin transacción</b>: valida, busca la clave de idempotencia, consulta el catálogo (HTTP)
- *   y calcula el precio. Si algo falla aquí, no se tocó la base;</li>
+ *   <li>{@link #preparar}, <b>sin transacción</b>: valida, busca la clave de idempotencia, consulta el catálogo (HTTP),
+ *   calcula el precio y materializa la oferta que ya leyó, sin otra llamada (DEC-152). Si algo falla aquí, no se tocó
+ *   ninguna reserva ni ningún cupo;</li>
  *   <li>{@link #confirmar}, <b>en una transacción</b>: inserta la reserva (una clave repetida la revierte), comprueba que
  *   existan todas las filas de inventario, descuenta cada día en orden con un UPDATE condicional y registra lo
  *   descontado. Cualquier fallo revierte todo: no hay descuentos a medias;</li>
@@ -46,14 +49,17 @@ public class ReservarServicioService implements ReservarServicioUseCase {
     private final ReservaRepositoryPort reservas;
     private final InventarioPort inventario;
     private final CatalogoPort catalogo;
+    private final MaterializarInventarioService materializacion;
     private final RelojPort reloj;
     private final PoliticaReserva politica;
 
     public ReservarServicioService(ReservaRepositoryPort reservas, InventarioPort inventario, CatalogoPort catalogo,
-                                   RelojPort reloj, PoliticaReserva politica) {
+                                   MaterializarInventarioService materializacion, RelojPort reloj,
+                                   PoliticaReserva politica) {
         this.reservas = Objects.requireNonNull(reservas);
         this.inventario = Objects.requireNonNull(inventario);
         this.catalogo = Objects.requireNonNull(catalogo);
+        this.materializacion = Objects.requireNonNull(materializacion);
         this.reloj = Objects.requireNonNull(reloj);
         this.politica = Objects.requireNonNull(politica);
     }
@@ -84,6 +90,8 @@ public class ReservarServicioService implements ReservarServicioUseCase {
         OfertaReservable oferta = catalogo.buscarReservable(solicitud.idServicio())
                 .orElseThrow(() -> new OfertaNoDisponibleException(solicitud.idServicio()));
         ReservaPlanificada plan = politica.planificar(solicitud, oferta, reloj.ahora());
+        materializacion.asegurar(oferta, plan.diasRequeridos().stream().map(DiaInventario::fecha)
+                .max(Comparator.naturalOrder()).orElseThrow());
         return new Preparacion(comando, hash, plan, null);
     }
 
