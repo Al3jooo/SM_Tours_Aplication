@@ -1,6 +1,9 @@
 package co.edu.unimagdalena.samaria360.catalog.infrastructure.config;
 
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ActualizarCuentaUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.AdministrarServiciosUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarMisServiciosUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.RegistrarServicioUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.BuscarOfertaUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarOpcionesFiltroUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarServicioUseCase;
@@ -12,6 +15,7 @@ import co.edu.unimagdalena.samaria360.catalog.application.port.in.VerificarSesio
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.AvisoRepositoryPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.CuentaRepositoryPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.FavoritoRepositoryPort;
+import co.edu.unimagdalena.samaria360.catalog.application.port.out.GestionServiciosPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.HistorialBusquedaRepositoryPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.OfertaReferenciadaPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.OfertaRepositoryPort;
@@ -21,6 +25,9 @@ import co.edu.unimagdalena.samaria360.catalog.application.port.out.RelojPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.ServicioRepositoryPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.VisibilidadPrestadorPort;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ActualizarCuentaService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.AdministrarServiciosService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarMisServiciosService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.RegistrarServicioService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.BuscarOfertaService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarOpcionesFiltroService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarServicioService;
@@ -89,5 +96,22 @@ public class BeanConfig {
     public HistorialBusquedasUseCase historialBusquedasUseCase(HistorialBusquedaRepositoryPort historial,
                                                                RelojPort reloj) {
         return new HistorialBusquedasService(historial, reloj);
+    }
+
+    @Bean
+    public RegistrarServicioUseCase registrarServicioUseCase(GestionServiciosPort servicios,
+                                                             CuentaRepositoryPort cuentas, RelojPort reloj) {
+        return new RegistrarServicioService(servicios, cuentas, reloj);
+    }
+
+    @Bean
+    public ConsultarMisServiciosUseCase consultarMisServiciosUseCase(GestionServiciosPort servicios) {
+        return new ConsultarMisServiciosService(servicios);
+    }
+
+    @Bean
+    public AdministrarServiciosUseCase administrarServiciosUseCase(GestionServiciosPort servicios,
+                                                                   CuentaRepositoryPort cuentas, RelojPort reloj) {
+        return new AdministrarServiciosService(servicios, cuentas, reloj);
     }
 }

@@ -105,6 +105,6 @@ class ServicioComercialTest {
                                               EstadoPublicacion estado, boolean prestadorActivo, BigDecimal precio) {
         return new ServicioComercial(null, PRESTADOR, nombre, categoria, detalle, "Descripción", CENTRO,
                 new Contacto("+57 300 000 0000", "hola@hotel.test"), estado, prestadorActivo,
-                Set.of(CondicionAccesibilidad.MovilidadReducida), "24 horas", precio, List.of("/img/hotel.svg"));
+                Set.of(CondicionAccesibilidad.MovilidadReducida), "24 horas", precio, List.of("/img/hotel.svg"), null, null, null, null, null);
     }
 }

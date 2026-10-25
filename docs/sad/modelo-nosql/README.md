@@ -47,3 +47,13 @@ Las demás colecciones del Entregable 2 (`eventos`, `itinerarios_sugeridos`, `ba
   - **ampliación:** `clave` (string, máximo 2000), la forma canónica de los criterios, con índice único `(turistaId, clave)` para la deduplicación atómica;
   - índice `historial_turista_fecha` para las 10 más recientes y la poda.
   - Las dos ampliaciones faltan en el Documento Entregable 2 (punto 9 de «Pendientes para el SAD (modelo NoSQL)» en `docs/trazabilidad.md`).
+- **Esquema v3 de `servicios` (M008; iteración C «Registrar y aprobar servicio»; RF09, RF10, RF37, RF21; DEC-126 a DEC-136, DEC-148):**
+  - `fechaRegistro` (date) **obligatoria**: la escribe el servidor al registrar (`RelojPort`); los servicios anteriores la toman del `_id` (M008);
+  - `precioBase` **obligatorio en las cuatro categorías** y mayor que 0 (DEC-127; antes, solo en Alojamiento);
+  - `oferta` (DEC-136): `{diasOperacion, salidas}`, obligatoria en Tour (días y salidas `HH:mm`) y en Alojamiento (solo días), y prohibida en Gastronomía y Alquiler (`not required`). `diasOperacion`: de 1 a 7 de `Lunes`…`Domingo`, sin tildes y sin repetir; `salidas`: de 1 a 12, sin repetir. M008 rellena la de los servicios existentes con lo que ya ofrecía el generador D5 de ms-booking (todos los días; tours a las 08:00 y 14:00);
+  - **ampliaciones** opcionales en el validador y obligatorias en el dominio para los registros nuevos: `direccion` (1 a 200), `rnt` (1 a 50, copia del RNT del prestador, HC2), `motivoRechazo` (1 a 500), `revisadoPor` (UUID) y `fechaRevision` (date). **Justificación:** la semilla de `init/` existe aunque `MONGO_SEMILLA=false`; exigir campos que no se pueden derivar dejaría documentos inválidos y rompería el `updateMulti` de RF22. La semilla los recibe en M009;
+  - el `$expr` suma una condición: `motivoRechazo` existe si y solo si `estadoPublicacion` es `Rechazado`;
+  - más estricto que el v2: `nombreComercial` y `descripcion` con mínimo 1 (y `descripcion` hasta 2000), `aforoMaxTurno`, `aforoMaxGrupo` y `unidadesDisponibles` ≥ 1, `duracionHoras` > 0 y `condicionesAccesibilidad` con el `enum` de RF27 y `uniqueItems` (resuelve el punto 3 de «Pendientes para el SAD (modelo NoSQL)»);
+  - índices `admin_estado_fecha` (cola del Administrador, del más antiguo al más reciente) y `prestador_fecha` («Mis servicios»).
+  - Falta llevarlo al Documento Entregable 2.
+- **Colección `cuentas` v2 (M008; DEC-146):** suma `rnt` (string de 1 a 50), opcional: solo lo tienen las cuentas de rol Prestador, y falta en las que todavía no recibieron un evento posterior a V17 de ms-auth.

@@ -1,6 +1,7 @@
 package co.edu.unimagdalena.samaria360.catalog.domain.model;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -8,12 +9,17 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Servicio comercial de un prestador (RF09, RF10, RF37). Inmutable: los cambios de estado los hará la
- * administración en iteraciones posteriores.
+ * Servicio comercial de un prestador (RF09, RF10, RF37). Inmutable. Se registra Pendiente y el Administrador lo pasa a
+ * Publicado o a Rechazado (RF21, DEC-124); el registro y su validación están en {@link RegistroServicio}.
+ * <p>
+ * Los datos de la iteración C ({@code direccion}, {@code oferta}, {@code rnt}, {@code fechaRegistro} y la revisión) son
+ * nulables en el constructor solo para <b>rehidratar</b> documentos anteriores (sin M009 no tienen dirección ni RNT): un
+ * servicio nuevo se crea siempre con {@link RegistroServicio}, que los exige (DEC-126, DEC-136, DEC-148).
  */
 public final class ServicioComercial {
 
     public static final int LONGITUD_MAXIMA_NOMBRE = 150;
+    public static final int LONGITUD_MAXIMA_DIRECCION = 200;
 
     private final String id;
     private final UUID prestadorId;
@@ -29,18 +35,28 @@ public final class ServicioComercial {
     private final String horarioAtencion;
     private final BigDecimal precioBase;
     private final List<String> imagenes;
+    private final String direccion;
+    private final Oferta oferta;
+    private final String rnt;
+    private final Instant fechaRegistro;
+    private final Revision revision;
 
     /**
      * @param id nulo antes de persistir
      * @param prestadorActivo copia desnormalizada del estado de la cuenta del prestador en ms-auth (RF22)
      * @param precioBase precio «desde» (RF37). En Alojamiento se deriva de las unidades (el menor precio por noche):
      *                   puede llegar nulo, y si llega debe coincidir, como exige el {@code $expr} del esquema v2
+     * @param oferta     solo en Tour (con salidas) y en Alojamiento (sin salidas), DEC-136
+     * @param rnt        copia del RNT del prestador tomada al registrar (DEC-126)
+     * @param revision   quién decidió y cuándo (RF21): nula mientras está Pendiente; con motivo si y solo si está
+     *                   Rechazado. Un servicio anterior a la iteración C (la semilla) no tiene revisión
      */
     public ServicioComercial(String id, UUID prestadorId, String nombreComercial, Categoria categoria,
                              DetalleCategoria detalle, String descripcion, Coordenada coordenada, Contacto contacto,
                              EstadoPublicacion estadoPublicacion, boolean prestadorActivo,
                              Set<CondicionAccesibilidad> condicionesAccesibilidad, String horarioAtencion,
-                             BigDecimal precioBase, List<String> imagenes) {
+                             BigDecimal precioBase, List<String> imagenes, String direccion, Oferta oferta, String rnt,
+                             Instant fechaRegistro, Revision revision) {
         this.id = id;
         this.prestadorId = Objects.requireNonNull(prestadorId, "prestadorId");
         this.nombreComercial = Validaciones.textoMaximo(nombreComercial, LONGITUD_MAXIMA_NOMBRE, "nombreComercial");
@@ -62,6 +78,42 @@ public final class ServicioComercial {
                 ? precioDesde(alojamiento, precioBase)
                 : Validaciones.noNegativoOpcional(precioBase, "precioBase");
         this.imagenes = Validaciones.lista(imagenes);
+        this.direccion = direccion == null ? null
+                : TextoAcotado.exigir(direccion, LONGITUD_MAXIMA_DIRECCION, "direccion");
+        if (oferta != null && !oferta.correspondeA(categoria)) {
+            throw new IllegalArgumentException("La oferta no corresponde a la categoría " + categoria);
+        }
+        this.oferta = oferta;
+        if (rnt != null && rnt.isBlank()) {
+            throw new IllegalArgumentException("rnt no puede estar en blanco");
+        }
+        this.rnt = rnt;
+        this.fechaRegistro = fechaRegistro;
+        exigirRevisionCoherente(estadoPublicacion, revision);
+        this.revision = revision;
+    }
+
+    /**
+     * Una revisión no existe mientras el servicio está Pendiente, y su motivo existe si y solo si quedó Rechazado. Sin
+     * revisión es un servicio anterior a la iteración C; el validador v3 exige además el motivo a todo Rechazado.
+     */
+    private static void exigirRevisionCoherente(EstadoPublicacion estado, Revision revision) {
+        if (revision == null) {
+            return;
+        }
+        if (estado == EstadoPublicacion.Pendiente) {
+            throw new IllegalArgumentException("Un servicio Pendiente no tiene revisión");
+        }
+        if ((estado == EstadoPublicacion.Rechazado) != (revision.motivoRechazo() != null)) {
+            throw new IllegalArgumentException("El motivo de rechazo existe si y solo si el servicio está Rechazado");
+        }
+    }
+
+    /** El mismo servicio con otra copia del estado del prestador (RF22, DEC-142). */
+    public ServicioComercial conPrestadorActivo(boolean activo) {
+        return new ServicioComercial(id, prestadorId, nombreComercial, categoria, detalle, descripcion, coordenada,
+                contacto, estadoPublicacion, activo, condicionesAccesibilidad, horarioAtencion, precioBase, imagenes,
+                direccion, oferta, rnt, fechaRegistro, revision);
     }
 
     private static BigDecimal precioDesde(DetalleAlojamiento alojamiento, BigDecimal recibido) {
@@ -136,5 +188,25 @@ public final class ServicioComercial {
 
     public List<String> getImagenes() {
         return imagenes;
+    }
+
+    public Optional<String> getDireccion() {
+        return Optional.ofNullable(direccion);
+    }
+
+    public Optional<Oferta> getOferta() {
+        return Optional.ofNullable(oferta);
+    }
+
+    public Optional<String> getRnt() {
+        return Optional.ofNullable(rnt);
+    }
+
+    public Optional<Instant> getFechaRegistro() {
+        return Optional.ofNullable(fechaRegistro);
+    }
+
+    public Optional<Revision> getRevision() {
+        return Optional.ofNullable(revision);
     }
 }

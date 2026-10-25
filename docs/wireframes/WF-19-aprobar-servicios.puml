@@ -1,0 +1,58 @@
+' WF-19 — Aprobar servicios (CU «Aprobar o rechazar servicio», RF21; «Consultar listado pendiente» y «Justificar
+' rechazo de servicio»; DEC-128, DEC-144, DEC-145). Propuesto por arquitectura, pendiente de validación del equipo.
+' Solo estructura: regiones, elementos y flujo. Diagramas: (1) cola de pendientes; (2) revisión; (3) diálogo de rechazo.
+' Solo para el Administrador; se llega desde el menú del avatar. Lo implementa la sesión B2.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+Administración › Servicios
+<b>Servicios por aprobar
+{ Estado | ^Pendiente de aprobación^ (Pendiente de aprobación, Publicado, Rechazado) }
+del más antiguo al más reciente (la cola de revisión)
+--
+{#
+<b>Nombre | <b>Categoría | <b>RNT del prestador | <b>Prestador activo | <b>Registrado | <b>Acción
+Cabañas del Río | Alojamiento | RNT-00000 | Sí | 20/10/2026 | [Revisar]
+Kayaks Taganga | Alquiler de equipos | RNT-00002 | No (oculto aunque se apruebe, RF22) | 22/10/2026 | [Revisar]
+}
+{ [<] Página 1 de 1 [>] }
+Región de estado (aria-live): «Servicio aprobado» · «Servicio rechazado» ·
+«El servicio ya fue revisado por otro administrador; se recargó la lista» (409 ESTADO_CAMBIADO, DEC-52)
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+Administración › Servicios › Cabañas del Río
+<b>Revisar: Cabañas del Río · Alojamiento
+{ Estado | Pendiente de aprobación | Registrado el 20/10/2026 }
+{ Prestador | id 00000000-… | RNT-00000 | Cuenta: Activo }
+--
+{ Descripción | Dirección | (mapa con el pin) }
+{ Contacto | teléfono · correo }
+{ Precio «desde» | 150.000 COP }
+{ Unidades | Doble estándar · 10 hab. · 2 huéspedes · 180.000 | Suite familiar · 3 hab. · 4 huéspedes · 260.000 }
+{ Servicios incluidos | Accesibilidad | Horario de atención }
+{ Oferta inicial | Lunes a domingo }
+--
+{ [Volver] | [Rechazar] | [Aprobar → Publicado] }
+}
+@endsalt
+
+@startsalt
+{+
+<b>Rechazar servicio «Cabañas del Río»
+--
+Justificación * (obligatoria; la verá el prestador en «Mis servicios»)
+{ "                                                  " }
+{ 0/500 | error por campo: «Escribe la justificación» · «Máximo 500 caracteres» }
+--
+{ [Cancelar] | [Confirmar rechazo] (deshabilitado si está vacía) }
+}
+@endsalt

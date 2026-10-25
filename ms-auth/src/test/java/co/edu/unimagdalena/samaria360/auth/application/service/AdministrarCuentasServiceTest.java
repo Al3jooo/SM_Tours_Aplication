@@ -35,6 +35,7 @@ class AdministrarCuentasServiceTest {
     private static final UUID PRESTADOR = UUID.fromString("00000000-0000-4000-8000-0000000000a1");
     private static final UUID TURISTA = UUID.fromString("00000000-0000-4000-8000-0000000000a2");
     private static final UUID ADMIN = UUID.fromString("00000000-0000-4000-8000-0000000000ad");
+    private static final String RNT = "RNT-00042";
 
     private final CuentasAdminEnMemoria cuentas = new CuentasAdminEnMemoria();
     private final OutboxEnMemoria outbox = new OutboxEnMemoria();
@@ -42,11 +43,11 @@ class AdministrarCuentasServiceTest {
             new AdministrarCuentasService(cuentas, outbox, new RelojFijo(T0));
 
     private void prestador(EstadoValidacion validacion, EstadoCuenta cuenta, long version) {
-        cuentas.agregar(new CuentaAdministrada(PRESTADOR, Rol.Prestador, cuenta, validacion, version));
+        cuentas.agregar(new CuentaAdministrada(PRESTADOR, Rol.Prestador, cuenta, validacion, version, RNT));
     }
 
     private void turista(EstadoCuenta cuenta, long version) {
-        cuentas.agregar(new CuentaAdministrada(TURISTA, Rol.Turista, cuenta, null, version));
+        cuentas.agregar(new CuentaAdministrada(TURISTA, Rol.Turista, cuenta, null, version, null));
     }
 
     @Test
@@ -60,7 +61,7 @@ class AdministrarCuentasServiceTest {
         assertThat(cuentas.persistida(PRESTADOR).getVersion()).isEqualTo(1);
         assertThat(cuentas.revisadoPor(PRESTADOR)).isEqualTo(ADMIN);
         assertThat(outbox.eventos()).singleElement().isEqualTo(new EventoCuentaActualizada(PRESTADOR, Rol.Prestador,
-                EstadoAdministrativo.Activo, 1, T0));
+                EstadoAdministrativo.Activo, 1, RNT, T0));
         assertThat(outbox.entregas()).extracting(e -> e.destino)
                 .containsExactlyInAnyOrder(Destino.MS_CATALOG, Destino.MS_BOOKING);
     }
@@ -131,7 +132,7 @@ class AdministrarCuentasServiceTest {
         AdministrarCuentasService conCarrera = new AdministrarCuentasService(new CuentasAdminEnMemoria() {
             {
                 agregar(new CuentaAdministrada(PRESTADOR, Rol.Prestador, EstadoCuenta.Activo,
-                        EstadoValidacion.Pendiente, 0));
+                        EstadoValidacion.Pendiente, 0, RNT));
             }
 
             @Override
@@ -139,7 +140,7 @@ class AdministrarCuentasServiceTest {
                 java.util.Optional<CuentaAdministrada> leida = super.buscarCuenta(idUsuario);
                 // Después de leerla, el otro Administrador la aprueba.
                 agregar(new CuentaAdministrada(PRESTADOR, Rol.Prestador, EstadoCuenta.Activo,
-                        EstadoValidacion.Activo, 1));
+                        EstadoValidacion.Activo, 1, RNT));
                 return leida;
             }
         }, outbox, new RelojFijo(T0));

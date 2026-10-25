@@ -61,7 +61,7 @@ public class CuentasAdminEnMemoria implements CuentasAdminRepositoryPort {
             throw new EstadoCambiadoException(actual == null ? EstadoAdministrativo.Pendiente : actual.estado());
         }
         cuentas.put(cambio.idUsuario(), new CuentaAdministrada(cambio.idUsuario(), cambio.rol(),
-                cambio.cuentaNueva(), cambio.validacionNueva(), cambio.versionNueva()));
+                cambio.cuentaNueva(), cambio.validacionNueva(), cambio.versionNueva(), cambio.rnt()));
         if (cambio.cambiaValidacion()) {
             motivos.put(cambio.idUsuario(), cambio.motivoRechazo());
             revisadoPor.put(cambio.idUsuario(), revisor);

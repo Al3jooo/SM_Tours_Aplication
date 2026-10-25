@@ -22,7 +22,8 @@ import java.util.Map;
 /**
  * Entrega a {@code PUT /internal/v1/cuentas/{id}} de ms-catalog y ms-booking con el JWT de servicio del destino. Tiempos
  * de 0,5 s de conexión y 1,5 s de lectura, como la llamada de ms-booking al catálogo (ADR-007). El arriendo del outbox
- * (30 s) es mayor que el peor caso de una entrega.
+ * (30 s) es mayor que el peor caso de una entrega. El cuerpo lleva {@code rnt} solo para un prestador (DEC-146): ms-booking
+ * lo ignora y ms-catalog lo guarda en su proyección.
  */
 @Component
 public class CuentasHttpAdapter implements DestinoCuentasPort {
@@ -48,6 +49,9 @@ public class CuentasHttpAdapter implements DestinoCuentasPort {
         cuerpo.put("rol", entrega.rol().name());
         cuerpo.put("estadoCuenta", entrega.estadoCuenta().name());
         cuerpo.put("version", entrega.version());
+        if (entrega.rnt() != null) {
+            cuerpo.put("rnt", entrega.rnt());
+        }
         try {
             cliente.put()
                     .uri(propiedades.destinos().de(destino) + "/internal/v1/cuentas/{id}", entrega.idUsuario())

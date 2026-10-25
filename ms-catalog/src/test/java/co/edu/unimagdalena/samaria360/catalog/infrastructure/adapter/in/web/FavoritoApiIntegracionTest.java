@@ -165,7 +165,8 @@ class FavoritoApiIntegracionTest {
 
     @Test
     void unaReferenciaInexistenteONoVisibleEs404YUnTipoInvalidoEs400() throws Exception {
-        actualizarServicio(new Document("estadoPublicacion", "Rechazado"));
+        // El validador v3 (M008) exige la justificación a todo servicio Rechazado.
+        actualizarServicio(new Document("estadoPublicacion", "Rechazado").append("motivoRechazo", "Prueba"));
 
         for (String ruta : List.of("/Servicio/" + servicio, "/Servicio/" + new ObjectId().toHexString(),
                 "/Servicio/no-es-un-id", "/Atractivo/" + servicio, "/Servicio/" + atractivo)) {

@@ -64,7 +64,7 @@ class CambiarRolServiceTest {
         assertThat(resumen.revocable()).isTrue();
         assertThat(cuentas.persistida(CUENTA).getVersion()).isEqualTo(3);
         assertThat(outbox.eventos()).singleElement().isEqualTo(
-                new EventoCuentaActualizada(CUENTA, Rol.Gestor, EstadoAdministrativo.Activo, 3, T0));
+                new EventoCuentaActualizada(CUENTA, Rol.Gestor, EstadoAdministrativo.Activo, 3, null, T0));
         assertThat(outbox.entregas()).extracting(e -> e.destino)
                 .containsExactlyInAnyOrder(Destino.MS_CATALOG, Destino.MS_BOOKING);
         // Turista → Gestor no quita un Administrador: no se bloquea a nadie.

@@ -9,9 +9,7 @@
         "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
         "description": "id_usuario de auth_db (UUID en minúsculas) — referencia lógica, sin FK física"
       },
-      "rol": {
-        "enum": ["Turista", "Prestador", "Gestor", "Administrador"]
-      },
+      "rol": { "enum": ["Turista", "Prestador", "Gestor", "Administrador"] },
       "estadoCuenta": {
         "enum": ["Pendiente", "Activo", "Rechazado", "Inactivo", "Desactivado"],
         "description": "Estado derivado que publica ms-auth (ADR-008): en un Prestador reúne estado_validacion y estado_cuenta"
@@ -21,7 +19,13 @@
         "minimum": 1,
         "description": "usuario.version_cuenta. Solo crece: el upsert ignora una versión menor o igual (idempotente)"
       },
-      "actualizadoEn": { "bsonType": "date" }
+      "actualizadoEn": { "bsonType": "date" },
+      "rnt": {
+        "bsonType": "string",
+        "minLength": 1,
+        "maxLength": 50,
+        "description": "RNT del prestador (DEC-126, DEC-146): solo en las cuentas de rol Prestador; lo trae el evento CuentaActualizada"
+      }
     }
   }
 }

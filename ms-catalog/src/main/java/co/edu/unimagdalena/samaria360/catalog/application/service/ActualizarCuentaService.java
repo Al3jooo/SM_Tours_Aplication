@@ -19,6 +19,11 @@ import java.util.Optional;
  * Supuesto: la secuencia no es atómica, así que solo es correcta si cada cuenta se entrega de a una por vez. Lo
  * garantiza el relevo de ms-auth: un hilo por destino, la última versión pendiente por usuario y el arriendo con
  * {@code FOR UPDATE SKIP LOCKED} (ADR-008).
+ * <p>
+ * (4) Si la proyección se guardó y es de un Prestador, se vuelve a fijar {@code prestadorActivo} (DEC-142 b): un servicio
+ * que el prestador registró entre el paso 2 y el 3 leyó la cuenta todavía Activa y no lo alcanzó el primer
+ * {@code updateMulti}. Con la otra mitad, en {@code RegistrarServicioService}, ningún entrelazado deja visible un
+ * servicio de un prestador inactivo.
  */
 public class ActualizarCuentaService implements ActualizarCuentaUseCase {
 
@@ -37,9 +42,16 @@ public class ActualizarCuentaService implements ActualizarCuentaUseCase {
             return ResultadoActualizacion.IGNORADA;
         }
         boolean eraPrestador = guardada.map(c -> c.rol() == RolCuenta.Prestador).orElse(false);
-        if (nueva.rol() == RolCuenta.Prestador || eraPrestador) {
+        boolean prestador = nueva.rol() == RolCuenta.Prestador || eraPrestador;
+        if (prestador) {
             visibilidad.fijarPrestadorActivo(nueva.id().toString(), nueva.prestadorActivo());
         }
-        return cuentas.guardarSiEsMasNueva(nueva) ? ResultadoActualizacion.APLICADA : ResultadoActualizacion.IGNORADA;
+        if (!cuentas.guardarSiEsMasNueva(nueva)) {
+            return ResultadoActualizacion.IGNORADA;
+        }
+        if (prestador) {
+            visibilidad.fijarPrestadorActivo(nueva.id().toString(), nueva.prestadorActivo());
+        }
+        return ResultadoActualizacion.APLICADA;
     }
 }

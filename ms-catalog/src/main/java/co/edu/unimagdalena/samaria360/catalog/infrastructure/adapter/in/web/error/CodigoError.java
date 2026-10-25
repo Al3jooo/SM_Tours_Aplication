@@ -17,10 +17,20 @@ public enum CodigoError {
     LIMITE_FAQ,
     /** No existe un aviso con ese id, o el id no es un ObjectId (RF40). */
     AVISO_NO_ENCONTRADO,
-    /** El aviso ya no está en el estado de origen: ya estaba despublicado (DEC-64, como DEC-39 en ms-auth). */
+    /**
+     * El recurso ya no está en el estado de origen: el aviso ya estaba despublicado (DEC-64) o el servicio ya no estaba
+     * Pendiente (DEC-128); como DEC-39 en ms-auth. Lleva {@code estadoActual}.
+     */
     ESTADO_CAMBIADO,
     /** El turista ya tiene 100 favoritos, el tope por turista (DEC-86). */
     LIMITE_FAVORITOS,
+    /**
+     * El prestador no puede registrar servicios: su cuenta no está en la proyección, no está Activa o no tiene RNT (RF09,
+     * DEC-125, DEC-139).
+     */
+    PRESTADOR_NO_HABILITADO,
+    /** No existe un servicio con ese id, el id no es un ObjectId o es de otro prestador (DEC-143, DEC-151). */
+    SERVICIO_NO_ENCONTRADO,
     ACCESO_DENEGADO,
     SOLICITUD_INVALIDA,
     ERROR_INTERNO

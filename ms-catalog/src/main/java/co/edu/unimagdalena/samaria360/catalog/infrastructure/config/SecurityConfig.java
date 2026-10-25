@@ -99,6 +99,9 @@ public class SecurityConfig {
                     // Favoritos e historial de búsquedas (RF54, RF60; DEC-80, DEC-56): solo el Turista, con ver vigente.
                     acceso.requestMatchers("/api/v1/catalogo/favoritos", "/api/v1/catalogo/favoritos/**",
                             "/api/v1/catalogo/historial").hasRole("Turista");
+                    // Registrar servicio y «Mis servicios» (RF09, DEC-129): solo el Prestador, con ver vigente. La
+                    // cuenta Activa con RNT (DEC-125) la exige el caso de uso con la proyección cuentas.
+                    acceso.requestMatchers("/api/v1/catalogo/prestador/**").hasRole("Prestador");
                     acceso.requestMatchers("/actuator/health", "/actuator/health/**").permitAll();
                     if (dev) {
                         acceso.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();

@@ -341,10 +341,19 @@ class MasFiltrosEquivalenciaTest {
                 .append("condicionesAccesibilidad", accesibilidad.stream().map(Enum::name).sorted().toList())
                 .append("precioBase", new Decimal128(new BigDecimal(precio)))
                 .append("imagenes", List.of())
-                .append("detalleCategoria", detalle(detalle));
+                .append("detalleCategoria", detalle(detalle))
+                // El validador v3 (M008) exige la fecha de registro y la oferta de Tour y Alojamiento (DEC-136).
+                .append("fechaRegistro", new java.util.Date());
+        switch (detalle.categoria()) {
+            case Alojamiento -> documento.append("oferta", new Document("diasOperacion", List.of("Lunes")));
+            case Tour -> documento.append("oferta", new Document("diasOperacion", List.of("Lunes"))
+                    .append("salidas", List.of("08:00")));
+            default -> {
+            }
+        }
         cliente.getDatabase("catalog_db").getCollection("servicios").insertOne(documento);
         SERVICIOS.add(new ServicioComercial(id.toHexString(), PRESTADOR, nombre, detalle.categoria(), detalle, null,
-                CENTRO, null, estado, prestadorActivo, accesibilidad, null, new BigDecimal(precio), List.of()));
+                CENTRO, null, estado, prestadorActivo, accesibilidad, null, new BigDecimal(precio), List.of(), null, null, null, null, null));
     }
 
     private static Document detalle(DetalleCategoria detalle) {

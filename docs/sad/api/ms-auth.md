@@ -225,9 +225,11 @@ No es de ms-auth: lo exponen **ms-catalog y ms-booking** y lo llama el relevo de
 ```json
 { "rol": "Turista", "estadoCuenta": "Desactivado", "version": 5 }
 { "rol": "Administrador", "estadoCuenta": "Activo", "version": 2 }
+{ "rol": "Prestador", "estadoCuenta": "Activo", "version": 3, "rnt": "RNT-00000" }
 ```
 
 - **JWT de servicio:** RS256 con el mismo JWKS; `sub = ms-auth`, `rol = SERVICIO`, `aud` = `ms-catalog` o `ms-booking`, `exp` de 5 minutos.
 - `rol`: `Turista`, `Prestador`, `Gestor` o `Administrador`. `estadoCuenta`: `Pendiente`, `Activo`, `Rechazado`, `Inactivo` o `Desactivado`. `version`: entero de 1 en adelante.
+- `rnt` (desde la iteración C, DEC-146): solo en la cuenta de un **Prestador**, que siempre lo tiene (`prestador.rnt`, NOT NULL). Viaja en la carga del outbox y el relevo lo envía solo si existe. ms-catalog lo guarda en su proyección para copiarlo en los servicios que se registren (DEC-126, HC2); **ms-booking lo ignora** (Jackson no rechaza propiedades desconocidas). V17 encoló un evento con el RNT por cada prestador y subió su `version_cuenta` (DEC-147): el token de un prestador anterior a V17 recibe un 401 `SESION_INVALIDADA` una vez.
 - **204** se aplique o se ignore: *upsert* idempotente que solo avanza si `version` es mayor que la guardada (tolera duplicados y desorden). El evento de una cuenta desconocida crea la fila; así recibe el destino a cada Gestor y Administrador (V15) y cada cambio de rol (RF45).
 - **400** `DATOS_INVALIDOS` con `campos` (`REQUERIDO`, `NO_PERMITIDO`, `VALOR_MINIMO`). **401** sin token o con una `aud` distinta del destino. **403** con un token de usuario.

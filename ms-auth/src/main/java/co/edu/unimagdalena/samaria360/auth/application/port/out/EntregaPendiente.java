@@ -5,7 +5,10 @@ import co.edu.unimagdalena.samaria360.auth.domain.model.Rol;
 
 import java.util.UUID;
 
-/** Evento reclamado por el relevo para un destino; {@code intentos} son los que ya fallaron. */
+/**
+ * Evento reclamado por el relevo para un destino; {@code intentos} son los que ya fallaron. {@code rnt} solo en el de un
+ * prestador (DEC-146).
+ */
 public record EntregaPendiente(long idEvento, UUID idUsuario, Rol rol, EstadoAdministrativo estadoCuenta, long version,
-                               int intentos) {
+                               String rnt, int intentos) {
 }
