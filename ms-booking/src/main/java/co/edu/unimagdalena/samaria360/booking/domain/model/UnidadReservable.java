@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 /**
  * Unidad de un alojamiento tal como la publica ms-catalog (D1).
  *
- * @param numHabitaciones       habitaciones de este tipo: los cupos de cada noche que crea el generador (D5)
+ * @param numHabitaciones       habitaciones de este tipo: los cupos de cada noche que crea la materialización (DEC-135)
  * @param capacidadMaxHuespedes huéspedes por habitación
  * @param precioNoche           por noche y por habitación, en COP
  */

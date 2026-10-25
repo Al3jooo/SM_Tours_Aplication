@@ -52,7 +52,7 @@ SUITE=$(json 'j.detalleCategoria.unidades.find(u=>u.nombre==="Suite familiar").i
 PRECIO_DOBLE=$(json 'j.detalleCategoria.unidades.find(u=>u.nombre==="Doble").precioNoche' < "$TMP/hotel.json")
 PRECIO_SUITE=$(json 'j.detalleCategoria.unidades.find(u=>u.nombre==="Suite familiar").precioNoche' < "$TMP/hotel.json")
 
-echo "== Noche con las dos unidades completas (inventario demo de 60 días)"
+echo "== Noche con las dos unidades completas (inventario de 60 días, materializado bajo demanda)"
 HOY=$(hoy)
 curl -sf "$BASE/api/v1/reservas/disponibilidad?servicio=$HOTEL&desde=$(sumar "$HOY" 1)&hasta=$(sumar "$HOY" 59)" \
   > "$TMP/disponibilidad.json"

@@ -17,22 +17,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * ms-catalog (y el JWKS de ms-auth) simulado con {@code com.sun.net.httpserver.HttpServer} del JDK: sin dependencias
- * nuevas. Responde el detalle público de los servicios publicados (404 si no), la búsqueda paginada de los que se
- * marcan para ella, y permite fallar, demorar y contar llamadas por servicio.
+ * nuevas. Responde el detalle público de los servicios publicados (404 si no), con su oferta si se publica con una
+ * (DEC-150), y permite fallar, demorar y contar llamadas por servicio.
  */
 public final class CatalogoSimulado {
 
     public static final UUID PRESTADOR = UUID.fromString("00000000-0000-4000-8000-000000000002");
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final AtomicLong SECUENCIA = new AtomicLong(System.nanoTime() & 0xFFFFFFFFL);
-    private static final int TAMANO_PAGINA = 10;
+    /** La oferta que M008 rellenó en la semilla (DEC-136). */
+    public static final List<String> TODOS_LOS_DIAS = List.of("Lunes", "Martes", "Miercoles", "Jueves", "Viernes",
+            "Sabado", "Domingo");
 
     /** Unidad de un alojamiento en el detalle del catálogo (D1). */
     public record Unidad(String idUnidad, String nombre, int numHabitaciones, int capacidadMaxHuespedes,
@@ -41,7 +42,6 @@ public final class CatalogoSimulado {
 
     private final HttpServer servidor;
     private final Map<String, String> detalles = new ConcurrentHashMap<>();
-    private final Map<String, List<String>> busqueda = new ConcurrentHashMap<>();
     private final Map<String, Integer> fallos = new ConcurrentHashMap<>();
     private final Map<String, AtomicInteger> fallosRestantes = new ConcurrentHashMap<>();
     private final Map<String, Duration> demoras = new ConcurrentHashMap<>();
@@ -80,6 +80,17 @@ public final class CatalogoSimulado {
     }
 
     public void publicarHotel(String id, String nombre, Unidad... unidades) {
+        publicarHotel(id, nombre, null, unidades);
+    }
+
+    /** Un alojamiento que opera los días indicados ({@code Lunes}…{@code Domingo}, sin tildes). */
+    public String publicarHotel(String nombre, List<String> diasOperacion, Unidad... unidades) {
+        String id = nuevoId();
+        publicarHotel(id, nombre, diasOperacion, unidades);
+        return id;
+    }
+
+    private void publicarHotel(String id, String nombre, List<String> diasOperacion, Unidad... unidades) {
         List<Map<String, Object>> lista = new ArrayList<>();
         BigDecimal desde = null;
         for (Unidad unidad : unidades) {
@@ -94,25 +105,34 @@ public final class CatalogoSimulado {
             BigDecimal precio = new BigDecimal(unidad.precioNoche());
             desde = desde == null || precio.compareTo(desde) < 0 ? precio : desde;
         }
-        publicar(id, nombre, "Alojamiento", desde, Map.of("serviciosIncluidos", List.of("WiFi"), "unidades", lista));
+        publicar(id, nombre, "Alojamiento", desde, Map.of("serviciosIncluidos", List.of("WiFi"), "unidades", lista),
+                diasOperacion == null ? null : Map.of("diasOperacion", diasOperacion));
     }
 
     public String publicarTour(String nombre, int aforo, String precio) {
+        return publicarTour(nombre, aforo, precio, null, null);
+    }
+
+    /** Un tour con su oferta: días ({@code Lunes}…{@code Domingo}) y salidas {@code HH:mm}, como ms-catalog. */
+    public String publicarTour(String nombre, int aforo, String precio, List<String> diasOperacion,
+                               List<String> salidas) {
         String id = nuevoId();
         publicar(id, nombre, "Tour", new BigDecimal(precio), Map.of("puntoEncuentro", "Muelle",
-                "duracionHoras", new BigDecimal("4"), "nivelDificultad", "Media", "aforoMaxGrupo", aforo));
+                "duracionHoras", new BigDecimal("4"), "nivelDificultad", "Media", "aforoMaxGrupo", aforo),
+                diasOperacion == null ? null : Map.of("diasOperacion", diasOperacion, "salidas", salidas));
         return id;
     }
 
     public String publicarRestaurante(String nombre) {
         String id = nuevoId();
         publicar(id, nombre, "Gastronomia", new BigDecimal("50000"), Map.of("tipoCocina", "Típica",
-                "aforoMaxTurno", 40, "rangoPrecioPlato", "$20.000"));
+                "aforoMaxTurno", 40, "rangoPrecioPlato", "$20.000"), null);
         return id;
     }
 
+    /** {@code oferta} va siempre, como en ms-catalog: null si no se publica con una. */
     private void publicar(String id, String nombre, String categoria, BigDecimal precio,
-                          Map<String, Object> detalle) {
+                          Map<String, Object> detalle, Map<String, Object> oferta) {
         Map<String, Object> cuerpo = new LinkedHashMap<>();
         cuerpo.put("id", id);
         cuerpo.put("idPrestador", PRESTADOR.toString());
@@ -121,6 +141,7 @@ public final class CatalogoSimulado {
         cuerpo.put("precioBase", precio);
         cuerpo.put("moneda", "COP");
         cuerpo.put("detalleCategoria", detalle);
+        cuerpo.put("oferta", oferta);
         try {
             detalles.put(id, JSON.writeValueAsString(cuerpo));
         } catch (JsonProcessingException e) {
@@ -131,15 +152,6 @@ public final class CatalogoSimulado {
     /** El servicio deja de ser visible: su detalle responde 404. */
     public void retirar(String id) {
         detalles.remove(id);
-    }
-
-    /** Aparece en la búsqueda pública de su categoría (para el generador de inventario). */
-    public void enBusqueda(String categoria, String id) {
-        busqueda.computeIfAbsent(categoria, c -> new CopyOnWriteArrayList<>()).add(id);
-    }
-
-    public void limpiarBusqueda() {
-        busqueda.clear();
     }
 
     // ------------------------------------------------------------------ fallos
@@ -174,8 +186,6 @@ public final class CatalogoSimulado {
                 escribir(intercambio, 200, TokensDePrueba.jwks());
             } else if (ruta.startsWith("/api/v1/catalogo/servicios/")) {
                 detalle(intercambio, ruta.substring("/api/v1/catalogo/servicios/".length()));
-            } else if (ruta.equals("/api/v1/catalogo/oferta")) {
-                pagina(intercambio);
             } else {
                 escribir(intercambio, 404, "{}");
             }
@@ -204,25 +214,6 @@ public final class CatalogoSimulado {
         } else {
             escribir(intercambio, 200, cuerpo);
         }
-    }
-
-    private void pagina(HttpExchange intercambio) throws IOException {
-        Map<String, String> parametros = new LinkedHashMap<>();
-        String consulta = intercambio.getRequestURI().getQuery();
-        if (consulta != null) {
-            for (String parte : consulta.split("&")) {
-                String[] par = parte.split("=", 2);
-                parametros.put(par[0], par.length > 1 ? par[1] : "");
-            }
-        }
-        List<String> ids = busqueda.getOrDefault(parametros.get("categoria"), List.of());
-        int pagina = Integer.parseInt(parametros.getOrDefault("pagina", "0"));
-        int desde = Math.min(pagina * TAMANO_PAGINA, ids.size());
-        List<Map<String, Object>> elementos = ids.subList(desde, Math.min(desde + TAMANO_PAGINA, ids.size())).stream()
-                .<Map<String, Object>>map(id -> Map.of("tipo", "Servicio", "id", id)).toList();
-        int totalPaginas = (ids.size() + TAMANO_PAGINA - 1) / TAMANO_PAGINA;
-        escribir(intercambio, 200, JSON.writeValueAsString(Map.of("elementos", elementos, "pagina", pagina,
-                "tamano", TAMANO_PAGINA, "totalElementos", ids.size(), "totalPaginas", totalPaginas)));
     }
 
     private static void escribir(HttpExchange intercambio, int estado, String cuerpo) throws IOException {

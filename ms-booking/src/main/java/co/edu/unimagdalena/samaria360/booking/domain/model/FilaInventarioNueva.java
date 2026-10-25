@@ -1,7 +1,7 @@
 package co.edu.unimagdalena.samaria360.booking.domain.model;
 
 /**
- * Fila que crea el generador de inventario demo (D5): los cupos totales salen de la capacidad configurada en el
+ * Fila que crea la materialización de la oferta (DEC-135): los cupos totales salen de la capacidad configurada en el
  * catálogo (habitaciones de la unidad o aforo del tour). Si la fila ya existe, no se toca.
  */
 public record FilaInventarioNueva(DiaInventario dia, CategoriaReservable categoria, int cupos) {

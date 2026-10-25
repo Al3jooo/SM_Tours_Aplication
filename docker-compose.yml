@@ -174,10 +174,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:?Falta POSTGRES_USER en .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
       AUTH_JWKS_URI: http://ms-auth:8081/api/v1/auth/.well-known/jwks.json
-      # Llamada directa al endpoint público de detalle antes de reservar (ADR-007)
+      # Llamada directa al endpoint público de detalle antes de reservar y para materializar la oferta del catálogo
+      # en el inventario bajo demanda (ADR-007 y su enmienda A2; DEC-135)
       MS_CATALOG_URL: http://ms-catalog:8082
-      # DEMOSTRACIÓN: genera los cupos de los próximos 60 días (D5, sustituto temporal de RF19).
-      INVENTARIO_DEMO_HABILITADO: "true"
     expose:
       - "8083"
     # Con el contenedor de ms-catalog detenido, su nombre no resuelve y el DNS de Docker tarda varios segundos en
@@ -186,8 +185,8 @@ services:
     dns_opt:
       - "timeout:1"
       - "attempts:1"
-    # ms-catalog solo para el orden de arranque: reservar funciona aunque arranque después (circuit breaker, ADR-007),
-    # y el generador de inventario reintenta cada minuto hasta que responda.
+    # ms-catalog solo para el orden de arranque: reservar y la disponibilidad funcionan aunque arranque después
+    # (circuit breaker, ADR-007); lo que falte materializar se materializa en la primera consulta que lo necesite.
     depends_on:
       postgres-bases:
         condition: service_completed_successfully

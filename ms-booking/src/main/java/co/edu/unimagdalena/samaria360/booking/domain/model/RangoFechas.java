@@ -8,7 +8,10 @@ import java.time.temporal.ChronoUnit;
  */
 public record RangoFechas(LocalDate desde, LocalDate hasta) {
 
-    /** Tope de las consultas de disponibilidad (ajuste aprobado 7): el mismo horizonte que el generador (D5). */
+    /**
+     * Tope del largo de una consulta de disponibilidad (ajuste aprobado 7). Coincide con el horizonte de materialización
+     * ({@code MaterializacionOferta.DIAS_HORIZONTE}, DEC-153), pero son reglas distintas: este limita el rango pedido.
+     */
     public static final int MAXIMO_DIAS = 60;
 
     /**

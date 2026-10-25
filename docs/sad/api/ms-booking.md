@@ -31,6 +31,7 @@ Contrato del CU «Reservar servicio» (RF11, RF18, RF20, RF32, RF37, RF44) para 
 - **Alojamiento:** cobra `precioNoche` de la unidad × noches × habitaciones. `personas` ≤ habitaciones × `capacidadMaxHuespedes` de la unidad. Check-in 15:00 y check-out 12:00; con entrada hoy, se puede reservar hasta las 15:00.
 - **Tour:** cobra `precioBase` × personas. `personas` ≤ `aforoMaxGrupo`. No se reserva un horario que ya pasó.
 - La confirmación es automática (RF20): los cupos se descuentan en el momento.
+- Antes de abrir la transacción, materializa la oferta con el detalle que ya consultó (sin otra llamada; DEC-152). Un día en que el servicio no opera, una salida que no ofrece o una fecha posterior a la ventana de 60 días responden `FECHA_NO_DISPONIBLE`.
 - **`precioTotalEsperado` se compara por valor, no por escala:** `160001` y `160001.00` son el mismo total. Solo un valor distinto responde `PRECIO_CAMBIADO`.
 
 **Respuesta `201 Created`**, con `Location: /api/v1/reservas/{idReserva}`:
@@ -85,6 +86,13 @@ El nombre del servicio, el de la unidad y los precios quedan **congelados** (RF3
 - `servicio` obligatorio; `unidad` opcional (solo alojamiento);
 - por defecto, desde hoy y 30 días; como máximo 60 días.
 
+**Inventario bajo demanda** (DEC-135, DEC-152 a DEC-155; enmienda A2 de [ADR-007](../adr/ADR-007-reservas-y-catalogo.md)). Los cupos salen de la **oferta** que el servicio define en ms-catalog (`oferta` del detalle: `diasOperacion` y, en un tour, `salidas`):
+- Antes de leer, ms-booking asegura que la oferta esté materializada hasta `hasta` (recortado al horizonte). Si no lo está, consulta el detalle de ms-catalog y crea las filas que falten de **toda la ventana**, de hoy a hoy + 59 en Santa Marta: una por salida de cada día de operación (tour, con `aforoMaxGrupo` cupos) o una por unidad y noche de operación (alojamiento, con `numHabitaciones`). Las filas que ya existen no cambian.
+- **Un día sin filas** dentro de la ventana es un día que no opera (o una salida que no se ofrece); después de la ventana, no hay inventario. En los dos casos la respuesta es la misma: sin filas.
+- Con los datos inválidos (por ejemplo, un `servicio` que no es un ObjectId) responde 400 `DATOS_INVALIDOS` sin consultar ms-catalog.
+- Un servicio que ms-catalog no muestra (404) no se materializa: la respuesta trae lo que ya existía (sin filas, `categoria: null`).
+- **503 `SERVICIO_NO_DISPONIBLE`** (`servicio: ms-catalog`) si hay que materializar y ms-catalog no responde. Si el rango ya está materializado, responde sin consultar ms-catalog.
+
 ```json
 {
   "idServicio": "6a0f…", "desde": "2030-03-30", "hasta": "2030-03-31", "categoria": "Alojamiento",
@@ -102,7 +110,8 @@ En un tour, `unidades` va vacío y `horarios` trae `{fecha, hora, cuposTotales, 
 
 `GET /api/v1/reservas/disponibilidad/resumen?servicios=id1,id2&desde=&hasta=` → `{"id1": "CON_CUPOS", "id2": "SIN_INVENTARIO"}`, en el orden pedido.
 - Hasta 10 ids, cada uno un ObjectId; por defecto, hoy y los 7 días siguientes.
-- `CON_CUPOS`: alguna unidad u horario tiene cupos en algún día del rango; `AGOTADO`: hay inventario, pero todo en 0; `SIN_INVENTARIO`: no hay filas.
+- `CON_CUPOS`: alguna unidad u horario tiene cupos en algún día del rango; `AGOTADO`: hay inventario, pero todo en 0; `SIN_INVENTARIO`: no hay filas (no opera en esas fechas, no es reservable o ms-catalog no lo muestra).
+- Materializa como la disponibilidad, servicio por servicio, con un **plazo total de 2,5 s** (DEC-155). Si ms-catalog no responde o el plazo se agota con servicios sin materializar, **503 `SERVICIO_NO_DISPONIBLE`** para toda la respuesta: nunca un `SIN_INVENTARIO` falso.
 
 ## Completar reservas (RF52)
 
@@ -124,11 +133,11 @@ Una tarea de ms-booking pasa de `Confirmada` a `Completada` las reservas cuya `f
 | `RESERVA_NO_ENCONTRADA` | 404 | No existe o es de otro turista |
 | `OFERTA_NO_DISPONIBLE` | 409 | El servicio no existe, no está Publicado o el prestador está inactivo |
 | `UNIDAD_NO_DISPONIBLE` | 409 | El alojamiento no tiene esa unidad: hay que volver a cargar el detalle |
-| `FECHA_NO_DISPONIBLE` | 409 | No hay inventario publicado para alguna noche o para el horario |
+| `FECHA_NO_DISPONIBLE` | 409 | No hay inventario publicado para alguna noche o para el horario: el servicio no opera ese día o no ofrece esa salida, o la fecha es posterior a la ventana de 60 días |
 | `CUPO_AGOTADO` | 409 | Hay inventario, pero no alcanza (RF11); no se descuenta nada |
 | `PRECIO_CAMBIADO` | 409 | Lleva `precioTotal`, `precioUnitario` y `moneda` vigentes (RF37) |
 | `CANCELACION_FUERA_DE_PLAZO` | 409 | Faltan menos de 24 horas (RF44) |
 | `RESERVA_NO_CANCELABLE` | 409 | La reserva está Completada (también si RF52 la completó mientras se cancelaba) |
 | `IDEMPOTENCIA_CONFLICTO` | 422 | La misma clave con otro pedido |
-| `SERVICIO_NO_DISPONIBLE` | 503 | ms-catalog no responde (`servicio: ms-catalog`) o, desde el gateway, ms-booking caído (`servicio: ms-booking`) |
+| `SERVICIO_NO_DISPONIBLE` | 503 | ms-catalog no responde (`servicio: ms-catalog`) al reservar o cuando la disponibilidad o el resumen deben materializar la oferta (también si el resumen agota su plazo de 2,5 s); o, desde el gateway, ms-booking caído (`servicio: ms-booking`) |
 | `ERROR_INTERNO` | 500 | Cualquier otro error |

@@ -7,6 +7,7 @@ import co.edu.unimagdalena.samaria360.booking.infrastructure.PruebaIntegracion;
 import co.edu.unimagdalena.samaria360.booking.infrastructure.RelojAjustable;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,7 +80,8 @@ class ReservaApiIntegracionTest {
 
     @AfterEach
     void cerrarCircuito() {
-        circuitos.getCircuitBreakerRegistry().circuitBreaker("catalogo").reset();
+        // Solo si existe: crearlo aquí le daría la configuración por defecto (O12).
+        circuitos.getCircuitBreakerRegistry().find("catalogo").ifPresent(CircuitBreaker::reset);
     }
 
     // ------------------------------------------------------------------ reservar (RF20, D1)

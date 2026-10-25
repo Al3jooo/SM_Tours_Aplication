@@ -46,7 +46,15 @@ Table Inventario_Cupo [headercolor: #F7E39C] {
     (id_servicio_mongo, id_unidad, fecha, hora_inicio) [unique, name: 'uq_inventario_cupo_dia', note: 'NULLS NOT DISTINCT']
   }
 
-  Note: 'CHECK ck_inventario_cupo_forma: Alojamiento con id_unidad y sin hora_inicio; Tour con hora_inicio y sin id_unidad'
+  Note: 'CHECK ck_inventario_cupo_forma: Alojamiento con id_unidad y sin hora_inicio; Tour con hora_inicio y sin id_unidad. Desde la iteración C (A2) se materializa bajo demanda a partir de la oferta de catalog_db (DEC-135)'
+}
+
+Table Oferta_Materializada [headercolor: #F7E39C] {
+  id_servicio_mongo varchar(24) [pk, note: 'Referencia lógica a catalog_db, sin FK (mismo tipo que Inventario_Cupo.id_servicio_mongo)']
+  materializada_hasta date [not null, note: 'Hasta qué fecha está materializada la oferta en Inventario_Cupo; solo avanza (GREATEST)']
+  fecha_actualizacion timestamptz [not null]
+
+  Note: 'reservas_db, V5 (ms-booking; DEC-154). Una fecha hasta materializada_hasta sin filas en Inventario_Cupo es un día que no opera; una posterior, un día que falta materializar'
 }
 
 Table Reserva [headercolor: #A8DDB5] {
