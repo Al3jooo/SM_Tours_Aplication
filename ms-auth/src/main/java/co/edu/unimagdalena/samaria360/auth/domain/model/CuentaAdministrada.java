@@ -13,6 +13,7 @@ import java.util.UUID;
  *   <li>turista: Activo ↔ Desactivado.</li>
  * </ul>
  * Cada transición se aplica con la versión que se leyó y la sube en uno ({@link CambioEstadoCuenta#versionNueva()}).
+ * El prestador lleva su RNT, que no cambia, para el evento {@code CuentaActualizada} (DEC-146).
  */
 public final class CuentaAdministrada {
 
@@ -21,9 +22,14 @@ public final class CuentaAdministrada {
     private final EstadoCuenta cuenta;
     private final EstadoValidacion validacion;
     private final long version;
+    private final String rnt;
 
-    /** @param validacion estado de validación del prestador; nulo si el rol es Turista */
-    public CuentaAdministrada(UUID id, Rol rol, EstadoCuenta cuenta, EstadoValidacion validacion, long version) {
+    /**
+     * @param validacion estado de validación del prestador; nulo si el rol es Turista
+     * @param rnt        Registro Nacional de Turismo del prestador; nulo si el rol es Turista
+     */
+    public CuentaAdministrada(UUID id, Rol rol, EstadoCuenta cuenta, EstadoValidacion validacion, long version,
+                              String rnt) {
         this.id = Objects.requireNonNull(id, "id");
         this.rol = Objects.requireNonNull(rol, "rol");
         this.cuenta = Objects.requireNonNull(cuenta, "cuenta");
@@ -36,11 +42,18 @@ public final class CuentaAdministrada {
         if (rol == Rol.Turista && validacion != null) {
             throw new IllegalArgumentException("Solo un prestador tiene estado de validación");
         }
+        if (rol == Rol.Prestador && (rnt == null || rnt.isBlank())) {
+            throw new IllegalArgumentException("Un prestador tiene RNT");
+        }
+        if (rol == Rol.Turista && rnt != null) {
+            throw new IllegalArgumentException("Solo un prestador tiene RNT");
+        }
         if (version < 0) {
             throw new IllegalArgumentException("version no puede ser negativa");
         }
         this.validacion = validacion;
         this.version = version;
+        this.rnt = rnt;
     }
 
     public EstadoAdministrativo estado() {
@@ -89,7 +102,7 @@ public final class CuentaAdministrada {
                 ? EstadoAdministrativo.dePrestador(validacionNueva, cuentaNueva)
                 : EstadoAdministrativo.deTurista(cuentaNueva);
         return new CambioEstadoCuenta(id, rol, version, cuenta, validacion, cuentaNueva, validacionNueva, motivo,
-                estadoNuevo);
+                estadoNuevo, rnt);
     }
 
     public UUID getId() {
@@ -110,5 +123,9 @@ public final class CuentaAdministrada {
 
     public long getVersion() {
         return version;
+    }
+
+    public String getRnt() {
+        return rnt;
     }
 }

@@ -29,7 +29,7 @@
 | WF-05-exploracion.png | Exploración: mapa y resultados | Buscar oferta, filtrar, ordenar, navegar el mapa | RF16, RF10, RF23, RF27, RF38, RF39, RF50, RF61 | **Sí** (núcleo del catálogo, incluye «Más filtros») |
 | WF-06-detalle.png | Detalle de lugar o servicio | Consultar detalle de oferta | RF37, RF39, RF51, RF54, RF57, RF58 | Sí (versión mínima: solo servicios y los datos que existen) |
 | WF-07-asistente-ia.png | Asistente virtual IA | Interactuar con el asistente | RF04, RF35, RF36, RF59 | No |
-| WF-08-registrar-servicio.png | Registrar servicio comercial | Registrar servicio | RF09, RF10, RF27, RF37, RF48, RF58 | No |
+| WF-08-registrar-servicio.png (+ `WF-08-registrar-servicio.puml`, ampliación) | Registrar servicio comercial | Registrar servicio | RF09, RF10, RF27, RF37, RF48, RF58 | Backend en la iteración C (sesión A1); pantalla en B1, sin fotos (iteración E), «cobra por» ni impuestos. La ampliación en Salt está **propuesta por arquitectura, pendiente de validación del equipo** |
 | WF-09-registrar-atractivo.png | Registrar atractivo turístico | Registrar atractivo | RF06, RF07, RF24, RF27, RF33 | No |
 | WF-10-disponibilidad-reserva.png | Disponibilidad y reserva **(nuevo)** | Reservar servicio | RF11, RF20, RF37, RF44 | **Sí** (sin RNT, impuestos, pagos ni «Notificarme si se libera») |
 | — (WF-11, sin imagen) | Mis reservas **(pendiente de diseño)** | Reservar servicio | RF12, RF18, RF44, RF52 | Sí (diseño provisional) |
@@ -39,6 +39,8 @@
 | WF-15-terminos.puml | Términos y condiciones **(nuevo)** | Consultar términos y condiciones | RF46 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-16-perfil-turista.puml | Perfil del turista **(nuevo)** | Actualizar datos personales, Actualizar intereses turísticos | RF53 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-17-mis-favoritos.puml | Mis favoritos **(nuevo)** | Guardar favoritos | RF54 | **Sí** (sesión B de B1; sin el detalle de atractivo). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-18-mis-servicios.puml | Mis servicios **(nuevo)** | Registrar servicio (flujo «Consultar mis servicios», DEC-129) | RF09 | Backend en la iteración C (A1); pantalla en B1. **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-19-aprobar-servicios.puml | Aprobar servicios **(nuevo)** | Aprobar o rechazar servicio; Consultar listado pendiente; Justificar rechazo de servicio | RF21 | Backend en la iteración C (A1); pantalla en B2. **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-05-06-11-cambios-turista.puml | Cambios en WF-05, WF-06 y WF-11 **(nuevo)** | Consultar historial de búsquedas, Guardar favoritos, Compartir reserva completada | RF60, RF54, RF49 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
 
 ## WF-01 — Inicio de sesión
@@ -98,6 +100,29 @@ Encabezado «Asistente Virtual IA» y estado «En línea»; aviso de versión be
 ## WF-08 — Registrar servicio comercial
 
 Migas: Panel del Prestador › Mis Servicios › Registrar Nuevo Servicio. Aviso de verificación (hasta 2 días hábiles). Secciones: **Datos del servicio** (nombre, categoría, RNT, descripción); **Datos de contacto** (teléfono/WhatsApp, correo, dirección, horario de atención); **Precio** («desde» en COP, «cobra por», casilla «el precio incluye impuestos»); **Campos según la categoría** (con Alojamiento: número de habitaciones, capacidad máxima, servicios incluidos WiFi / Desayuno / Piscina / Parqueadero); **Fotos** (1 a 5, la primera es la portada — RF48); **Condiciones de accesibilidad**; casilla de veracidad; **Publicar servicio**.
+
+**Ampliación en Salt (iteración C, `WF-08-registrar-servicio.puml`; propuesta por arquitectura, pendiente de validación del equipo).** Conserva todos los elementos del PNG y agrega lo que piden RF09, RF10 y las decisiones de la iteración (CU: `docs/casos-de-uso/CU-registrar-servicio.md`):
+- **Unidades del alojamiento** (de 1 a 20: nombre, tipo de habitación, habitaciones, huéspedes por habitación y precio por noche; DEC-133). El precio «desde» de un alojamiento se calcula (DEC-127). Resuelve la diferencia 1 en WF-08 y el «tipo de habitación» de la diferencia 5.
+- **Oferta inicial** (DEC-136): días de operación en Tour y Alojamiento, y salidas (HH:mm) en Tour. Gastronomía y Alquiler no la tienen.
+- **Dirección** obligatoria y **pin en el mapa** (DEC-132).
+- El **RNT** se muestra en solo lectura: es el de la cuenta del prestador y el servicio guarda una copia (DEC-126; diferencia 5).
+- **Accesibilidad** con las tres condiciones de RF27 (diferencia 3).
+- «Cobra por», «incluye impuestos» y **Fotos**, deshabilitados: los dos primeros no están en el esquema (diferencia 5); las fotos llegan en la iteración E (DEC-55).
+- **«Publicar servicio» pasa a «Enviar a aprobación»**: el servicio queda «Pendiente de aprobación» hasta que lo revise el Administrador (RF09, RF21).
+- La casilla de veracidad se conserva; no tiene requisito en el SRS y no se guarda.
+
+## WF-18 — Mis servicios (nuevo)
+
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-18-mis-servicios.puml`), solo de estructura. Lo implementa la sesión B1. Flujo «Consultar mis servicios» del CU «Registrar servicio» (DEC-129). Pantalla privada del Prestador.
+- Lista de sus servicios (nombre, categoría, estado, motivo del rechazo y fecha de registro), del más reciente al más antiguo, con filtro de estado y paginación de 10; **Registrar nuevo servicio** lleva a WF-08.
+- **Ver detalle** muestra los datos enviados y, si está Rechazado, el motivo. «Editar y reenviar» aparece deshabilitado (iteración D).
+
+## WF-19 — Aprobar servicios (nuevo)
+
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-19-aprobar-servicios.puml`), solo de estructura. Lo implementa la sesión B2. CU «Aprobar o rechazar servicio» (RF21). Pantalla privada del Administrador.
+- **Cola de pendientes** del más antiguo al más reciente (DEC-144), con filtro de estado y paginación de 10: nombre, categoría, RNT del prestador, si el prestador está activo y fecha de registro.
+- **Revisar**: todos los datos del registro, la oferta y el estado de la cuenta del prestador; **Aprobar → Publicado** y **Rechazar**, que abre el diálogo con la **justificación obligatoria** (máximo 500 caracteres, con contador y error por campo; DEC-145).
+- **Región de estado** con el 409 `ESTADO_CAMBIADO`: avisa y recarga (DEC-52).
 
 ## WF-09 — Registrar atractivo turístico
 

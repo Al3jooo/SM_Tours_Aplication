@@ -163,7 +163,7 @@ class PerfilApiIntegracionTest {
 
     @Test
     void elPrestadorYElAdministradorReciben403() throws Exception {
-        for (String token : List.of(token(ID_PRESTADOR, "prestador@samaria360.test", Rol.Prestador, 0),
+        for (String token : List.of(token(ID_PRESTADOR, "prestador@samaria360.test", Rol.Prestador, versionDe(ID_PRESTADOR)),
                 token(ID_ADMIN, "admin@samaria360.test", Rol.Administrador, versionDelAdmin()))) {
             for (MockHttpServletRequestBuilder solicitud : List.of(get(PERFIL),
                     put(PERFIL).contentType(MediaType.APPLICATION_JSON).content(VALIDO))) {
@@ -176,7 +176,7 @@ class PerfilApiIntegracionTest {
 
     @Test
     void regresion_meSigueAccesibleParaElPrestadorYElAdministrador() throws Exception {
-        assertThat(conToken(get("/api/v1/auth/me"), token(ID_PRESTADOR, "prestador@samaria360.test", Rol.Prestador, 0))
+        assertThat(conToken(get("/api/v1/auth/me"), token(ID_PRESTADOR, "prestador@samaria360.test", Rol.Prestador, versionDe(ID_PRESTADOR)))
                 .getResponse().getStatus()).isEqualTo(200);
         assertThat(conToken(get("/api/v1/auth/me"),
                 token(ID_ADMIN, "admin@samaria360.test", Rol.Administrador, versionDelAdmin()))
@@ -219,8 +219,12 @@ class PerfilApiIntegracionTest {
 
     /** V15 subió la versión del Administrador de la semilla (DEC-108): un token con ver 0 ya no vale. */
     private long versionDelAdmin() {
-        Long version = jdbc.queryForObject("SELECT version_cuenta FROM usuario WHERE id_usuario = ?", Long.class,
-                ID_ADMIN);
+        return versionDe(ID_ADMIN);
+    }
+
+    /** La versión real de la cuenta: V15 subió la del personal y V17 la de los prestadores (DEC-147). */
+    private long versionDe(UUID id) {
+        Long version = jdbc.queryForObject("SELECT version_cuenta FROM usuario WHERE id_usuario = ?", Long.class, id);
         return version == null ? 0 : version;
     }
 

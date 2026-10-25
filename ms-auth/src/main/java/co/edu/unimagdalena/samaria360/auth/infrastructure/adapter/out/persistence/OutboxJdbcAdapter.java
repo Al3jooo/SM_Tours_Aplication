@@ -48,6 +48,9 @@ public class OutboxJdbcAdapter implements OutboxPort {
         carga.put("rol", evento.rol().name());
         carga.put("estadoCuenta", evento.estadoCuenta().name());
         carga.put("version", evento.version());
+        if (evento.rnt() != null) {
+            carga.put("rnt", evento.rnt());
+        }
         Long id = jdbc.queryForObject("""
                 INSERT INTO outbox_evento (tipo, id_usuario, carga, creado_en)
                 VALUES (?, ?, ?::jsonb, ?) RETURNING id_evento
@@ -80,10 +83,13 @@ public class OutboxJdbcAdapter implements OutboxPort {
                 FOR UPDATE OF en SKIP LOCKED
                 """, (rs, n) -> {
             JsonNode carga = leer(rs.getString("carga"));
+            // Los eventos anteriores a V17 no llevan rnt: la carga se lee tal como se guardó.
+            JsonNode rnt = carga.get("rnt");
             return new EntregaPendiente(rs.getLong("id_evento"), rs.getObject("id_usuario", UUID.class),
                     Rol.valueOf(carga.get("rol").asText()),
                     EstadoAdministrativo.desdeTexto(carga.get("estadoCuenta").asText()),
-                    carga.get("version").asLong(), rs.getInt("intentos"));
+                    carga.get("version").asLong(), rnt == null || rnt.isNull() ? null : rnt.asText(),
+                    rs.getInt("intentos"));
         }, destino.texto(), Timestamp.from(ahora), limite);
         Timestamp vence = Timestamp.from(ahora.plus(arriendo));
         for (EntregaPendiente entrega : reclamadas) {

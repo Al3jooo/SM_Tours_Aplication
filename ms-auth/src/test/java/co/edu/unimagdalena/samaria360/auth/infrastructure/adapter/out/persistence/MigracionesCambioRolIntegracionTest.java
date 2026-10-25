@@ -28,7 +28,8 @@ class MigracionesCambioRolIntegracionTest {
     void v15_enUnVolumenNuevoConSemillaEncolaUnEventoPorCadaGestorYAdministrador() {
         try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(IMAGEN)) {
             postgres.start();
-            assertThat(flyway(postgres, null, true).migrate().success).isTrue();
+            // Hasta V16: V17 encola también a los prestadores (DEC-147), que esta prueba no mide.
+            assertThat(flyway(postgres, "16", true).migrate().success).isTrue();
             JdbcTemplate jdbc = jdbc(postgres);
 
             List<UUID> personal = jdbc.queryForList("SELECT u.id_usuario FROM usuario u JOIN rol r"
@@ -103,7 +104,7 @@ class MigracionesCambioRolIntegracionTest {
                     .isInstanceOf(DataIntegrityViolationException.class)
                     .hasMessageContaining("fk_prestador_revisado_por");
 
-            assertThat(flyway(postgres, null, true).migrate().success).isTrue();
+            assertThat(flyway(postgres, "16", true).migrate().success).isTrue();
             assertThat(jdbc.update("DELETE FROM administrador WHERE id_usuario = ?", admin)).isEqualTo(1);
             assertThat(jdbc.queryForObject("SELECT revisado_por FROM prestador WHERE id_usuario = ?", UUID.class,
                     prestador)).isEqualTo(admin);

@@ -120,6 +120,34 @@ class RelevoCuentasIntegracionTest {
                 Integer.class, usuario)).isEqualTo(2);
     }
 
+    /** DEC-146: el RNT viaja en la carga del outbox y en el cuerpo solo para un prestador. */
+    @Test
+    void elCuerpoLlevaElRntSoloSiLaCuentaEsDeUnPrestador() throws Exception {
+        UUID prestador = crearTurista();
+        UUID turista = crearTurista();
+        registrarPrestador(prestador, "RNT-RELEVO-1", 1);
+        registrar(turista, EstadoAdministrativo.Activo, 1);
+
+        assertThat(jdbc.queryForObject("SELECT carga->>'rnt' FROM outbox_evento WHERE id_usuario = ?", String.class,
+                prestador)).isEqualTo("RNT-RELEVO-1");
+        assertThat(jdbc.queryForObject("SELECT jsonb_exists(carga, 'rnt') FROM outbox_evento WHERE id_usuario = ?",
+                Boolean.class, turista)).isFalse();
+
+        assertThat(relevo.relevar(Destino.MS_CATALOG)).isEqualTo(2);
+        assertThat(relevo.relevar(Destino.MS_BOOKING)).isEqualTo(2);
+
+        for (List<Recibida> recibidas : List.of(aCatalogo, aReservas)) {
+            assertThat(recibidas).filteredOn(r -> r.ruta().endsWith(prestador.toString())).singleElement()
+                    .satisfies(r -> {
+                        assertThat(JsonPath.<String>read(r.cuerpo(), "$.rol")).isEqualTo("Prestador");
+                        assertThat(JsonPath.<String>read(r.cuerpo(), "$.rnt")).isEqualTo("RNT-RELEVO-1");
+                    });
+            assertThat(recibidas).filteredOn(r -> r.ruta().endsWith(turista.toString())).singleElement()
+                    .satisfies(r -> assertThat(JsonPath.<java.util.Map<String, Object>>read(r.cuerpo(), "$"))
+                            .doesNotContainKey("rnt"));
+        }
+    }
+
     @Test
     void unDestinoCaidoSeReintentaYNoBloqueaAlOtro() throws Exception {
         UUID usuario = crearTurista();
@@ -198,7 +226,14 @@ class RelevoCuentasIntegracionTest {
 
     private void registrar(UUID usuario, EstadoAdministrativo estado, long version) {
         new TransactionTemplate(transacciones).executeWithoutResult(t -> outbox.registrar(
-                new EventoCuentaActualizada(usuario, Rol.Turista, estado, version, Instant.now()),
+                new EventoCuentaActualizada(usuario, Rol.Turista, estado, version, null, Instant.now()),
+                List.of(Destino.values())));
+    }
+
+    private void registrarPrestador(UUID usuario, String rnt, long version) {
+        new TransactionTemplate(transacciones).executeWithoutResult(t -> outbox.registrar(
+                new EventoCuentaActualizada(usuario, Rol.Prestador, EstadoAdministrativo.Activo, version, rnt,
+                        Instant.now()),
                 List.of(Destino.values())));
     }
 

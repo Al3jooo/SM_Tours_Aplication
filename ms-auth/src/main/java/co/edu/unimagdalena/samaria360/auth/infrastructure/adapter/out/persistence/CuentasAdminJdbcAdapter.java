@@ -58,7 +58,7 @@ public class CuentasAdminJdbcAdapter implements CuentasAdminRepositoryPort {
     @Override
     public Optional<CuentaAdministrada> buscarCuenta(UUID idUsuario) {
         return jdbc.query("""
-                SELECT r.nombre AS rol, u.estado_cuenta::text AS cuenta, p.estado_validacion, u.version_cuenta
+                SELECT r.nombre AS rol, u.estado_cuenta::text AS cuenta, p.estado_validacion, u.version_cuenta, p.rnt
                 FROM usuario u
                 JOIN rol r ON r.id_rol = u.id_rol
                 LEFT JOIN prestador p ON p.id_usuario = u.id_usuario
@@ -71,7 +71,7 @@ public class CuentasAdminJdbcAdapter implements CuentasAdminRepositoryPort {
             return Optional.of(new CuentaAdministrada(idUsuario, Rol.valueOf(rs.getString("rol")),
                     EstadoCuenta.valueOf(rs.getString("cuenta")),
                     validacion == null ? null : EstadoValidacion.desdeTexto(validacion),
-                    rs.getLong("version_cuenta")));
+                    rs.getLong("version_cuenta"), rs.getString("rnt")));
         }, idUsuario);
     }
 

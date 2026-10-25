@@ -48,7 +48,7 @@ class RelevarCuentasServiceTest {
     }
 
     private void evento(UUID usuario, EstadoAdministrativo estado, long version) {
-        outbox.registrar(new EventoCuentaActualizada(usuario, Rol.Turista, estado, version, reloj.ahora()),
+        outbox.registrar(new EventoCuentaActualizada(usuario, Rol.Turista, estado, version, null, reloj.ahora()),
                 List.of(Destino.values()));
     }
 

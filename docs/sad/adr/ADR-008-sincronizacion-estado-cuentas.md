@@ -5,7 +5,7 @@
 - **Fase:** Construcción (RUP)
 - **Componentes:** `ms-auth` (`auth_db`), `ms-catalog` (`catalog_db`) y `ms-booking` (`reservas_db`)
 - **Requisitos:** RF22, RF28, RF62 y, desde la enmienda B2, RF45; RNF01, RNF02, RNF06
-- **Registra las decisiones:** DEC-26 y DEC-29; la enmienda B2, DEC-106 a DEC-111
+- **Registra las decisiones:** DEC-26 y DEC-29; la enmienda B2, DEC-106 a DEC-111; la enmienda de la iteración C, DEC-125, DEC-126, DEC-142, DEC-146 y DEC-147
 
 ## Contexto
 
@@ -145,6 +145,22 @@ SELECT id_evento, d.destino, now() FROM evento CROSS JOIN (VALUES ('ms-catalog')
 | 2. V15 y V16 | `MigracionesCambioRolIntegracionTest` |
 | 3. Privilegiado sin fila → 401; con fila, `ver` | `PoliticaSesionTest`, `VerificarSesionServiceTest`, `SesionVersionApiIntegracionTest` (ms-catalog), `SesionVersionIntegracionTest` (ms-booking) |
 | 3. El evento de una cuenta desconocida crea la fila; revocar invalida el token anterior | `CuentaInternaApiIntegracionTest` de ms-catalog y de ms-booking |
+
+## Enmienda «Registrar y aprobar servicio» (iteración C): el RNT en el evento
+
+- **Fecha:** 2026-10-24
+- **Fase:** Construcción (RUP), iteración C, sesión A1 ([CU «Registrar servicio»](../../casos-de-uso/CU-registrar-servicio.md))
+- **Registra las decisiones:** DEC-125 y DEC-126 (del equipo) y DEC-142, DEC-146 y DEC-147 (de arquitectura). Resuelve HC2 en el backend.
+
+Esta enmienda no crea un ADR nuevo: el RNT y la cuenta del prestador viajan por el mismo mecanismo del punto 1 al 4. HC2 pedía elegir entre una réplica (como `prestadorActivo`) y una composición de API; se eligió la **réplica**, porque el RNT no tiene RF de edición y la consulta pública no debe depender de ms-auth (como ADR-007).
+
+1. **`CuentaActualizada` suma `rnt`** (DEC-146): obligatorio si `rol = Prestador`, ausente en cualquier otro rol. Va dentro de la carga del outbox (el evento queda autocontenido) y el relevo lo envía solo si existe. ms-booking no lo usa y lo ignora: su consumidor no rechaza propiedades desconocidas.
+2. **ms-catalog lo guarda en `cuentas.rnt`** (validador v2, M008) solo para un Prestador; un evento sin `rnt` lo quita de la fila. Al registrar un servicio, ms-catalog exige la fila `Activo` con RNT (DEC-125) y **copia el RNT en el servicio** (DEC-126); el detalle público lo muestra (DEC-150).
+3. **V17** (DEC-147) encola un evento por prestador, en cualquier estado, con el estado derivado (la misma precedencia que `EstadoAdministrativo.dePrestador`) y `version_cuenta + 1`, como V15. Sin subir la versión, una proyección que ya tenía al prestador ignoraría el evento. Efecto aceptado: un token de prestador anterior recibe un 401 `SESION_INVALIDADA` una vez.
+4. **Carrera entre el registro y RF22** (DEC-142). La secuencia del punto «Supuesto de orden» (fijar `prestadorActivo` y después guardar la proyección) se conserva, y se agregan dos pasos:
+   - ms-catalog repite `fijarPrestadorActivo` **después** de guardar la proyección de un Prestador;
+   - el registro relee la proyección después de insertar el servicio y, si ya no está Activa, oculta ese servicio.
+   Con los dos, ningún entrelazado deja visible el servicio nuevo de un prestador inactivo.
 
 ## Cuándo revisarla
 

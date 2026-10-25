@@ -5,12 +5,13 @@ import java.util.UUID;
 
 /**
  * Transición de estado de una cuenta, con lo que la base debe encontrar para aplicarla (UPDATE condicional, DEC-39) y
- * lo que debe dejar. {@code validacionEsperada} y {@code validacionNueva} son nulas para el turista.
+ * lo que debe dejar. {@code validacionEsperada} y {@code validacionNueva} son nulas para el turista. {@code rnt} es el del
+ * prestador (nulo para el turista): no cambia, pero viaja en el evento (DEC-146).
  */
 public record CambioEstadoCuenta(UUID idUsuario, Rol rol, long versionEsperada,
                                  EstadoCuenta cuentaEsperada, EstadoValidacion validacionEsperada,
                                  EstadoCuenta cuentaNueva, EstadoValidacion validacionNueva,
-                                 String motivoRechazo, EstadoAdministrativo estadoNuevo) {
+                                 String motivoRechazo, EstadoAdministrativo estadoNuevo, String rnt) {
 
     public CambioEstadoCuenta {
         Objects.requireNonNull(idUsuario, "idUsuario");

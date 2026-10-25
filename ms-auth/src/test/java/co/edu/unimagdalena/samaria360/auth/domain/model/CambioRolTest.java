@@ -38,6 +38,6 @@ class CambioRolTest {
     void elEventoLlevaElRolNuevoElEstadoActivoYLaVersionNueva() {
         EventoCuentaActualizada evento = EventoCuentaActualizada.de(new CambioRol(ID, Rol.Gestor, Rol.Turista, 6), T0);
 
-        assertThat(evento).isEqualTo(new EventoCuentaActualizada(ID, Rol.Turista, EstadoAdministrativo.Activo, 7, T0));
+        assertThat(evento).isEqualTo(new EventoCuentaActualizada(ID, Rol.Turista, EstadoAdministrativo.Activo, 7, null, T0));
     }
 }

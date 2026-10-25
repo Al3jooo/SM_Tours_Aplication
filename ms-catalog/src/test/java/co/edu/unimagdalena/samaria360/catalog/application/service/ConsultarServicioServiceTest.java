@@ -82,6 +82,6 @@ class ConsultarServicioServiceTest {
                 Unidades.unidad("Doble", 12, 2, "150000"),
                 Unidades.unidad("Suite familiar", "Suite", 3, 4, "260000")), List.of("WiFi"));
         return new ServicioComercial(id, PRESTADOR, "Hotel Casa Tayrona", Categoria.Alojamiento, detalle, null,
-                new Coordenada(-74.2125, 11.2425), null, estado, prestadorActivo, Set.of(), null, null, List.of());
+                new Coordenada(-74.2125, 11.2425), null, estado, prestadorActivo, Set.of(), null, null, List.of(), null, null, null, null, null);
     }
 }

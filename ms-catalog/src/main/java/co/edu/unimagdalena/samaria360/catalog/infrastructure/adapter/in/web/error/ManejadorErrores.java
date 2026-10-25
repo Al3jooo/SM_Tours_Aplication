@@ -4,10 +4,13 @@ import co.edu.unimagdalena.samaria360.catalog.domain.exception.AvisoNoEncontrado
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.AvisoYaInactivoException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.ContenidoInvalidoException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.CriteriosBusquedaInvalidosException;
+import co.edu.unimagdalena.samaria360.catalog.domain.exception.EstadoServicioCambiadoException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.LimiteFavoritosException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.LimitePreguntasException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.OfertaNoDisponibleException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.PreguntaNoEncontradaException;
+import co.edu.unimagdalena.samaria360.catalog.domain.exception.PrestadorNoHabilitadoException;
+import co.edu.unimagdalena.samaria360.catalog.domain.exception.ServicioNoEncontradoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
@@ -91,6 +94,25 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
     ProblemDetail avisoYaInactivo(AvisoYaInactivoException ex) {
         ProblemDetail problema = Problemas.crear(HttpStatus.CONFLICT, CodigoError.ESTADO_CAMBIADO, ex.getMessage());
         problema.setProperty("estadoActual", "Inactivo");
+        return problema;
+    }
+
+    /** El usuario es el dueño de la cuenta: no se revela nada que no sepa (DEC-139). */
+    @ExceptionHandler(PrestadorNoHabilitadoException.class)
+    ProblemDetail prestadorNoHabilitado(PrestadorNoHabilitadoException ex) {
+        return Problemas.crear(HttpStatus.FORBIDDEN, CodigoError.PRESTADOR_NO_HABILITADO, ex.getMessage());
+    }
+
+    @ExceptionHandler(ServicioNoEncontradoException.class)
+    ProblemDetail servicioNoEncontrado(ServicioNoEncontradoException ex) {
+        return Problemas.crear(HttpStatus.NOT_FOUND, CodigoError.SERVICIO_NO_ENCONTRADO, ex.getMessage());
+    }
+
+    /** Otro Administrador ya aprobó o rechazó el servicio (DEC-128): el estado que tiene ahora. */
+    @ExceptionHandler(EstadoServicioCambiadoException.class)
+    ProblemDetail estadoServicioCambiado(EstadoServicioCambiadoException ex) {
+        ProblemDetail problema = Problemas.crear(HttpStatus.CONFLICT, CodigoError.ESTADO_CAMBIADO, ex.getMessage());
+        problema.setProperty("estadoActual", ex.getEstadoActual().name());
         return problema;
     }
 

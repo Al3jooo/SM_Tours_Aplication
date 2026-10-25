@@ -40,7 +40,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *   <li><b>nuevo</b>: un volumen nuevo, línea base congelada (init/01, 02 y 03) y después las migraciones;</li>
  *   <li><b>existente</b>: un volumen creado con los scripts anteriores a congelar la línea base (01 con los
  *   validadores en línea), al que solo se le aplican las migraciones;</li>
- *   <li><b>errores</b>: un volumen v1 con datos que M001 no puede convertir, y las migraciones sin semilla.</li>
+ *   <li><b>errores</b>: un volumen v1 con datos que M001 no puede convertir, y las migraciones sin semilla;</li>
+ *   <li><b>sin precio</b>: un volumen v1 con un servicio sin precioBase, que M008 no puede exigir (DEC-148).</li>
  * </ul>
  * Los dos primeros deben converger: mismos documentos (salvo los ObjectId aleatorios), validadores e índices.
  */
@@ -48,10 +49,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class MigracionesMongoTest {
 
     private static final Path ESQUEMAS = Path.of("../docs/sad/modelo-nosql");
-    private static final Path VALIDADOR_M001 =
-            MongoDePrueba.MIGRACIONES.resolve("esquema/M001__servicios.v2.schema.json");
-    private static final Path VALIDADOR_M003 =
-            MongoDePrueba.MIGRACIONES.resolve("esquema/M003__cuentas.v1.schema.json");
+    private static final Path VALIDADOR_M008_SERVICIOS =
+            MongoDePrueba.MIGRACIONES.resolve("esquema/M008__servicios.v3.schema.json");
+    private static final Path VALIDADOR_M008_CUENTAS =
+            MongoDePrueba.MIGRACIONES.resolve("esquema/M008__cuentas.v2.schema.json");
     private static final Path VALIDADOR_M005_FAQ = MongoDePrueba.MIGRACIONES.resolve("esquema/M005__faq.v1.schema.json");
     private static final Path VALIDADOR_M005_AVISOS =
             MongoDePrueba.MIGRACIONES.resolve("esquema/M005__avisos.v1.schema.json");
@@ -61,10 +62,13 @@ class MigracionesMongoTest {
             MongoDePrueba.MIGRACIONES.resolve("esquema/M007__historial_busqueda.v1.schema.json");
     private static final List<String> MIGRACIONES = List.of("M001__unidades-alojamiento",
             "M002__semilla-suite-casa-tayrona", "M003__cuentas", "M004__indice-servicios-prestador",
-            "M005__faq-avisos", "M006__semilla-faq-avisos", "M007__favoritos-historial");
+            "M005__faq-avisos", "M006__semilla-faq-avisos", "M007__favoritos-historial", "M008__registro-servicios",
+            "M009__semilla-direccion-rnt");
     /** Fuera del plano básico: un punto de código, dos unidades UTF-16. */
     private static final String EMOJI = "🌴";
     private static final int VALIDACION_DOCUMENTO_FALLIDA = 121;
+    private static final List<String> TODOS_LOS_DIAS =
+            List.of("Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo");
 
     @Container
     static final MongoDBContainer NUEVO = MongoDePrueba.contenedor();
@@ -72,6 +76,8 @@ class MigracionesMongoTest {
     static final MongoDBContainer EXISTENTE = MongoDePrueba.contenedor();
     @Container
     static final MongoDBContainer ERRORES = MongoDePrueba.contenedor();
+    @Container
+    static final MongoDBContainer SIN_PRECIO = MongoDePrueba.contenedor();
 
     private static MongoClient clienteNuevo;
     private static MongoClient clienteExistente;
@@ -124,17 +130,17 @@ class MigracionesMongoTest {
         assertThat(opciones(nuevo, coleccion).getString("validationAction")).isEqualTo("error");
     }
 
-    /** Mientras no exista una migración posterior que cambie servicios, la copia de M001 es la última versión. */
+    /** Mientras no exista una migración posterior que cambie servicios, la copia de M008 (v3) es la última versión. */
     @Test
-    void laCopiaDelValidadorDeM001EsLaUltimaVersion() throws IOException {
-        assertThat(Document.parse(Files.readString(VALIDADOR_M001)))
+    void laCopiaDelValidadorDeServiciosDeM008EsLaUltimaVersion() throws IOException {
+        assertThat(Document.parse(Files.readString(VALIDADOR_M008_SERVICIOS)))
                 .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("servicios.schema.json"))));
     }
 
-    /** Mientras no exista una migración posterior que cambie cuentas, la copia de M003 es la última versión. */
+    /** Mientras no exista una migración posterior que cambie cuentas, la copia de M008 (v2) es la última versión. */
     @Test
-    void laCopiaDelValidadorDeM003EsLaUltimaVersion() throws IOException {
-        assertThat(Document.parse(Files.readString(VALIDADOR_M003)))
+    void laCopiaDelValidadorDeCuentasDeM008EsLaUltimaVersion() throws IOException {
+        assertThat(Document.parse(Files.readString(VALIDADOR_M008_CUENTAS)))
                 .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("cuentas.schema.json"))));
     }
 
@@ -473,6 +479,156 @@ class MigracionesMongoTest {
         assertRechazado(alojamientoV2(d -> unidades(d).get(0).put("idUnidad", "no-es-un-objectid")));
     }
 
+    // ------------------------------------------------------------------ registro de servicios (M008, M009)
+
+    @Test
+    void m008RellenaLaFechaDeRegistroDesdeElIdYLaOfertaDeD5EnVolumenNuevoYExistente() {
+        for (MongoDatabase base : List.of(nuevo, existente)) {
+            List<Document> servicios = base.getCollection("servicios").find().into(new ArrayList<>());
+            assertThat(servicios).hasSize(14);
+            for (Document servicio : servicios) {
+                String nombre = servicio.getString("nombreComercial");
+                assertThat(servicio.getDate("fechaRegistro")).as(nombre)
+                        .isEqualTo(servicio.getObjectId("_id").getDate());
+                Document oferta = servicio.get("oferta", Document.class);
+                switch (servicio.getString("categoria")) {
+                    case "Tour" -> assertThat(oferta).as(nombre).isEqualTo(new Document("diasOperacion", TODOS_LOS_DIAS)
+                            .append("salidas", List.of("08:00", "14:00")));
+                    case "Alojamiento" -> assertThat(oferta).as(nombre)
+                            .isEqualTo(new Document("diasOperacion", TODOS_LOS_DIAS));
+                    default -> assertThat(oferta).as(nombre).isNull();
+                }
+            }
+        }
+    }
+
+    @Test
+    void m008CreaLosIndicesDeLosListadosEnVolumenNuevoYExistente() {
+        for (MongoDatabase base : List.of(nuevo, existente)) {
+            assertThat(indicesConUnicidad(base, "servicios")).contains(
+                    new Document("name", "admin_estado_fecha").append("key", new Document("estadoPublicacion", 1)
+                            .append("fechaRegistro", 1).append("_id", 1)).append("unique", false),
+                    new Document("name", "prestador_fecha").append("key", new Document("prestadorId", 1)
+                            .append("fechaRegistro", -1).append("_id", -1)).append("unique", false));
+        }
+    }
+
+    @Test
+    void laSemillaDeM009TraeLaDireccionDeCadaServicioYElRntDeSuPrestador() {
+        for (Document servicio : existente.getCollection("servicios").find()) {
+            String nombre = servicio.getString("nombreComercial");
+            assertThat(servicio.getString("direccion")).as(nombre).isNotBlank();
+            String esperado = switch (servicio.getString("prestadorId")) {
+                case "00000000-0000-4000-8000-000000000002" -> "RNT-00000";
+                case "00000000-0000-4000-8000-000000000005" -> "RNT-00001";
+                default -> null;
+            };
+            assertThat(servicio.getString("rnt")).as(nombre).isEqualTo(esperado);
+        }
+    }
+
+    @Test
+    void elValidadorV3ExigeLaOfertaSegunLaCategoria() {
+        aceptado(alojamientoV2());
+        aceptado(tourV3(d -> {
+        }));
+        aceptado(gastronomiaV3(d -> {
+        }));
+        assertRechazado(alojamientoV2(d -> d.remove("oferta")));
+        assertRechazado(alojamientoV2(d -> d.put("oferta", new Document("diasOperacion", List.of("Lunes"))
+                .append("salidas", List.of("08:00")))));
+        assertRechazado(alojamientoV2(d -> d.put("oferta", new Document("diasOperacion", List.of("Lunes", "Lunes")))));
+        assertRechazado(alojamientoV2(d -> d.put("oferta", new Document("diasOperacion", List.of("Feriado")))));
+        assertRechazado(alojamientoV2(d -> d.put("oferta", new Document("diasOperacion", List.of()))));
+        assertRechazado(tourV3(d -> d.remove("oferta")));
+        assertRechazado(tourV3(d -> d.get("oferta", Document.class).remove("salidas")));
+        assertRechazado(tourV3(d -> d.get("oferta", Document.class).put("salidas", List.of("8:00"))));
+        assertRechazado(tourV3(d -> d.get("oferta", Document.class).put("salidas", List.of("08:00", "08:00"))));
+        assertRechazado(gastronomiaV3(d -> d.put("oferta", new Document("diasOperacion", List.of("Lunes")))));
+    }
+
+    @Test
+    void elValidadorV3ExigeElMotivoSiYSoloSiElServicioEstaRechazado() {
+        aceptado(tourV3(d -> revisado(d, "Rechazado").append("motivoRechazo", "Faltan fotos del sendero")));
+        aceptado(tourV3(d -> revisado(d, "Publicado")));
+        assertRechazado(tourV3(d -> revisado(d, "Rechazado")));
+        assertRechazado(tourV3(d -> revisado(d, "Publicado").append("motivoRechazo", "No aplica")));
+        assertRechazado(tourV3(d -> revisado(d, "Rechazado").append("motivoRechazo", "")));
+        assertRechazado(tourV3(d -> revisado(d, "Rechazado").append("motivoRechazo", "x".repeat(501))));
+        assertRechazado(tourV3(d -> revisado(d, "Publicado").append("revisadoPor", "no-es-un-uuid")));
+    }
+
+    @Test
+    void elValidadorV3ExigeFechaPrecioAforosPositivosYElVocabularioDeAccesibilidad() {
+        assertRechazado(tourV3(d -> d.remove("fechaRegistro")));
+        assertRechazado(gastronomiaV3(d -> d.remove("precioBase")));
+        assertRechazado(gastronomiaV3(d -> d.put("precioBase", Decimal128.parse("0"))));
+        assertRechazado(gastronomiaV3(d -> d.get("detalleCategoria", Document.class).put("aforoMaxTurno", 0)));
+        assertRechazado(tourV3(d -> d.get("detalleCategoria", Document.class).put("aforoMaxGrupo", 0)));
+        assertRechazado(tourV3(d -> d.get("detalleCategoria", Document.class)
+                .put("duracionHoras", Decimal128.parse("0"))));
+        assertRechazado(tourV3(d -> d.put("condicionesAccesibilidad", List.of("Olfativa"))));
+        assertRechazado(tourV3(d -> d.put("condicionesAccesibilidad", List.of("Visual", "Visual"))));
+        assertRechazado(tourV3(d -> d.put("direccion", "")));
+        assertRechazado(tourV3(d -> d.put("rnt", "")));
+        assertRechazado(tourV3(d -> d.put("nombreComercial", "")));
+    }
+
+    @Test
+    void laColeccionCuentasAceptaElRntYRechazaUnoVacioOLargo() {
+        MongoCollection<Document> cuentas = nuevo.getCollection("cuentas");
+        String id = "00000000-0000-4000-8000-0000000000e4";
+
+        cuentas.insertOne(cuenta(id, "Prestador", "Activo", 2L).append("rnt", "RNT-00042"));
+        cuentas.deleteOne(Filters.eq("_id", id));
+        assertRechazado(cuentas, cuenta(id, "Prestador", "Activo", 2L).append("rnt", ""));
+        assertRechazado(cuentas, cuenta(id, "Prestador", "Activo", 2L).append("rnt", "R".repeat(51)));
+    }
+
+    /**
+     * M008 no inventa precios: con un servicio sin precioBase se detiene antes de tocar nada (ajuste 1 de la aprobación).
+     * Corregido el dato, sin semilla los servicios de la línea base quedan válidos sin dirección ni RNT, y RF22 puede
+     * seguir actualizando su {@code prestadorActivo}.
+     */
+    @Test
+    void unServicioSinPrecioDetieneM008YSinSemillaLosServiciosQuedanValidosSinDireccionNiRnt() throws Exception {
+        volumenV1(SIN_PRECIO);
+        try (MongoClient cliente = MongoClients.create(SIN_PRECIO.getConnectionString())) {
+            MongoDatabase base = cliente.getDatabase("catalog_db");
+            MongoCollection<Document> servicios = base.getCollection("servicios");
+            Document coordenadas = servicios.find(Filters.eq("nombreComercial", "Cabañas El Roble")).first()
+                    .get("coordenadas", Document.class);
+            Document sinPrecio = new Document("prestadorId", "00000000-0000-4000-8000-000000000002")
+                    .append("nombreComercial", "Restaurante sin precio")
+                    .append("categoria", "Gastronomia")
+                    .append("coordenadas", coordenadas)
+                    .append("estadoPublicacion", "Pendiente")
+                    .append("prestadorActivo", true)
+                    .append("detalleCategoria", new Document("tipoCocina", "Caribeña").append("aforoMaxTurno", 20)
+                            .append("rangoPrecioPlato", "$20.000"));
+            servicios.insertOne(sinPrecio);
+
+            ExecResult abortada = MongoDePrueba.migrar(SIN_PRECIO, false);
+
+            assertThat(abortada.getExitCode()).isNotZero();
+            assertThat(abortada.getStdout() + abortada.getStderr())
+                    .contains("M008: servicios sin precioBase", sinPrecio.getObjectId("_id").toHexString());
+            assertThat(idsMigraciones(base)).doesNotContain("M008__registro-servicios");
+            assertThat(servicios.countDocuments(Filters.exists("fechaRegistro"))).isZero();
+
+            servicios.deleteOne(Filters.eq("_id", sinPrecio.getObjectId("_id")));
+            MongoDePrueba.exigirExito("aplicar.js", MongoDePrueba.migrar(SIN_PRECIO, false));
+
+            assertThat(idsMigraciones(base)).contains("M008__registro-servicios")
+                    .doesNotContain("M009__semilla-direccion-rnt");
+            assertThat(servicios.countDocuments(Filters.exists("direccion"))).isZero();
+            assertThat(servicios.countDocuments(Filters.exists("rnt"))).isZero();
+            assertThat(servicios.countDocuments(Filters.exists("fechaRegistro"))).isEqualTo(14);
+            assertThat(servicios.updateMany(Filters.eq("prestadorId", "00000000-0000-4000-8000-000000000002"),
+                    new Document("$set", new Document("prestadorActivo", false))).getMatchedCount()).isEqualTo(13);
+        }
+    }
+
     // ------------------------------------------------------------------ conversión
 
     @Test
@@ -518,7 +674,8 @@ class MigracionesMongoTest {
 
         MongoDePrueba.exigirExito("aplicar.js", segunda);
         assertThat(segunda.getStdout()).contains("ya aplicada: M001", "ya aplicada: M002", "ya aplicada: M003",
-                "ya aplicada: M004", "ya aplicada: M005", "ya aplicada: M006", "ya aplicada: M007");
+                "ya aplicada: M004", "ya aplicada: M005", "ya aplicada: M006", "ya aplicada: M007",
+                "ya aplicada: M008", "ya aplicada: M009");
         assertThat(documentos(existente, "servicios")).isEqualTo(antes);
         assertThat(idsMigraciones(existente)).containsExactlyElementsOf(MIGRACIONES);
     }
@@ -569,7 +726,8 @@ class MigracionesMongoTest {
         MongoDePrueba.exigirExito("aplicar.js", MongoDePrueba.migrar(ERRORES, false));
 
         assertThat(idsMigraciones(errores)).containsExactly("M001__unidades-alojamiento", "M003__cuentas",
-                "M004__indice-servicios-prestador", "M005__faq-avisos", "M007__favoritos-historial");
+                "M004__indice-servicios-prestador", "M005__faq-avisos", "M007__favoritos-historial",
+                "M008__registro-servicios");
         assertThat(errores.getCollection("faq").countDocuments()).isZero();
         assertThat(unidadesDe(errores, "Hotel Casa Tayrona")).hasSize(1);
     }
@@ -653,12 +811,13 @@ class MigracionesMongoTest {
         return base.getCollection(coleccion).find().sort(Sorts.ascending(nombre)).into(new ArrayList<>());
     }
 
-    /** Sin _id ni idUnidad: son ObjectId aleatorios en cada volumen. */
+    /** Sin _id ni idUnidad: son ObjectId aleatorios en cada volumen; M008 deriva fechaRegistro del _id. */
     private static List<Document> sinIdsAleatorios(List<Document> documentos) {
         List<Document> limpios = new ArrayList<>();
         for (Document original : documentos) {
             Document documento = Document.parse(original.toJson());
             documento.remove("_id");
+            documento.remove("fechaRegistro");
             Document detalle = documento.get("detalleCategoria", Document.class);
             if (detalle != null && detalle.containsKey("unidades")) {
                 detalle.getList("unidades", Document.class).forEach(unidad -> unidad.remove("idUnidad"));
@@ -709,9 +868,59 @@ class MigracionesMongoTest {
                 .append("prestadorActivo", true)
                 .append("precioBase", Decimal128.parse("150000"))
                 .append("detalleCategoria", new Document("serviciosIncluidos", List.of("WiFi"))
-                        .append("unidades", unidades));
+                        .append("unidades", unidades))
+                // Desde el validador v3 (M008): fecha de registro y oferta del alojamiento.
+                .append("fechaRegistro", new java.util.Date())
+                .append("oferta", new Document("diasOperacion", List.of("Lunes", "Martes")));
         cambio.accept(documento);
         return documento;
+    }
+
+    private static void aceptado(Document documento) {
+        MongoCollection<Document> servicios = nuevo.getCollection("servicios");
+        servicios.insertOne(documento);
+        servicios.deleteOne(Filters.eq("_id", documento.getObjectId("_id")));
+    }
+
+    private static Document revisado(Document servicio, String estado) {
+        return servicio.append("estadoPublicacion", estado)
+                .append("revisadoPor", "00000000-0000-4000-8000-0000000000ad")
+                .append("fechaRevision", new java.util.Date());
+    }
+
+    /** Un tour v3 válido (registrado con su oferta, M008) con un cambio aplicado. */
+    private static Document tourV3(Consumer<Document> cambio) {
+        Document documento = servicioV3("Tour", new Document("puntoEncuentro", "Muelle")
+                .append("duracionHoras", Decimal128.parse("3.5")).append("aforoMaxGrupo", 12))
+                .append("oferta", new Document("diasOperacion", List.of("Sabado")).append("salidas", List.of("08:00")));
+        cambio.accept(documento);
+        return documento;
+    }
+
+    private static Document gastronomiaV3(Consumer<Document> cambio) {
+        Document documento = servicioV3("Gastronomia", new Document("tipoCocina", "Caribeña")
+                .append("aforoMaxTurno", 40).append("rangoPrecioPlato", "$30.000"));
+        cambio.accept(documento);
+        return documento;
+    }
+
+    private static Document servicioV3(String categoria, Document detalle) {
+        return new Document("_id", new ObjectId())
+                .append("prestadorId", "00000000-0000-4000-8000-000000000002")
+                .append("nombreComercial", "Servicio de prueba")
+                .append("categoria", categoria)
+                .append("descripcion", "Descripción")
+                .append("direccion", "Calle 1 # 2-3")
+                .append("coordenadas", new Document("type", "Point").append("coordinates", List.of(-74.2125, 11.2425)))
+                .append("contacto", new Document("telefono", "+57 300").append("correo", "hola@prueba.test"))
+                .append("estadoPublicacion", "Pendiente")
+                .append("prestadorActivo", true)
+                .append("rnt", "RNT-00000")
+                .append("condicionesAccesibilidad", List.of("Visual"))
+                .append("precioBase", Decimal128.parse("50000"))
+                .append("imagenes", List.of())
+                .append("detalleCategoria", detalle)
+                .append("fechaRegistro", new java.util.Date());
     }
 
     private static void assertRechazado(Document documento) {

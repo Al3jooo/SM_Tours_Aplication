@@ -24,6 +24,9 @@ import java.util.UUID;
 @RestController
 public class CuentaInternaController {
 
+    /** La columna {@code prestador.rnt} de ms-auth es {@code varchar(50)}; el validador de {@code cuentas} también. */
+    private static final int LONGITUD_MAXIMA_RNT = 50;
+
     private final ActualizarCuentaUseCase actualizar;
 
     public CuentaInternaController(ActualizarCuentaUseCase actualizar) {
@@ -43,7 +46,13 @@ public class CuentaInternaController {
         if (!campos.isEmpty()) {
             throw new DatosInvalidosException(campos);
         }
-        actualizar.actualizar(new Cuenta(id, rol, estado, solicitud.version()));
+        // El RNT solo se guarda en la cuenta de un prestador (DEC-146): en otro rol se ignora.
+        String rnt = rol == RolCuenta.Prestador && solicitud.rnt() != null && !solicitud.rnt().isBlank()
+                ? solicitud.rnt().strip() : null;
+        if (rnt != null && rnt.codePointCount(0, rnt.length()) > LONGITUD_MAXIMA_RNT) {
+            throw new DatosInvalidosException(Map.of("rnt", "LONGITUD_MAXIMA"));
+        }
+        actualizar.actualizar(new Cuenta(id, rol, estado, solicitud.version(), rnt));
         return ResponseEntity.noContent().build();
     }
 

@@ -5,7 +5,8 @@ Contrato de ms-catalog para el frontend y para las pruebas. Todas las rutas van 
 Este documento nace con la iteración «Contenido público» (RF26, RF47, RF40; DEC-60). Fija:
 - las **preguntas frecuentes** (CU [«Gestionar FAQs»](../../casos-de-uso/CU-gestionar-faqs.md));
 - los **avisos generales** (CU [«Crear y publicar aviso general»](../../casos-de-uso/CU-crear-publicar-aviso-general.md));
-- los **favoritos** (CU [«Guardar favoritos»](../../casos-de-uso/CU-guardar-favoritos.md)) y el **historial de búsquedas** (CU [«Consultar historial de búsquedas»](../../casos-de-uso/CU-consultar-historial-busquedas.md)), de la iteración B1 «Turista» (RF54, RF60; DEC-80, DEC-56).
+- los **favoritos** (CU [«Guardar favoritos»](../../casos-de-uso/CU-guardar-favoritos.md)) y el **historial de búsquedas** (CU [«Consultar historial de búsquedas»](../../casos-de-uso/CU-consultar-historial-busquedas.md)), de la iteración B1 «Turista» (RF54, RF60; DEC-80, DEC-56);
+- el **registro de servicios**, «Mis servicios» y la **aprobación** (CU [«Registrar servicio»](../../casos-de-uso/CU-registrar-servicio.md) y [«Aprobar o rechazar servicio»](../../casos-de-uso/CU-aprobar-rechazar-servicio.md)), de la iteración C (RF09, RF10, RF37, RF21; DEC-124 a DEC-151), con los campos nuevos del detalle público y el RNT de la proyección `cuentas`.
 
 La búsqueda, los filtros, el detalle de un servicio y el endpoint interno de la proyección `cuentas` están descritos en `docs/trazabilidad.md` («Endpoints de ms-catalog») y en [`ms-auth.md`](ms-auth.md) («Endpoint interno de los consumidores»). Las decisiones están en `docs/trazabilidad.md` («Contenido público — decisiones» y «Turista (B1) — decisiones»).
 
@@ -14,17 +15,18 @@ La búsqueda, los filtros, el detalle de un servicio y el endpoint interno de la
 - **Autenticación:** `Authorization: Bearer <JWT de ms-auth>`.
   - `/api/v1/catalogo/admin/**` exige el rol **Administrador** (RNF06, DEC-65).
   - `/api/v1/catalogo/favoritos/**` y `/api/v1/catalogo/historial` exigen el rol **Turista** (RNF06, DEC-80, DEC-56); el turista es siempre el del claim `sub`.
+  - `/api/v1/catalogo/prestador/**` exige el rol **Prestador** (RNF06, DEC-125); el prestador es siempre el del claim `sub`.
   - `GET /faq` y `GET /avisos` son públicos y se llaman **sin token** (DEC-47).
   - Si a una ruta pública le llega un Bearer, también se valida ([ADR-008](../adr/ADR-008-sincronizacion-estado-cuentas.md)):
     - vencido, mal firmado o de servicio → 401 `NO_AUTENTICADO`;
     - con `ver` menor que la versión de la proyección `cuentas` → 401 `SESION_INVALIDADA`.
-- **Errores:** ProblemDetail (RFC 9457) con `codigo` estable, como ms-auth y ms-booking. `DATOS_INVALIDOS` lleva `campos`: un código por campo con el nombre JSON, nunca textos (`REQUERIDO`, `FORMATO`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`). Un cuerpo que no es JSON (o que falta) también es `DATOS_INVALIDOS`, sin `campos`.
+- **Errores:** ProblemDetail (RFC 9457) con `codigo` estable, como ms-auth y ms-booking. `DATOS_INVALIDOS` lleva `campos`: un código por campo con el nombre JSON, nunca textos (`REQUERIDO`, `FORMATO`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`; el registro de servicios suma `DUPLICADO`, `VALOR_MINIMO`, `VALOR_MAXIMO`, `CANTIDAD_MINIMA` y `CANTIDAD_MAXIMA`, DEC-151). Un cuerpo que no es JSON (o que falta) también es `DATOS_INVALIDOS`, sin `campos`.
 - **Textos:** se guardan **sin los espacios de los extremos** (`strip()`).
   - Los límites se cuentan después de recortar y en **puntos de código**: un emoji cuenta uno, como `maxLength` en MongoDB (DEC-61).
   - El contenido va en el idioma en que lo escribe el Administrador, sin campos por idioma (DEC-69).
 - **Fechas:** instantes ISO 8601 en UTC, con milisegundos si los hay (`2026-10-22T15:30:00.123Z`).
 - **Ids:** ObjectId en hexadecimal (24 caracteres en minúscula). Un id que no tiene esa forma responde **404**, igual que uno inexistente.
-- **Página** (solo el listado de avisos del Administrador): de 10, con `pagina` desde 0, como ms-auth (DEC-41): `{elementos, pagina, tamano: 10, totalElementos, totalPaginas}`.
+- **Página** (el listado de avisos del Administrador, «Mis servicios» y la cola de servicios): de 10, con `pagina` desde 0, como ms-auth (DEC-41): `{elementos, pagina, tamano: 10, totalElementos, totalPaginas}`.
 
 ## Preguntas frecuentes (RF26, RF47)
 
@@ -200,6 +202,107 @@ Solo el rol **Turista**. Es una llamada aparte de `GET /oferta`, que sigue públ
 
 `criterios` trae todos los campos (los que no se usaron, en null; las listas, vacías), con los nombres de `GET /oferta`, para repetir la búsqueda con un clic.
 
+## Registrar servicio y Mis servicios (RF09, RF10, RF37)
+
+CU [«Registrar servicio»](../../casos-de-uso/CU-registrar-servicio.md), con el flujo «Consultar mis servicios» (DEC-129). Solo el rol **Prestador**; el prestador es siempre el del claim `sub`. Decisiones DEC-124 a DEC-151 en `docs/trazabilidad.md` («Registrar y aprobar servicio — decisiones»).
+
+### Registrar
+
+`POST /api/v1/catalogo/prestador/servicios`
+
+```json
+{
+  "nombreComercial": "Tour Bahía Concha",
+  "categoria": "Tour",
+  "descripcion": "Salida en lancha con equipo de snorkel.",
+  "direccion": "Muelle de Taganga, Santa Marta",
+  "coordenadas": { "longitud": -74.1906, "latitud": 11.2672 },
+  "contacto": { "telefono": "+57 300 000 0000", "correo": "hola@bahia.test" },
+  "condicionesAccesibilidad": ["Visual"],
+  "horarioAtencion": "Sábados y domingos, salidas a las 8:00 y 14:00",
+  "precioBase": 95000,
+  "detalleCategoria": { "puntoEncuentro": "Muelle de Taganga", "duracionHoras": 3.5, "nivelDificultad": "Baja", "aforoMaxGrupo": 12 },
+  "oferta": { "diasOperacion": ["Sabado", "Domingo"], "salidas": ["08:00", "14:00"] }
+}
+```
+
+| Campo | Regla (textos con `strip()`, contados en puntos de código; DEC-138) |
+|---|---|
+| `nombreComercial` | obligatorio, 1 a 150 |
+| `categoria` | obligatorio: `Alojamiento`, `Gastronomia`, `Tour` o `AlquilerEquipo` |
+| `descripcion` | obligatorio (RF09), 1 a 2000 |
+| `direccion` | obligatorio, 1 a 200 (DEC-126) |
+| `coordenadas` | obligatorio `{longitud, latitud}`; solo el rango global: −180 a 180 y −90 a 90 (DEC-137). Se guarda como GeoJSON `[longitud, latitud]` |
+| `contacto.telefono` | obligatorio, 1 a 20 (la regla de ms-auth) |
+| `contacto.correo` | obligatorio, hasta 254, con la forma `^[^\s@]+@[^\s@]+\.[^\s@]+$` (la de ms-auth) |
+| `condicionesAccesibilidad` | opcional: `MovilidadReducida`, `Visual`, `Auditiva` (RF27), sin repetir |
+| `horarioAtencion` | opcional (RF58), 1 a 500; vacío es «sin valor» |
+| `precioBase` | obligatorio salvo en Alojamiento: mayor que 0, hasta 2 decimales y hasta 99 999 999,99 (cabe en la reserva de ms-booking). En Alojamiento se ignora y se deriva del menor `precioNoche` (DEC-127) |
+| `detalleCategoria` (Alojamiento) | `unidades`: de 1 a 20, cada una con `nombre` (1 a 100), `tipoHabitacion` (1 a 50), `numHabitaciones` (1 a 1000), `capacidadMaxHuespedes` (1 a 50) y `precioNoche` (como `precioBase`); `serviciosIncluidos` opcional: `WiFi`, `Desayuno`, `Piscina`, `Parqueadero`, sin repetir. El `idUnidad` lo genera el servidor (DEC-133, DEC-141) |
+| `detalleCategoria` (Gastronomia) | `tipoCocina` (1 a 100), `aforoMaxTurno` (1 a 10 000), `menuVegetariano` (opcional), `rangoPrecioPlato` (1 a 50) |
+| `detalleCategoria` (Tour) | `puntoEncuentro` (1 a 200), `duracionHoras` (mayor que 0, hasta 720, 2 decimales), `nivelDificultad` (opcional, 1 a 50), `aforoMaxGrupo` (1 a 10 000) |
+| `detalleCategoria` (AlquilerEquipo) | `tipoVehiculoEquipo` (1 a 100), `unidadesDisponibles` (1 a 10 000), `condicionesAlquiler` (opcional, 1 a 500) |
+| `oferta` (DEC-136) | obligatoria en Tour y Alojamiento, prohibida en Gastronomia y AlquilerEquipo (`NO_PERMITIDO`). `diasOperacion`: de 1 a 7 de `Lunes`, `Martes`, `Miercoles`, `Jueves`, `Viernes`, `Sabado`, `Domingo`, sin repetir. `salidas` (solo Tour, obligatoria): de 1 a 12 horas `HH:mm`, sin repetir; se guardan en orden. En Alojamiento, `salidas` es `NO_PERMITIDO` |
+
+Del cuerpo se ignoran `prestadorId`, `estadoPublicacion`, `prestadorActivo`, `rnt`, `idUnidad` y el `precioBase` de un alojamiento (DEC-141). Los campos de `detalleCategoria` de otra categoría también se ignoran.
+
+Respuestas:
+- **201** con `Location: /api/v1/catalogo/prestador/servicios/{id}` y el servicio en su forma de gestión (abajo), con `estadoPublicacion: "Pendiente"`.
+- **400 `DATOS_INVALIDOS`** con `campos`; los anidados con punto e índice: `contacto.correo`, `coordenadas.latitud`, `detalleCategoria.unidades[0].precioNoche`, `oferta.salidas[1]`. Códigos: `REQUERIDO`, `FORMATO`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`, `DUPLICADO`, `VALOR_MINIMO`, `VALOR_MAXIMO`, `CANTIDAD_MINIMA`, `CANTIDAD_MAXIMA` (DEC-151).
+- **403 `PRESTADOR_NO_HABILITADO`**: la cuenta no tiene fila en la proyección `cuentas`, no está `Activo` o la fila no tiene RNT (DEC-125, DEC-139). Se evalúa antes que los datos.
+- **403 `ACCESO_DENEGADO`** con otro rol; **401** sin token o con `ver` viejo.
+- Si el prestador se inactiva mientras se registra, el servicio queda con `prestadorActivo: false` (DEC-142).
+
+Forma de gestión (registro, detalle propio y detalle del Administrador):
+
+```json
+{
+  "id": "6a20…", "idPrestador": "00000000-0000-4000-8000-000000000002", "nombreComercial": "Tour Bahía Concha",
+  "categoria": "Tour", "descripcion": "…", "direccion": "Muelle de Taganga, Santa Marta",
+  "coordenadas": { "longitud": -74.1906, "latitud": 11.2672 },
+  "contacto": { "telefono": "+57 300 000 0000", "correo": "hola@bahia.test" },
+  "condicionesAccesibilidad": ["Visual"], "horarioAtencion": "…", "precioBase": 95000, "moneda": "COP",
+  "detalleCategoria": { "puntoEncuentro": "Muelle de Taganga", "duracionHoras": 3.5, "nivelDificultad": "Baja", "aforoMaxGrupo": 12 },
+  "oferta": { "diasOperacion": ["Sabado", "Domingo"], "salidas": ["08:00", "14:00"] },
+  "imagenes": [], "estadoPublicacion": "Pendiente", "prestadorActivo": true, "rnt": "RNT-00000",
+  "fechaRegistro": "2026-10-24T15:00:00.321Z", "motivoRechazo": null, "fechaRevision": null
+}
+```
+
+En la vista del Administrador se suman `revisadoPor` (quien decidió) y `estadoCuentaPrestador` (el estado según la proyección `cuentas`; se omite si no hay fila).
+
+### Mis servicios (DEC-143)
+
+- `GET /api/v1/catalogo/prestador/servicios?estado=&pagina=` → **200**, página de 10, del más reciente al más antiguo. `estado`: `Pendiente`, `Publicado` o `Rechazado`; sin él, todos. Cada elemento: `{id, nombreComercial, categoria, estadoPublicacion, motivoRechazo, fechaRegistro}`. **400** con `campos.estado` (`NO_PERMITIDO`) o `campos.pagina` (`FORMATO`).
+- `GET /api/v1/catalogo/prestador/servicios/{id}` → **200** con la forma de gestión, en cualquier estado. **404 `SERVICIO_NO_ENCONTRADO`** si no existe, el id no es un ObjectId o es de otro prestador.
+
+## Aprobar o rechazar servicio (RF21)
+
+CU [«Aprobar o rechazar servicio»](../../casos-de-uso/CU-aprobar-rechazar-servicio.md), con «Consultar listado pendiente» y «Justificar rechazo de servicio». Solo el rol **Administrador** (`/admin/**`).
+
+- `GET /api/v1/catalogo/admin/servicios?estado=&pagina=` → **200**, página de 10, del más antiguo al más reciente (la cola de revisión; DEC-144). `estado` por defecto `Pendiente`. Cada elemento: `{id, nombreComercial, categoria, idPrestador, rnt, estadoPublicacion, prestadorActivo, fechaRegistro}`.
+- `GET /api/v1/catalogo/admin/servicios/{id}` → **200** con la forma de gestión de la vista del Administrador, sin la regla de visibilidad pública. **404 `SERVICIO_NO_ENCONTRADO`**.
+- `POST /api/v1/catalogo/admin/servicios/{id}/aprobacion`
+
+```json
+{ "decision": "Aprobar" }
+{ "decision": "Rechazar", "justificacion": "Las fotos no corresponden al lugar" }
+```
+
+- `decision`: `Aprobar` o `Rechazar` (ausente → `REQUERIDO`; otro valor → `NO_PERMITIDO`).
+- `justificacion`: obligatoria al rechazar, de 1 a 500 caracteres sin los espacios de los extremos (como DEC-42); al aprobar se ignora (DEC-145).
+- **200** con el detalle (`Publicado` o `Rechazado`), con `revisadoPor` (`sub`), `fechaRevision` y, si se rechazó, `motivoRechazo`.
+- **400 `DATOS_INVALIDOS`** con `campos.decision` o `campos.justificacion`. **404 `SERVICIO_NO_ENCONTRADO`**. **409 `ESTADO_CAMBIADO`** con `estadoActual` (`Publicado` o `Rechazado`): otro Administrador ya decidió (DEC-128). Es un UPDATE condicional sobre `Pendiente`.
+- Aprobar el servicio de un prestador inactivo se permite: queda `Publicado` y oculto por `prestadorActivo` (RF22).
+
+## Detalle público: dirección, RNT y oferta (DEC-150)
+
+`GET /api/v1/catalogo/servicios/{id}` suma tres campos al final de la respuesta: `direccion`, `rnt` (copia del RNT del prestador; HC2) y `oferta` (`{diasOperacion, salidas}` en Tour, `{diasOperacion}` en Alojamiento, `null` en Gastronomía y Alquiler). Son `null` en un servicio que no los tiene. No expone `estadoPublicacion` ni la revisión. ms-booking lee `oferta` de esta respuesta para materializar el inventario (DEC-135, sesión A2) e ignora los campos que no usa.
+
+## Proyección `cuentas`: RNT (DEC-146)
+
+`PUT /internal/v1/cuentas/{id}` (solo el relevo de ms-auth, con su JWT de servicio) acepta `rnt` además de `{rol, estadoCuenta, version}`. Se guarda solo si `rol = Prestador` (en otro rol se ignora); un evento sin `rnt` lo quita de la fila. Más de 50 caracteres → **400** con `campos.rnt = LONGITUD_MAXIMA`. El resto del contrato está en [`ms-auth.md`](ms-auth.md) («Endpoint interno de los consumidores»).
+
 ## Códigos de error
 
 | Código | HTTP | Cuándo |
@@ -208,13 +311,15 @@ Solo el rol **Turista**. Es una llamada aparte de `GET /oferta`, que sigue públ
 | `CRITERIOS_INVALIDOS` | 400 | `POST /historial` con criterios que `GET /oferta` también rechaza (DEC-88) |
 | `NO_AUTENTICADO` | 401 | Sin token en `/admin/**`, `/favoritos/**` o `/historial`, o con un token vencido, inválido o de servicio (`rol = SERVICIO`) |
 | `SESION_INVALIDADA` | 401 | `ver` menor que la versión de la proyección `cuentas`, o un token de Gestor o Administrador cuya cuenta no tiene fila en ella (DEC-110; L3 cerrado con RF45) |
-| `ACCESO_DENEGADO` | 403 | `/admin/**` con un rol que no es Administrador (Turista, Prestador o Gestor); `/favoritos/**` o `/historial` con un rol que no es Turista |
+| `ACCESO_DENEGADO` | 403 | `/admin/**` con un rol que no es Administrador (Turista, Prestador o Gestor); `/favoritos/**` o `/historial` con un rol que no es Turista; `/prestador/**` con un rol que no es Prestador |
+| `PRESTADOR_NO_HABILITADO` | 403 | `POST /prestador/servicios` de un prestador sin fila en `cuentas`, no `Activo` o sin RNT (DEC-139) |
 | `OFERTA_NO_DISPONIBLE` | 404 | `PUT /favoritos/{tipo}/{id}` con un id inválido, inexistente o no visible |
 | `FAQ_NO_ENCONTRADA` | 404 | Pregunta inexistente o id que no es un ObjectId |
 | `AVISO_NO_ENCONTRADO` | 404 | Aviso inexistente o id que no es un ObjectId |
+| `SERVICIO_NO_ENCONTRADO` | 404 | Servicio inexistente, id que no es un ObjectId o, en «Mis servicios», de otro prestador |
 | `LIMITE_FAQ` | 409 | Ya hay 200 preguntas frecuentes |
 | `LIMITE_FAVORITOS` | 409 | El turista ya tiene 100 favoritos |
-| `ESTADO_CAMBIADO` | 409 | El aviso ya estaba despublicado; lleva `estadoActual: "Inactivo"` |
+| `ESTADO_CAMBIADO` | 409 | El aviso ya estaba despublicado (`estadoActual: "Inactivo"`) o el servicio ya no estaba Pendiente (`estadoActual`: `Publicado` o `Rechazado`) |
 | `ERROR_INTERNO` | 500 | Cualquier otro error |
 
 ## Colecciones
@@ -238,4 +343,10 @@ La semilla de demostración (M006, solo con `MONGO_SEMILLA=true`) trae 5 pregunt
 - `historial_turista_fecha`: `{turistaId: 1, fecha: -1, _id: -1}`;
 - `historial_turista_clave` (único): `{turistaId: 1, clave: 1}`.
 
-Sin semilla (no hay M008): el turista de la demostración crea sus favoritos y su historial al usar la aplicación.
+Sin semilla propia: el turista de la demostración crea sus favoritos y su historial al usar la aplicación.
+
+`servicios` en su esquema v3 (M008; [`modelo-nosql/servicios.schema.json`](../modelo-nosql/servicios.schema.json), DEC-148): suma `fechaRegistro` (obligatoria), `oferta` (obligatoria en Tour y Alojamiento), `direccion`, `rnt`, `motivoRechazo`, `revisadoPor` y `fechaRevision`; exige `precioBase` en todas las categorías y el motivo si y solo si el servicio está Rechazado. `cuentas` suma `rnt` (M008). La semilla M009 (solo con `MONGO_SEMILLA=true`) da dirección y RNT a los servicios de la demostración.
+
+Índices nuevos de `servicios`:
+- `admin_estado_fecha`: `{estadoPublicacion: 1, fechaRegistro: 1, _id: 1}`;
+- `prestador_fecha`: `{prestadorId: 1, fechaRegistro: -1, _id: -1}`.

@@ -215,7 +215,7 @@ class BuscarOfertaServiceTest {
                                               Coordenada coordenada, EstadoPublicacion estado, boolean prestadorActivo,
                                               Set<CondicionAccesibilidad> accesibilidad) {
         return new ServicioComercial(id, PRESTADOR, nombre, detalle.categoria(), detalle, "Descripción de " + nombre,
-                coordenada, null, estado, prestadorActivo, accesibilidad, null, new BigDecimal(precio), List.of());
+                coordenada, null, estado, prestadorActivo, accesibilidad, null, new BigDecimal(precio), List.of(), null, null, null, null, null);
     }
 
     private static AtractivoPublico atractivo(String id, String nombre, Coordenada coordenada, EstadoOperativo estado,

@@ -33,7 +33,9 @@ class ActualizarCuentaServiceTest {
 
         assertThat(resultado).isEqualTo(ResultadoActualizacion.APLICADA);
         assertThat(cuentas.buscar(PRESTADOR)).get().extracting(Cuenta::version).isEqualTo(3L);
-        assertThat(visibilidad.llamadas()).containsExactly(new Llamada(PRESTADOR.toString(), false));
+        // DEC-142 (b): la visibilidad se fija antes de guardar la proyección y se repite después.
+        assertThat(visibilidad.llamadas()).containsExactly(new Llamada(PRESTADOR.toString(), false),
+                new Llamada(PRESTADOR.toString(), false));
     }
 
     @ParameterizedTest
@@ -41,8 +43,8 @@ class ActualizarCuentaServiceTest {
     void prestadorActivoSeDerivaDelEstado(EstadoCuenta estado) {
         servicio.actualizar(new Cuenta(PRESTADOR, RolCuenta.Prestador, estado, 1));
 
-        assertThat(visibilidad.llamadas()).containsExactly(
-                new Llamada(PRESTADOR.toString(), estado == EstadoCuenta.Activo));
+        Llamada esperada = new Llamada(PRESTADOR.toString(), estado == EstadoCuenta.Activo);
+        assertThat(visibilidad.llamadas()).containsExactly(esperada, esperada); // DEC-142 (b)
     }
 
     @Test
@@ -84,7 +86,8 @@ class ActualizarCuentaServiceTest {
 
         servicio.actualizar(new Cuenta(PRESTADOR, RolCuenta.Gestor, EstadoCuenta.Activo, 2));
 
-        assertThat(visibilidad.llamadas()).containsExactly(new Llamada(PRESTADOR.toString(), false));
+        assertThat(visibilidad.llamadas()).containsExactly(new Llamada(PRESTADOR.toString(), false),
+                new Llamada(PRESTADOR.toString(), false)); // DEC-142 (b)
     }
 
     @Test

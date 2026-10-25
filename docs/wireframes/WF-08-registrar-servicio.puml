@@ -1,0 +1,104 @@
+' WF-08 — Registrar servicio comercial (RF09, RF10, RF27, RF37, RF58). Ampliación en Salt del PNG
+' (WF-08-registrar-servicio.png), propuesta por arquitectura y pendiente de validación del equipo (iteración C, DEC-130
+' a DEC-136). Solo estructura: regiones, elementos y flujo. Conserva todos los elementos del PNG y agrega las unidades
+' del alojamiento (DEC-133), la oferta inicial (DEC-136), la dirección y el pin del mapa (DEC-132).
+' Diagramas: (1) datos generales y Alojamiento; (2) Tour con su oferta; (3) Gastronomía, Alquiler y errores.
+' Solo para el Prestador; se llega desde WF-18 «Mis servicios». Lo implementa la sesión B1.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+{ Banner de avisos (común, ver WF-14) }
+==
+Panel del Prestador › Mis servicios › Registrar nuevo servicio
+<b>Registrar nuevo servicio
+{ (i) El Administrador revisa el servicio antes de publicarlo (RF09, RF21): queda «Pendiente de aprobación» }
+--
+<b>Datos del servicio
+{ Nombre comercial * | "                              " | 0/150 }
+{ Categoría * | ^Alojamiento^ (Alojamiento, Gastronomía, Tour/Recorrido, Alquiler de equipos) }
+{ RNT | RNT-00000 (de tu cuenta, solo lectura; HC2) }
+{ Descripción * | "                              " | 0/2000 }
+--
+<b>Datos de contacto y ubicación
+{ Teléfono / WhatsApp * | "               " | Correo * | "                    " }
+{ Dirección * | "                                        " | 0/200 }
+{ Ubicación en el mapa * | (mapa con pin arrastrable; centrado en Santa Marta) | longitud, latitud }
+{ Horario de atención (RF58) | "Lunes a domingo, 7:00 a 21:00" | 0/500 }
+--
+<b>Precio (RF37)
+{ Precio «desde» (COP) * | (en Alojamiento se calcula: el menor precio por noche de las unidades) }
+{ «Cobra por» | (deshabilitado: no está en el esquema; diferencia 5) }
+{ [ ] El precio incluye impuestos | (deshabilitado: no está en el esquema; diferencia 5) }
+--
+<b>Campos de Alojamiento (RF10)
+{ Servicios incluidos | [X] WiFi | [X] Desayuno | [ ] Piscina | [ ] Parqueadero }
+<b>Unidades (de 1 a 20; DEC-133)
+{#
+<b>Nombre * | <b>Tipo de habitación * | <b>Habitaciones * | <b>Huéspedes por habitación * | <b>Precio por noche * | <b>Acción
+"Doble estándar" | "Doble" | "10" | "2" | "180000" | [Quitar]
+"Suite familiar" | "Suite" | "3" | "4" | "260000" | [Quitar]
+}
+[+ Agregar unidad]
+<b>Oferta inicial (DEC-136)
+{ Días de operación * | [X] Lun | [X] Mar | [X] Mié | [X] Jue | [X] Vie | [X] Sáb | [X] Dom | [Todos los días] }
+(la capacidad de cada noche sale de las habitaciones de cada unidad)
+--
+<b>Fotos (RF48)
+{ (deshabilitado: las imágenes llegan en la iteración E, DEC-55) }
+--
+<b>Condiciones de accesibilidad (RF27)
+{ [ ] Movilidad reducida | [ ] Visual | [ ] Auditiva }
+--
+{ [ ] Declaro que la información es veraz (sin requisito en el SRS; no se guarda) }
+{ [Cancelar] | [Enviar a aprobación] }
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+<b>Registrar nuevo servicio — Tour/Recorrido
+(datos del servicio, contacto, ubicación, precio, accesibilidad y veracidad: como en el diagrama 1)
+--
+<b>Campos de Tour (RF10)
+{ Punto de encuentro * | "Muelle de Taganga" | 0/200 }
+{ Duración (horas) * | "3.5" }
+{ Nivel de dificultad | "Baja" | 0/50 }
+{ Aforo máximo por grupo * | "12" }
+--
+<b>Oferta inicial (DEC-136)
+{ Días de operación * | [ ] Lun | [ ] Mar | [ ] Mié | [ ] Jue | [ ] Vie | [X] Sáb | [X] Dom | [Todos los días] }
+<b>Salidas (de 1 a 12, HH:mm)
+{ "08:00" [Quitar] | "14:00" [Quitar] | [+ Agregar salida] }
+(cada salida ofrece el aforo máximo por grupo)
+--
+{ [Cancelar] | [Enviar a aprobación] }
+}
+@endsalt
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+<b>Registrar nuevo servicio — Gastronomía / Alquiler de equipos
+--
+<b>Campos de Gastronomía (RF10)
+{ Tipo de cocina * | "Caribeña" | Aforo máximo por turno * | "60" }
+{ [X] Menú vegetariano | Rango de precio por plato * | "$30.000 - $60.000" }
+<b>Campos de Alquiler de equipos (RF10)
+{ Tipo de vehículo o equipo * | "Kayak doble" | Unidades disponibles * | "8" }
+{ Condiciones de alquiler | "Depósito de $50.000" | 0/500 }
+(Gastronomía y Alquiler no tienen oferta: no son reservables, D2 de «Reservar servicio»)
+--
+<b>Errores (400 DATOS_INVALIDOS)
+{ Cada campo muestra su error junto a él (código por campo, también los anidados: unidades[i].precioNoche, salidas[i]) }
+{ 403 PRESTADOR_NO_HABILITADO: «Tu cuenta aún no está habilitada para registrar servicios» }
+{ Éxito (201): «Enviado a aprobación» y lleva a WF-18 «Mis servicios» }
+--
+{ [Cancelar] | [Enviar a aprobación] }
+}
+@endsalt

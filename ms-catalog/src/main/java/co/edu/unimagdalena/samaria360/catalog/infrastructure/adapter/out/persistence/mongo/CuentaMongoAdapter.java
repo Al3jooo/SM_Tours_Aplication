@@ -17,7 +17,10 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.UUID;
 
-/** Colección {@code cuentas}: {@code {_id: uuid, rol, estadoCuenta, version: long, actualizadoEn}} (M003). */
+/**
+ * Colección {@code cuentas}: {@code {_id: uuid, rol, estadoCuenta, version: long, actualizadoEn}} (M003) y {@code rnt}
+ * solo en las cuentas de un prestador (M008, DEC-146).
+ */
 @Component
 public class CuentaMongoAdapter implements CuentaRepositoryPort {
 
@@ -36,7 +39,8 @@ public class CuentaMongoAdapter implements CuentaRepositoryPort {
             return Optional.empty();
         }
         return Optional.of(new Cuenta(id, RolCuenta.valueOf(documento.getString("rol")),
-                EstadoCuenta.valueOf(documento.getString("estadoCuenta")), documento.getLong("version")));
+                EstadoCuenta.valueOf(documento.getString("estadoCuenta")), documento.getLong("version"),
+                documento.getString("rnt")));
     }
 
     @Override
@@ -60,6 +64,12 @@ public class CuentaMongoAdapter implements CuentaRepositoryPort {
                 .set("estadoCuenta", cuenta.estado().name())
                 .set("version", cuenta.version())
                 .set("actualizadoEn", new Date());
+        // Sin RNT (otro rol, o un evento anterior a V17 de ms-auth), el campo no queda con un valor viejo.
+        if (cuenta.rnt() != null) {
+            cambio.set("rnt", cuenta.rnt());
+        } else {
+            cambio.unset("rnt");
+        }
         try {
             mongo.upsert(filtro, cambio, CUENTAS);
             return true;

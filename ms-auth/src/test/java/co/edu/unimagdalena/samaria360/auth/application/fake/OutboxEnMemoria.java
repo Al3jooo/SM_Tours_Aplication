@@ -77,7 +77,7 @@ public class OutboxEnMemoria implements OutboxPort {
                 .toList();
         elegidas.forEach(e -> e.proximoIntento = ahora.plus(arriendo));
         return elegidas.stream().map(e -> new EntregaPendiente(e.idEvento, e.evento.idUsuario(), e.evento.rol(),
-                e.evento.estadoCuenta(), e.evento.version(), e.intentos)).toList();
+                e.evento.estadoCuenta(), e.evento.version(), e.evento.rnt(), e.intentos)).toList();
     }
 
     @Override

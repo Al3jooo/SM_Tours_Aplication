@@ -1,0 +1,54 @@
+' WF-18 — Mis servicios (flujo «Consultar mis servicios» del CU «Registrar servicio»; RF09, DEC-129, DEC-143).
+' Propuesto por arquitectura, pendiente de validación del equipo. Solo estructura: regiones, elementos y flujo.
+' Diagramas: (1) lista con filtro; (2) detalle de un servicio rechazado; (3) estado vacío.
+' Solo para el Prestador; se llega desde el menú del avatar. Lo implementa la sesión B1.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+{ Banner de avisos (común, ver WF-14) }
+==
+Panel del Prestador › Mis servicios
+{ <b>Mis servicios | [Registrar nuevo servicio] }
+{ Estado | ^Todos^ (Todos, Pendiente de aprobación, Publicado, Rechazado) }
+del más reciente al más antiguo
+--
+{#
+<b>Nombre | <b>Categoría | <b>Estado | <b>Registrado | <b>Acción
+Cabañas del Río | Alojamiento | Pendiente de aprobación | 24/10/2026 | [Ver detalle]
+Tour Bahía Concha | Tour | <b>Rechazado</b> · «Las fotos no corresponden al lugar» | 20/10/2026 | [Ver detalle]
+Restaurante La Marea | Gastronomía | Publicado | 15/10/2026 | [Ver detalle] [Ver ficha pública]
+}
+{ [<] Página 1 de 2 [>] }
+«Ver ficha pública» solo en Publicado: lleva a WF-06 (/servicios/:id)
+Región de estado (aria-live): página cargada · error del servidor
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+Panel del Prestador › Mis servicios › Tour Bahía Concha
+<b>Tour Bahía Concha · Tour
+{ Estado | <b>Rechazado</b> | Revisado el 21/10/2026 }
+{ Motivo del rechazo | «Las fotos no corresponden al lugar» }
+--
+(datos tal como se enviaron: descripción, dirección y mapa, contacto, precio, campos de Tour, oferta, accesibilidad, horario, RNT)
+--
+{ [Volver a Mis servicios] | [Editar y reenviar] (deshabilitado: la edición es de la iteración D) }
+}
+@endsalt
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+<b>Mis servicios
+--
+Aún no registraste servicios.
+[Registrar nuevo servicio]
+}
+@endsalt

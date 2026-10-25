@@ -48,7 +48,7 @@ class ServicioApiIntegracionTest {
         String json = cuerpo(resultado);
         assertThat(claves(json)).containsExactly("id", "idPrestador", "nombreComercial", "categoria", "descripcion",
                 "imagenes", "precioBase", "moneda", "detalleCategoria", "contacto", "condicionesAccesibilidad",
-                "horarioAtencion");
+                "horarioAtencion", "direccion", "rnt", "oferta"); // DEC-150 (HC2) y la oferta de DEC-135
         assertThat((String) JsonPath.read(json, "$.descripcion")).contains("Parque de los Novios");
         assertThat((List<String>) JsonPath.read(json, "$.imagenes")).isNotEmpty()
                 .allSatisfy(imagen -> assertThat(imagen).startsWith("/"));

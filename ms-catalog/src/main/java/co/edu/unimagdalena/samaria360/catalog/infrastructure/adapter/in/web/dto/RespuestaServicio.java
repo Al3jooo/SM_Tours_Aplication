@@ -6,9 +6,12 @@ import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleAlquilerEquipo
 import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleCategoria;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleGastronomia;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleTour;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.DiaSemana;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioComercial;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.List;
 
 /**
@@ -22,11 +25,15 @@ import java.util.List;
  * @param contacto                  teléfono y correo de atención al público del servicio (RF09, RF43); null si no hay
  * @param condicionesAccesibilidad  las declaradas (RF27), en el orden de {@link #ORDEN_ACCESIBILIDAD}; vacía si no hay
  * @param horarioAtencion           días y horarios como texto libre (RF58); null si no hay
+ * @param direccion                 dirección del servicio (RF09, HC2); null en un servicio anterior sin dirección
+ * @param rnt                       RNT del prestador, copiado al registrar el servicio (DEC-126, HC2); null si no hay
+ * @param oferta                    días de operación y, en un tour, salidas (DEC-136); null en Gastronomía y Alquiler.
+ *                                  ms-booking la lee de esta respuesta para materializar el inventario (DEC-135)
  */
 public record RespuestaServicio(String id, String idPrestador, String nombreComercial, String categoria,
                                 String descripcion, List<String> imagenes, BigDecimal precioBase, String moneda,
                                 Object detalleCategoria, Contacto contacto, List<String> condicionesAccesibilidad,
-                                String horarioAtencion) {
+                                String horarioAtencion, String direccion, String rnt, Oferta oferta) {
 
     /** Los precios del prototipo están en pesos colombianos. */
     public static final String MONEDA = "COP";
@@ -56,6 +63,15 @@ public record RespuestaServicio(String id, String idPrestador, String nombreCome
     public record AlquilerEquipo(String tipoVehiculoEquipo, int unidadesDisponibles, String condicionesAlquiler) {
     }
 
+    /** @param salidas {@code HH:mm} en hora de Santa Marta; solo en Tour */
+    public record Oferta(List<String> diasOperacion, @JsonInclude(JsonInclude.Include.NON_NULL) List<String> salidas) {
+
+        static Oferta de(co.edu.unimagdalena.samaria360.catalog.domain.model.Oferta oferta) {
+            return new Oferta(oferta.diasOperacion().stream().map(DiaSemana::name).toList(),
+                    oferta.salidas().isEmpty() ? null : oferta.salidas().stream().map(LocalTime::toString).toList());
+        }
+    }
+
     public static RespuestaServicio de(ServicioComercial servicio) {
         return new RespuestaServicio(servicio.getId().orElseThrow(), servicio.getPrestadorId().toString(),
                 servicio.getNombreComercial(), servicio.getCategoria().name(), servicio.getDescripcion().orElse(null),
@@ -64,10 +80,16 @@ public record RespuestaServicio(String id, String idPrestador, String nombreCome
                         .orElse(null),
                 ORDEN_ACCESIBILIDAD.stream().filter(servicio.getCondicionesAccesibilidad()::contains)
                         .map(CondicionAccesibilidad::name).toList(),
-                servicio.getHorarioAtencion().orElse(null));
+                servicio.getHorarioAtencion().orElse(null), servicio.getDireccion().orElse(null),
+                servicio.getRnt().orElse(null), servicio.getOferta().map(Oferta::de).orElse(null));
     }
 
-    private static Object detalle(DetalleCategoria detalle) {
+    static List<String> accesibilidad(ServicioComercial servicio) {
+        return ORDEN_ACCESIBILIDAD.stream().filter(servicio.getCondicionesAccesibilidad()::contains)
+                .map(CondicionAccesibilidad::name).toList();
+    }
+
+    static Object detalle(DetalleCategoria detalle) {
         if (detalle instanceof DetalleAlojamiento alojamiento) {
             return new Alojamiento(alojamiento.serviciosIncluidos(), alojamiento.unidades().stream()
                     .map(unidad -> new Unidad(unidad.idUnidad(), unidad.nombre(), unidad.tipoHabitacion(),

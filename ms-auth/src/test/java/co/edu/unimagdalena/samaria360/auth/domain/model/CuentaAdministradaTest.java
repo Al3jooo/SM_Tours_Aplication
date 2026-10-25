@@ -17,13 +17,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class CuentaAdministradaTest {
 
     private static final UUID ID = UUID.fromString("00000000-0000-4000-8000-0000000000aa");
+    private static final String RNT = "RNT-12345";
 
     private static CuentaAdministrada prestador(EstadoValidacion validacion, EstadoCuenta cuenta, long version) {
-        return new CuentaAdministrada(ID, Rol.Prestador, cuenta, validacion, version);
+        return new CuentaAdministrada(ID, Rol.Prestador, cuenta, validacion, version, RNT);
     }
 
     private static CuentaAdministrada turista(EstadoCuenta cuenta, long version) {
-        return new CuentaAdministrada(ID, Rol.Turista, cuenta, null, version);
+        return new CuentaAdministrada(ID, Rol.Turista, cuenta, null, version, null);
     }
 
     /** Las 9 combinaciones de validación × cuenta, con la precedencia de AJ2. */
@@ -162,12 +163,23 @@ class CuentaAdministradaTest {
 
     @Test
     void soloSeAdministranTuristasYPrestadoresYElPrestadorLlevaSuValidacion() {
-        assertThatThrownBy(() -> new CuentaAdministrada(ID, Rol.Gestor, EstadoCuenta.Activo, null, 0))
+        assertThatThrownBy(() -> new CuentaAdministrada(ID, Rol.Gestor, EstadoCuenta.Activo, null, 0, null))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new CuentaAdministrada(ID, Rol.Prestador, EstadoCuenta.Activo, null, 0))
+        assertThatThrownBy(() -> new CuentaAdministrada(ID, Rol.Prestador, EstadoCuenta.Activo, null, 0, RNT))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new CuentaAdministrada(ID, Rol.Turista, EstadoCuenta.Activo,
-                EstadoValidacion.Activo, 0)).isInstanceOf(IllegalArgumentException.class);
+                EstadoValidacion.Activo, 0, null)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    /** DEC-146: el prestador lleva su RNT y el turista no. */
+    @Test
+    void elPrestadorLlevaSuRntYElTuristaNo() {
+        assertThatThrownBy(() -> new CuentaAdministrada(ID, Rol.Prestador, EstadoCuenta.Activo,
+                EstadoValidacion.Activo, 0, null)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new CuentaAdministrada(ID, Rol.Prestador, EstadoCuenta.Activo,
+                EstadoValidacion.Activo, 0, " ")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new CuentaAdministrada(ID, Rol.Turista, EstadoCuenta.Activo, null, 0, RNT))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -180,5 +192,30 @@ class CuentaAdministradaTest {
         assertThat(evento.rol()).isEqualTo(Rol.Turista);
         assertThat(evento.estadoCuenta()).isEqualTo(EstadoAdministrativo.Desactivado);
         assertThat(evento.version()).isEqualTo(5);
+        assertThat(evento.rnt()).isNull();
+    }
+
+    /** DEC-146: aprobar, rechazar e inactivar a un prestador emiten su evento con el RNT. */
+    @Test
+    void elEventoDeUnPrestadorLlevaSuRnt() {
+        java.time.Instant ahora = java.time.Instant.parse("2030-01-01T00:00:00Z");
+
+        for (CambioEstadoCuenta cambio : java.util.List.of(
+                prestador(EstadoValidacion.Pendiente, EstadoCuenta.Activo, 0).aprobar(),
+                prestador(EstadoValidacion.Pendiente, EstadoCuenta.Activo, 0)
+                        .rechazar(JustificacionRechazo.de("RNT vencido")),
+                prestador(EstadoValidacion.Activo, EstadoCuenta.Activo, 0).inactivar())) {
+            assertThat(EventoCuentaActualizada.de(cambio, ahora).rnt()).isEqualTo(RNT);
+        }
+    }
+
+    @Test
+    void elEventoExigeElRntSoloAlPrestador() {
+        java.time.Instant ahora = java.time.Instant.parse("2030-01-01T00:00:00Z");
+
+        assertThatThrownBy(() -> new EventoCuentaActualizada(ID, Rol.Prestador, EstadoAdministrativo.Activo, 1, null,
+                ahora)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new EventoCuentaActualizada(ID, Rol.Gestor, EstadoAdministrativo.Activo, 1, RNT,
+                ahora)).isInstanceOf(IllegalArgumentException.class);
     }
 }
