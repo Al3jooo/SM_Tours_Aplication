@@ -1,0 +1,70 @@
+/* Piezas comunes de los servicios comerciales: detalle propio del Prestador (WF-18) y revisión del Administrador
+   (WF-19, DEC-176). Reutiliza los tokens de estilos.css y el mapa de catalogo.css (`.mapa-oferta`, `.marcador`). */
+
+/* Estado de publicación: siempre con texto (N21). */
+.insignia-servicio {
+  display: inline-block;
+  padding: var(--espacio-1) var(--espacio-3);
+  border-radius: var(--radio-pill);
+  font-size: var(--texto-xs);
+  font-weight: 700;
+}
+
+.insignia-servicio--pendiente {
+  background: var(--color-sol-100);
+  color: var(--color-cafe-700);
+}
+
+.insignia-servicio--publicado {
+  background: var(--color-mar-100);
+  color: var(--color-mar-900);
+}
+
+.insignia-servicio--rechazado {
+  background: var(--color-error-fondo);
+  color: var(--color-error);
+}
+
+/* Datos del servicio tal como se enviaron. */
+.datos-servicio {
+  display: grid;
+  gap: var(--espacio-3);
+  margin: 0;
+}
+
+.datos-servicio > div {
+  display: grid;
+  gap: var(--espacio-1);
+}
+
+@media (min-width: 40rem) {
+  .datos-servicio > div {
+    grid-template-columns: 14rem 1fr;
+  }
+}
+
+.datos-servicio dt {
+  font-weight: 600;
+  color: var(--color-tinta-suave);
+}
+
+.datos-servicio dd {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.datos-servicio__unidades {
+  display: grid;
+  gap: var(--espacio-1);
+  margin: 0;
+  padding-left: var(--espacio-4);
+}
+
+/* Mapa de solo lectura (WF-19): el pin del servicio, sin edición. */
+.mapa-servicio {
+  margin-top: var(--espacio-2);
+}
+
+.mapa-oferta.mapa-servicio .mapa-oferta__lienzo {
+  height: 16rem;
+}

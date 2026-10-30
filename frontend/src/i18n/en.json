@@ -32,6 +32,7 @@
     "cerrarSesion": "Sign out",
     "misReservas": "My bookings",
     "administrarCuentas": "Manage accounts",
+    "aprobarServicios": "Approve services",
     "administrarPreguntas": "FAQ",
     "administrarAvisos": "Notices",
     "miPerfil": "My profile",
@@ -810,6 +811,7 @@
       "ERROR_RED": "Could not connect to the server. Check your connection and retry.",
       "SERVICIO_NO_DISPONIBLE": "The accounts service is not available right now. Retry in a few minutes.",
       "CONTENIDO_NO_DISPONIBLE": "The content service is not available right now. Retry in a few minutes.",
+      "CATALOGO_NO_DISPONIBLE": "The catalog is not available right now. Try again in a few minutes.",
       "GENERICO": "An unexpected error occurred. Please try again."
     },
     "erroresLista": {
@@ -901,6 +903,75 @@
       "erroresTipo": {
         "REQUERIDO": "Choose the type of the notice.",
         "NO_PERMITIDO": "Choose a type from the list."
+      }
+    },
+    "servicios": {
+      "migas": "Breadcrumb",
+      "migaAdministracion": "Administration",
+      "migaServicios": "Services",
+      "titulo": "Services awaiting approval",
+      "apoyo": "Review the services registered by providers, from oldest to newest, and approve or reject them.",
+      "filtroEstado": "Status",
+      "tabla": "Services, from oldest to newest",
+      "contador_one": "{{count}} service",
+      "contador_other": "{{count}} services",
+      "cargando": "Loading services…",
+      "vacio": {
+        "Pendiente": "There are no services pending approval.",
+        "Publicado": "There are no published services.",
+        "Rechazado": "There are no rejected services."
+      },
+      "columnas": {
+        "nombre": "Name",
+        "categoria": "Category",
+        "rnt": "Provider's RNT",
+        "prestadorActivo": "Active provider",
+        "registrado": "Registered",
+        "accion": "Action"
+      },
+      "si": "Yes",
+      "no": "No",
+      "noOculto": "No (it will stay hidden even if approved)",
+      "revisar": "Review",
+      "revisarDe": "Review {{nombre}}",
+      "erroresLista": {
+        "noDisponible": "The catalog is not available right now.",
+        "red": "Could not connect to the server. Check your connection.",
+        "otro": "An unexpected error occurred while loading the services.",
+        "sinPermiso": "Your account is not allowed to view this page."
+      },
+      "revision": {
+        "cargando": "Loading the service…",
+        "titulo": "Review: {{nombre}} · {{categoria}}",
+        "estado": "Status",
+        "registrado": "Registered on",
+        "avisoInactivo": "The provider's account is not active: if you approve the service, it will be Published but hidden from the public catalog.",
+        "prestador": "Provider",
+        "idPrestador": "Identifier",
+        "rnt": "RNT",
+        "cuenta": "Account",
+        "revision": "Review",
+        "revisadoEl": "Reviewed on",
+        "revisadoPor": "Reviewed by (identifier)",
+        "motivoRechazo": "Reason for rejection",
+        "datos": "Submitted data",
+        "mapa": "Location of {{nombre}} on the map",
+        "volver": "Back",
+        "rechazar": "Reject",
+        "aprobar": "Approve → Published"
+      },
+      "rechazo": {
+        "titulo": "Reject service “{{nombre}}”",
+        "aviso": "This decision is final: the service will not be published and the provider will see the justification in “My services”."
+      },
+      "exito": {
+        "aprobado": "“{{nombre}}” was approved: it is now Published.",
+        "rechazado": "“{{nombre}}” was rejected: it is now Rejected."
+      },
+      "errores": {
+        "ESTADO_CAMBIADO": "“{{nombre}}” was already reviewed by another administrator (it is now {{estado}}); the list was reloaded.",
+        "ESTADO_CAMBIADO_SIN_ESTADO": "“{{nombre}}” was already reviewed by another administrator; the list was reloaded.",
+        "SERVICIO_NO_ENCONTRADO": "The service no longer exists; the list was reloaded."
       }
     }
   },

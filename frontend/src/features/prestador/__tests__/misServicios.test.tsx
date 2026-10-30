@@ -198,6 +198,18 @@ describe('WF-18, detalle propio', () => {
     expect(screen.queryByRole('link', { name: 'Ver ficha pública' })).not.toBeInTheDocument()
   })
 
+  it('sin condiciones de accesibilidad (null) la página no falla y el dato queda «sin datos» (O19)', async () => {
+    conSesion(USUARIO_PRESTADOR, {
+      [`GET /api/v1/catalogo/prestador/servicios/${ID}`]: () =>
+        respuestaJson(200, servicioGestion({ condicionesAccesibilidad: null })),
+    })
+    renderApp(`/prestador/servicios/${ID}`)
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Tour de Café en Minca' }, LENTO)).toBeInTheDocument()
+    const etiqueta = screen.getByText('Condiciones de accesibilidad', { selector: 'dt' })
+    expect(etiqueta.nextElementSibling).toHaveTextContent('sin datos')
+  })
+
   it('un servicio ajeno o inexistente (404) se muestra como no encontrado, sin «Reintentar»', async () => {
     conSesion(USUARIO_PRESTADOR, {
       [`GET /api/v1/catalogo/prestador/servicios/${ID}`]: () => respuestaProblema(404, 'SERVICIO_NO_ENCONTRADO'),

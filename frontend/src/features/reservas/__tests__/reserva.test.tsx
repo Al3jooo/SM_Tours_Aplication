@@ -141,8 +141,11 @@ describe('WF-10, alojamiento: unidades, cupos y resumen', () => {
 
     expect(screen.getByLabelText('Salida (check-out)')).toHaveValue(sumarDias(SALIDA, 3))
     expect(screen.getByText(`Ajustamos la salida al ${formatearFecha(sumarDias(SALIDA, 3), 'es')} para que la estadía sea válida.`)).toHaveAttribute('role', 'status')
-    // Las fechas cambiaron: hay que verificar de nuevo antes de confirmar.
-    expect(confirmar()).toHaveAccessibleDescription('Cambiaste las fechas: verifica la disponibilidad de nuevo.')
+    // Las fechas cambiaron: hay que verificar de nuevo antes de confirmar. Se espera la disponibilidad inicial: hasta
+    // que llega, el motivo es «Verifica la disponibilidad para continuar» (con la suite cargada llegaba tarde, O22).
+    await waitFor(() =>
+      expect(confirmar()).toHaveAccessibleDescription('Cambiaste las fechas: verifica la disponibilidad de nuevo.'),
+    )
   })
 
   it('un precio publicado con formato inválido deja el total sin calcular y «Confirmar» bloqueado', async () => {

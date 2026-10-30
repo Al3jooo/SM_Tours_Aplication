@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import type { EstadoPublicacion } from '../serviciosPrestadorApi'
+import type { EstadoPublicacion } from './servicioGestion'
+import './servicio.css'
 
 /** Estado de publicación con texto, nunca solo con color (WCAG 1.4.1): «Pendiente de aprobación» (N21), etc. */
 export function InsigniaEstadoServicio({ estado }: { estado: EstadoPublicacion }) {

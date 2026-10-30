@@ -1,12 +1,14 @@
 import { solicitar } from '../../shared/api/httpClient'
-import type { Categoria, CondicionAccesibilidad } from '../catalogo/catalogoApi'
+import type { Categoria } from '../catalogo/catalogoApi'
+import type { EstadoPublicacion, ServicioGestion } from '../servicios/servicioGestion'
 
 /**
  * Contrato de `/api/v1/catalogo/prestador/servicios` (ms-catalog, iteración C, A1; docs/sad/api/ms-catalog.md): solo
  * el rol Prestador y siempre los servicios del `sub` del token. Peticiones con token (no son públicas, DEC-47).
+ * Los estados y la forma de gestión son comunes con la revisión del Administrador (features/servicios, DEC-176).
  */
-export const ESTADOS_PUBLICACION = ['Pendiente', 'Publicado', 'Rechazado'] as const
-export type EstadoPublicacion = (typeof ESTADOS_PUBLICACION)[number]
+export { ESTADOS_PUBLICACION } from '../servicios/servicioGestion'
+export type { EstadoPublicacion, ServicioGestion } from '../servicios/servicioGestion'
 
 /** Un servicio en el listado de «Mis servicios» (WF-18). */
 export interface ServicioResumen {
@@ -27,34 +29,6 @@ export interface PaginaServicios {
   tamano: number
   totalElementos: number
   totalPaginas: number
-}
-
-/** Forma de gestión: la respuesta del 201 y del detalle propio (`GET /prestador/servicios/{id}`). */
-export interface ServicioGestion {
-  id: string
-  idPrestador: string
-  nombreComercial: string
-  categoria: Categoria
-  descripcion: string | null
-  direccion: string | null
-  coordenadas: { longitud: number; latitud: number } | null
-  contacto: { telefono: string | null; correo: string | null } | null
-  condicionesAccesibilidad: CondicionAccesibilidad[]
-  horarioAtencion: string | null
-  /** En Alojamiento, el menor `precioNoche` (DEC-127). Número o texto decimal (BigDecimal). */
-  precioBase: number | string | null
-  moneda: string
-  detalleCategoria: Record<string, unknown> | null
-  /** Solo Tour (`diasOperacion` y `salidas`) y Alojamiento (`diasOperacion`); null en las demás (DEC-136). */
-  oferta: { diasOperacion: string[]; salidas?: string[] | null } | null
-  imagenes: string[]
-  estadoPublicacion: EstadoPublicacion
-  prestadorActivo: boolean
-  /** Copia del RNT del prestador (DEC-126). */
-  rnt: string | null
-  fechaRegistro: string
-  motivoRechazo: string | null
-  fechaRevision: string | null
 }
 
 const RUTA = '/api/v1/catalogo/prestador/servicios'
