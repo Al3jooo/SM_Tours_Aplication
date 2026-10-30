@@ -2,15 +2,19 @@ package co.edu.unimagdalena.samaria360.catalog.infrastructure.adapter.out.persis
 
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.GestionServiciosPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.ServicioRepositoryPort;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.Contacto;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.DetalleAlojamiento;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.EstadoPublicacion;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.PaginaResultados;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.Revision;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioComercial;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioEditado;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
@@ -21,8 +25,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Colección {@code servicios} (esquema v3, M008). El detalle público aplica el mismo filtro de visibilidad que la
- * búsqueda (RF16, RF22). Los listados usan los índices de M008: {@code prestador_fecha} («Mis servicios», del más
+ * Colección {@code servicios} (esquema v4, M011). El detalle público aplica el mismo filtro de visibilidad que la
+ * búsqueda (RF16, RF22). La edición del Prestador (RF32, RF43) y la decisión del Administrador (RF21) son UPDATE
+ * condicionales que suben {@code version} (DEC-186). Los listados usan los índices de M008: {@code prestador_fecha} («Mis servicios», del más
  * reciente al más antiguo) y {@code admin_estado_fecha} (la cola del Administrador, del más antiguo al más reciente).
  */
 @Component
@@ -31,6 +36,7 @@ public class ServicioMongoAdapter implements ServicioRepositoryPort, GestionServ
     private static final String SERVICIOS = "servicios";
     private static final Document RECIENTES_PRIMERO = new Document("fechaRegistro", -1).append("_id", -1);
     private static final Document ANTIGUOS_PRIMERO = new Document("fechaRegistro", 1).append("_id", 1);
+    private static final Document SUBIR_VERSION = new Document("version", 1);
 
     private final MongoTemplate mongo;
 
@@ -78,14 +84,48 @@ public class ServicioMongoAdapter implements ServicioRepositoryPort, GestionServ
         return pagina(Filters.eq("estadoPublicacion", estado.name()), ANTIGUOS_PRIMERO, pagina, tamano);
     }
 
-    /** {@code updateOne({_id, estadoPublicacion: Pendiente}, $set)}: si ya se decidió, el filtro no coincide. */
+    /**
+     * {@code updateOne({_id, estadoPublicacion: Pendiente}, $set, $inc version)}: si ya se decidió, el filtro no
+     * coincide. Subir la versión hace que una edición del Prestador leída antes de la decisión no la pise (DEC-186).
+     */
     @Override
     public boolean decidir(String id, EstadoPublicacion estadoNuevo, Revision revision) {
         Document cambios = ServicioDocumentoMapper.revision(new Document("estadoPublicacion", estadoNuevo.name()),
                 revision);
         return coleccion().updateOne(
                 Filters.and(Filters.eq("_id", new ObjectId(id)), Filters.eq("estadoPublicacion", "Pendiente")),
-                new Document("$set", cambios)).getMatchedCount() > 0;
+                new Document("$set", cambios).append("$inc", SUBIR_VERSION)).getMatchedCount() > 0;
+    }
+
+    /** En Alojamiento, el «desde» y las unidades van en la misma escritura: el {@code $expr} del validador lo exige. */
+    @Override
+    public boolean actualizarPrecio(ServicioEditado edicion) {
+        ServicioComercial servicio = edicion.servicio();
+        Document cambios = new Document("precioBase", new Decimal128(servicio.getPrecioBase().orElseThrow()));
+        if (servicio.getDetalle() instanceof DetalleAlojamiento alojamiento) {
+            cambios.append("detalleCategoria.unidades", ServicioDocumentoMapper.unidades(alojamiento));
+        }
+        return editar(edicion, cambios);
+    }
+
+    @Override
+    public boolean actualizarDatosComerciales(ServicioEditado edicion) {
+        ServicioComercial servicio = edicion.servicio();
+        Contacto contacto = servicio.getContacto().orElseThrow();
+        return editar(edicion, new Document("nombreComercial", servicio.getNombreComercial())
+                .append("contacto", new Document("telefono", contacto.telefono()).append("correo", contacto.correo())));
+    }
+
+    /** {@code updateOne({_id, prestadorId, estadoPublicacion: Pendiente | Publicado, version}, $set, $inc version)}. */
+    private boolean editar(ServicioEditado edicion, Document cambios) {
+        ServicioComercial servicio = edicion.servicio();
+        Bson filtro = Filters.and(
+                Filters.eq("_id", new ObjectId(servicio.getId().orElseThrow())),
+                Filters.eq("prestadorId", servicio.getPrestadorId().toString()),
+                Filters.in("estadoPublicacion", "Pendiente", "Publicado"),
+                Filters.eq("version", edicion.versionEsperada()));
+        return coleccion().updateOne(filtro, new Document("$set", cambios).append("$inc", SUBIR_VERSION))
+                .getMatchedCount() > 0;
     }
 
     @Override

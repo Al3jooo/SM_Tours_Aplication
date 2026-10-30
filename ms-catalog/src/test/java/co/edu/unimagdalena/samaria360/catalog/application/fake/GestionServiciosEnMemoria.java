@@ -6,6 +6,7 @@ import co.edu.unimagdalena.samaria360.catalog.domain.model.EstadoPublicacion;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.PaginaResultados;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.Revision;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioComercial;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioEditado;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.Unidades;
 
 import java.util.ArrayList;
@@ -18,8 +19,10 @@ import java.util.UUID;
 
 /**
  * Colección {@code servicios} en memoria con la semántica del adaptador MongoDB: el UPDATE condicional sobre Pendiente,
- * los órdenes de los listados y {@code prestadorActivo} por servicio o por prestador ({@link #visibilidad()} es el
- * {@link VisibilidadPrestadorPort} de RF22, para probar la carrera de DEC-142 con los dos casos de uso).
+ * la edición condicional del Prestador sobre la versión (DEC-186), los órdenes de los listados y
+ * {@code prestadorActivo} por servicio o por prestador ({@link #visibilidad()} es el {@link VisibilidadPrestadorPort}
+ * de RF22, para probar la carrera de DEC-142 con los dos casos de uso). {@link #antesDeEditar(Runnable)} simula lo que
+ * pasa entre la lectura y la escritura de una edición (p. ej. la decisión del Administrador).
  */
 public class GestionServiciosEnMemoria implements GestionServiciosPort {
 
@@ -28,6 +31,12 @@ public class GestionServiciosEnMemoria implements GestionServiciosPort {
             .thenComparing(s -> s.getId().orElseThrow());
 
     private final Map<String, ServicioComercial> servicios = new LinkedHashMap<>();
+    private Runnable antesDeEditar = () -> {
+    };
+
+    public void antesDeEditar(Runnable accion) {
+        this.antesDeEditar = accion;
+    }
 
     public void agregar(ServicioComercial servicio) {
         servicios.put(servicio.getId().orElseThrow(), servicio);
@@ -83,8 +92,43 @@ public class GestionServiciosEnMemoria implements GestionServiciosPort {
                 actual.getCondicionesAccesibilidad(), actual.getHorarioAtencion().orElse(null),
                 actual.getPrecioBase().orElse(null), actual.getImagenes(), actual.getDireccion().orElse(null),
                 actual.getOferta().orElse(null), actual.getRnt().orElse(null),
-                actual.getFechaRegistro().orElse(null), revision));
+                actual.getFechaRegistro().orElse(null), revision, actual.getVersion() + 1));
         return true;
+    }
+
+    @Override
+    public boolean actualizarPrecio(ServicioEditado edicion) {
+        return editar(edicion);
+    }
+
+    @Override
+    public boolean actualizarDatosComerciales(ServicioEditado edicion) {
+        return editar(edicion);
+    }
+
+    /** Mismo filtro que el adaptador: id, prestador, estado editable y versión esperada; sube la versión. */
+    private boolean editar(ServicioEditado edicion) {
+        antesDeEditar.run();
+        ServicioComercial nuevo = edicion.servicio();
+        ServicioComercial actual = servicios.get(nuevo.getId().orElseThrow());
+        if (actual == null || !actual.getPrestadorId().equals(nuevo.getPrestadorId())
+                || actual.getEstadoPublicacion() == EstadoPublicacion.Rechazado
+                || actual.getVersion() != edicion.versionEsperada()) {
+            return false;
+        }
+        agregar(conVersion(nuevo, actual.getEstadoPublicacion(), actual.getRevision().orElse(null),
+                actual.getVersion() + 1));
+        return true;
+    }
+
+    private static ServicioComercial conVersion(ServicioComercial s, EstadoPublicacion estado, Revision revision,
+                                                int version) {
+        return new ServicioComercial(s.getId().orElseThrow(), s.getPrestadorId(), s.getNombreComercial(),
+                s.getCategoria(), s.getDetalle(), s.getDescripcion().orElse(null), s.getCoordenada(),
+                s.getContacto().orElse(null), estado, s.isPrestadorActivo(), s.getCondicionesAccesibilidad(),
+                s.getHorarioAtencion().orElse(null), s.getPrecioBase().orElse(null), s.getImagenes(),
+                s.getDireccion().orElse(null), s.getOferta().orElse(null), s.getRnt().orElse(null),
+                s.getFechaRegistro().orElse(null), revision, version);
     }
 
     @Override

@@ -172,7 +172,9 @@ class RelevoCuentasIntegracionTest {
 
         // El destino vuelve y, vencida la espera, la entrega sale.
         estadoReservas.set(204);
-        jdbc.update("UPDATE outbox_entrega SET proximo_intento = now() WHERE entregado_en IS NULL");
+        // Con la hora del RelojPort, la que compara el relevo: now() es la de PostgreSQL, que puede ir adelantada (O23).
+        jdbc.update("UPDATE outbox_entrega SET proximo_intento = ? WHERE entregado_en IS NULL",
+                java.sql.Timestamp.from(reloj.ahora()));
         assertThat(relevo.relevar(Destino.MS_BOOKING)).isEqualTo(1);
         assertThat(aReservas).hasSize(2);
         assertThat(entrega(usuario, "ms-booking").get("entregado_en")).isNotNull();

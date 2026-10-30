@@ -4,7 +4,7 @@ Contrato de ms-auth para el frontend y para las pruebas. Todas las rutas van por
 
 ## Convenciones
 
-- **Autenticación:** `Authorization: Bearer <JWT de ms-auth>`. Los endpoints de `/admin/**` exigen el rol **Administrador**; `/perfil`, el rol **Turista**; `/me`, cualquier rol.
+- **Autenticación:** `Authorization: Bearer <JWT de ms-auth>`. Los endpoints de `/admin/**` exigen el rol **Administrador**; `/perfil`, el rol **Turista**; `/prestador/perfil`, el rol **Prestador**; `/me`, cualquier rol.
 - **Errores:** ProblemDetail (RFC 9457) con `codigo` estable, como ms-catalog y ms-booking. `DATOS_INVALIDOS` lleva `campos`: un código por campo con el nombre JSON, nunca textos (`REQUERIDO`, `FORMATO`, `LONGITUD_MINIMA`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`, `DUPLICADO`).
 - **Fechas:** `aaaa-mm-dd` (el día de registro; el modelo no guarda la hora) e instantes ISO 8601 en UTC.
 - **Páginas de 10** (DEC-41), con `pagina` desde 0, como «Mis reservas»: `{elementos, pagina, tamano: 10, totalElementos, totalPaginas}`.
@@ -200,6 +200,27 @@ Solo el rol **Turista** (otro rol → 403 `ACCESO_DENEGADO`); el turista es siem
 - Las categorías se **reemplazan como conjunto** en la misma transacción que los datos: si algo falla, no cambia nada.
 - **400** `DATOS_INVALIDOS` con `campos` (`REQUERIDO`, `FORMATO`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`, `DUPLICADO`); un cuerpo que no es JSON, sin `campos`. **401** `NO_AUTENTICADO` (también si el token es válido, pero no hay fila en `turista`) o `SESION_INVALIDADA`. **403** `ACCESO_DENEGADO`.
 
+## Perfil comercial del Prestador (RF43)
+
+CU [«Actualizar datos comerciales»](../../casos-de-uso/CU-actualizar-datos-comerciales.md), parte de la cuenta (iteración D, DEC-188). Solo el rol **Prestador** (otro rol → 403 `ACCESO_DENEGADO`); el prestador es siempre el del claim `sub`. La parte que ve el Turista (nombre y contacto de cada servicio) está en [`ms-catalog.md`](ms-catalog.md) («Editar un servicio»).
+
+`GET /api/v1/auth/prestador/perfil` → **200**
+
+```json
+{ "correo": "prestador@samaria360.test", "representanteLegal": "Carlos Gómez",
+  "razonSocial": "Tours Sierra Nevada S.A.S.", "rnt": "RNT-00000",
+  "correoCorporativo": "contacto@tours-sierra.test", "telefono": "+57 3000000000" }
+```
+
+- `correo` (la credencial), `representanteLegal`, `razonSocial` (puede ser null) y `rnt` van en **solo lectura**. El RNT cierra O16: el Prestador lo ve antes de registrar un servicio.
+
+`PUT /api/v1/auth/prestador/perfil` · `{correoCorporativo, telefono}` → **200** con el perfil resultante.
+
+- `correoCorporativo`: obligatorio, con la forma de un correo, hasta 100 caracteres; se guarda recortado y en minúsculas. Es el **contacto**, no la credencial (decisión D2): `usuario.correo` no cambia y el inicio de sesión sigue con el correo de acceso. Sin unicidad: no revela cuentas (ADR-006).
+- `telefono`: obligatorio, hasta 20 caracteres, recortado (RF02 no fija el formato).
+- Los demás campos del cuerpo se ignoran. No sube `version_cuenta`, no escribe en el outbox y no tiene control de concurrencia (como el perfil del turista, DEC-79 y DEC-84).
+- **400** `DATOS_INVALIDOS` con `campos.correoCorporativo` (`REQUERIDO`, `FORMATO`, `LONGITUD_MAXIMA`) o `campos.telefono` (`REQUERIDO`, `LONGITUD_MAXIMA`). **401** `NO_AUTENTICADO` o `SESION_INVALIDADA`. **403** `ACCESO_DENEGADO`.
+
 ## Códigos de error
 
 | Código | HTTP | Cuándo |
@@ -207,7 +228,7 @@ Solo el rol **Turista** (otro rol → 403 `ACCESO_DENEGADO`); el turista es siem
 | `DATOS_INVALIDOS` | 400 | `campos` como se indica arriba. Un cuerpo que no es JSON también, sin `campos` |
 | `NO_AUTENTICADO` | 401 | Sin token, vencido, inválido o de servicio (`rol = SERVICIO`) |
 | `SESION_INVALIDADA` | 401 | `ver` menor que `version_cuenta`: la cuenta cambió después de iniciar sesión |
-| `ACCESO_DENEGADO` | 403 | El rol no es Administrador (`/admin/**`) o no es Turista (`/perfil`) |
+| `ACCESO_DENEGADO` | 403 | El rol no es Administrador (`/admin/**`), no es Turista (`/perfil`) o no es Prestador (`/prestador/perfil`) |
 | `CUENTA_NO_ENCONTRADA` | 404 | No existe, o es de otro rol (en el cambio de rol: no existe) |
 | `ESTADO_CAMBIADO` | 409 | La cuenta no está en el estado de origen de la transición; lleva `estadoActual` (DEC-39) |
 | `ROL_CAMBIADO` | 409 | La cuenta ya no tiene el rol desde el que se pidió el cambio; lleva `rolActual` (DEC-104) |

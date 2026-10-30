@@ -181,6 +181,31 @@ class ReservaApiIntegracionTest {
         assertThat(decimal(JsonPath.read(guardada, "$.precioTotal"))).isEqualByComparingTo("520000");
     }
 
+    /**
+     * CU «Actualizar tarifas» (RF32, DEC-187): después de que el Prestador cambia el precio en el catálogo, la reserva
+     * nueva usa el precio nuevo y la Confirmada anterior conserva el original, también en «Mis reservas».
+     */
+    @Test
+    void rf32_trasCambiarElPrecioLaReservaNuevaUsaElNuevoYLaAnteriorConservaElOriginal() throws Exception {
+        String anterior = JsonPath.read(cuerpo(reservar(ana, UUID.randomUUID(), cuerpoAlojamiento(suite, 2, 1, 2,
+                "520000"))), "$.idReserva");
+
+        catalogo.publicarHotel(hotel, "Hotel Casa Tayrona", new Unidad(doble, "Doble", 12, 2, "150000"),
+                new Unidad(suite, "Suite familiar", 3, 4, "300000"));
+        MvcResult nueva = reservar(ana, UUID.randomUUID(), cuerpoAlojamiento(suite, 2, 1, 2, "600000"));
+
+        assertThat(nueva.getResponse().getStatus()).as(cuerpo(nueva)).isEqualTo(201);
+        assertThat(decimal(JsonPath.read(cuerpo(nueva), "$.precioUnitario"))).isEqualByComparingTo("300000");
+        String mias = cuerpo(mvc.perform(conTurista(get("/api/v1/reservas/mias"), ana)).andReturn());
+        String nuevaId = JsonPath.read(cuerpo(nueva), "$.idReserva");
+        assertThat(decimal(JsonPath.<List<Object>>read(mias, "$.elementos[?(@.idReserva == '" + anterior
+                + "')].precioUnitario").get(0))).isEqualByComparingTo("260000");
+        assertThat(decimal(JsonPath.<List<Object>>read(mias, "$.elementos[?(@.idReserva == '" + anterior
+                + "')].precioTotal").get(0))).isEqualByComparingTo("520000");
+        assertThat(decimal(JsonPath.<List<Object>>read(mias, "$.elementos[?(@.idReserva == '" + nuevaId
+                + "')].precioTotal").get(0))).isEqualByComparingTo("600000");
+    }
+
     @Test
     void rf37_conElPrecioCambiadoResponde409ConElPrecioDeLaUnidadVigente() throws Exception {
         catalogo.publicarHotel(hotel, "Hotel Casa Tayrona", new Unidad(doble, "Doble", 12, 2, "150000"),

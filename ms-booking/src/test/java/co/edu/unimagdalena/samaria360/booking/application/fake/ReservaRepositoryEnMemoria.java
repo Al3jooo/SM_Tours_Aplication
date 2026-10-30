@@ -68,8 +68,18 @@ public class ReservaRepositoryEnMemoria implements ReservaRepositoryPort {
 
     @Override
     public PaginaReservas listarDeTurista(UUID idTurista, FiltroReservas filtro, int pagina, int tamano) {
+        return listar(r -> r.idTurista().equals(idTurista), filtro, pagina, tamano);
+    }
+
+    @Override
+    public PaginaReservas listarDePrestador(UUID idPrestador, FiltroReservas filtro, int pagina, int tamano) {
+        return listar(r -> r.idPrestador().equals(idPrestador), filtro, pagina, tamano);
+    }
+
+    private PaginaReservas listar(java.util.function.Predicate<Reserva> dueno, FiltroReservas filtro, int pagina,
+                                  int tamano) {
         List<Reserva> propias = reservas.values().stream()
-                .filter(r -> r.idTurista().equals(idTurista) && filtro.incluye(r))
+                .filter(r -> dueno.test(r) && filtro.incluye(r))
                 .sorted(Comparator.comparing(Reserva::fechaInicio).thenComparing(Reserva::idReserva).reversed())
                 .toList();
         int desde = Math.min(pagina * tamano, propias.size());

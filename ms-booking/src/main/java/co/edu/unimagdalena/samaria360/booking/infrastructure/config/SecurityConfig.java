@@ -96,6 +96,9 @@ public class SecurityConfig {
                     if (dev) {
                         acceso.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
                     }
+                    // RF12 del Prestador (DEC-192): antes de la regla general, que es solo del Turista.
+                    acceso.requestMatchers("/api/v1/reservas/prestador", "/api/v1/reservas/prestador/**")
+                            .hasRole("Prestador");
                     acceso.requestMatchers("/api/v1/reservas/**").hasRole("Turista");
                     acceso.anyRequest().authenticated();
                 })

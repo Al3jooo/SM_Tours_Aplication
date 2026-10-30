@@ -24,6 +24,9 @@ public interface ReservaRepositoryPort {
     /** Las que cumplen el filtro, por fecha de inicio de la actividad descendente (desempate por id). */
     PaginaReservas listarDeTurista(UUID idTurista, FiltroReservas filtro, int pagina, int tamano);
 
+    /** Como {@link #listarDeTurista}, con las reservas de los servicios del prestador (RF12, DEC-191). */
+    PaginaReservas listarDePrestador(UUID idPrestador, FiltroReservas filtro, int pagina, int tamano);
+
     /** UPDATE condicional (solo si sigue Confirmada). @return false si otra cancelación ganó o ya no está Confirmada */
     boolean cancelarSiConfirmada(UUID idReserva, UUID idTurista, Instant ahora);
 

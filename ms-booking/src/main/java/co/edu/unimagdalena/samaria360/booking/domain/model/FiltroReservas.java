@@ -8,22 +8,32 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Filtros de «Mis reservas» (RF12, del lado del turista): rango de fechas de la <b>actividad</b> y estados.
+ * Filtros del CU «Consultar historial» (RF12): rango de fechas de la <b>actividad</b> y estados, para el Turista
+ * («Mis reservas») y para el Prestador (las reservas de sus servicios, que además puede filtrar por servicio; DEC-192).
  * <p>
  * Con {@code desde} y {@code hasta} como fechas de Santa Marta, inclusivas, una reserva aparece si su actividad cruza
  * el rango: {@code fecha_inicio < (hasta + 1 día) 00:00} y {@code fecha_fin > desde 00:00}, ambos en
  * {@code America/Bogota}. Una estadía del 30 de noviembre al 2 de diciembre aparece al filtrar diciembre; una que
  * termina exactamente a las 00:00 de {@code desde}, no. Cada extremo es opcional: sin uno, el rango queda abierto.
  *
- * @param estados vacío = todos
+ * @param estados    vacío = todos
+ * @param idServicio solo del Prestador: un servicio suyo (ObjectId en texto); null = todos
  */
-public record FiltroReservas(LocalDate desde, LocalDate hasta, Set<EstadoReserva> estados) {
+public record FiltroReservas(LocalDate desde, LocalDate hasta, Set<EstadoReserva> estados, String idServicio) {
 
     /** El rango puede abarcar como máximo 366 días, contados con los dos extremos. */
     public static final int MAXIMO_DIAS = 366;
 
     public FiltroReservas {
         estados = estados == null || estados.isEmpty() ? Set.of() : Set.copyOf(estados);
+        if (idServicio != null && !IdentificadorObjeto.esValido(idServicio)) {
+            throw new IllegalArgumentException("idServicio debe ser un ObjectId en texto");
+        }
+    }
+
+    /** Sin filtro de servicio: el del Turista. */
+    public FiltroReservas(LocalDate desde, LocalDate hasta, Set<EstadoReserva> estados) {
+        this(desde, hasta, estados, null);
     }
 
     public static FiltroReservas sinFiltros() {
@@ -60,6 +70,21 @@ public record FiltroReservas(LocalDate desde, LocalDate hasta, Set<EstadoReserva
         return new FiltroReservas(inicio, fin, conjunto);
     }
 
+    /**
+     * Los del Turista más {@code servicio} (DEC-192): opcional; si no es un ObjectId, FORMATO. Un servicio que no es
+     * del Prestador no da error: no tiene reservas suyas.
+     */
+    public static FiltroReservas validarDelPrestador(String desde, String hasta, String estados, String servicio,
+                                                     ValidadorCampos validador) {
+        FiltroReservas filtro = validar(desde, hasta, estados, validador);
+        String id = ValidadorCampos.texto(servicio);
+        if (id != null && !IdentificadorObjeto.esValido(id)) {
+            validador.error("servicio", MotivoInvalido.FORMATO);
+            id = null;
+        }
+        return new FiltroReservas(filtro.desde(), filtro.hasta(), filtro.estados(), id);
+    }
+
     /** {@code desde} a las 00:00 en Santa Marta: la actividad debe terminar después. Null si no hay {@code desde}. */
     public Instant terminaDespuesDe() {
         return desde == null ? null : HorarioReservas.instante(desde, LocalTime.MIDNIGHT);
@@ -76,7 +101,8 @@ public record FiltroReservas(LocalDate desde, LocalDate hasta, Set<EstadoReserva
         Instant antes = empiezaAntesDe();
         return (despues == null || reserva.fechaFin().isAfter(despues))
                 && (antes == null || reserva.fechaInicio().isBefore(antes))
-                && (estados.isEmpty() || estados.contains(reserva.estado()));
+                && (estados.isEmpty() || estados.contains(reserva.estado()))
+                && (idServicio == null || idServicio.equals(reserva.idServicio()));
     }
 
     private static EstadoReserva estado(String nombre) {

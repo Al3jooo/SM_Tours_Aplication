@@ -10,6 +10,7 @@ import co.edu.unimagdalena.samaria360.catalog.domain.exception.LimitePreguntasEx
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.OfertaNoDisponibleException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.PreguntaNoEncontradaException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.PrestadorNoHabilitadoException;
+import co.edu.unimagdalena.samaria360.catalog.domain.exception.ServicioModificadoException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.ServicioNoEncontradoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,6 +114,14 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
     ProblemDetail estadoServicioCambiado(EstadoServicioCambiadoException ex) {
         ProblemDetail problema = Problemas.crear(HttpStatus.CONFLICT, CodigoError.ESTADO_CAMBIADO, ex.getMessage());
         problema.setProperty("estadoActual", ex.getEstadoActual().name());
+        return problema;
+    }
+
+    /** Otra edición del Prestador o la decisión del Administrador cambiaron el servicio (DEC-186). */
+    @ExceptionHandler(ServicioModificadoException.class)
+    ProblemDetail servicioModificado(ServicioModificadoException ex) {
+        ProblemDetail problema = Problemas.crear(HttpStatus.CONFLICT, CodigoError.SERVICIO_MODIFICADO, ex.getMessage());
+        problema.setProperty("versionActual", ex.getVersionActual());
         return problema;
     }
 

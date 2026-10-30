@@ -9,7 +9,8 @@
       "estadoPublicacion",
       "prestadorActivo",
       "precioBase",
-      "fechaRegistro"
+      "fechaRegistro",
+      "version"
     ],
     "properties": {
       "_id": { "bsonType": "objectId" },
@@ -66,6 +67,11 @@
         "minimum": 0,
         "exclusiveMinimum": true,
         "description": "Precio «desde» en COP (RF37, DEC-127), obligatorio en todas las categorías. En Alojamiento es el menor precioNoche de sus unidades; lo exige $expr."
+      },
+      "version": {
+        "bsonType": "int",
+        "minimum": 0,
+        "description": "Versión del documento para la edición del Prestador (RF32, RF43; DEC-186): la sube cada cambio de precio, de datos comerciales y la decisión del Administrador (RF21). Los servicios anteriores la reciben en 0 (M011)"
       },
       "imagenes": {
         "bsonType": "array",

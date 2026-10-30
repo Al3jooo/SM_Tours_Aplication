@@ -49,8 +49,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class MigracionesMongoTest {
 
     private static final Path ESQUEMAS = Path.of("../docs/sad/modelo-nosql");
-    private static final Path VALIDADOR_M008_SERVICIOS =
-            MongoDePrueba.MIGRACIONES.resolve("esquema/M008__servicios.v3.schema.json");
+    private static final Path VALIDADOR_M011_SERVICIOS =
+            MongoDePrueba.MIGRACIONES.resolve("esquema/M011__servicios.v4.schema.json");
     private static final Path VALIDADOR_M008_CUENTAS =
             MongoDePrueba.MIGRACIONES.resolve("esquema/M008__cuentas.v2.schema.json");
     private static final Path VALIDADOR_M005_FAQ = MongoDePrueba.MIGRACIONES.resolve("esquema/M005__faq.v1.schema.json");
@@ -63,7 +63,7 @@ class MigracionesMongoTest {
     private static final List<String> MIGRACIONES = List.of("M001__unidades-alojamiento",
             "M002__semilla-suite-casa-tayrona", "M003__cuentas", "M004__indice-servicios-prestador",
             "M005__faq-avisos", "M006__semilla-faq-avisos", "M007__favoritos-historial", "M008__registro-servicios",
-            "M009__semilla-direccion-rnt");
+            "M009__semilla-direccion-rnt", "M010__coordenadas-rodadero", "M011__servicios-version");
     /** Fuera del plano básico: un punto de código, dos unidades UTF-16. */
     private static final String EMOJI = "🌴";
     private static final int VALIDACION_DOCUMENTO_FALLIDA = 121;
@@ -130,10 +130,10 @@ class MigracionesMongoTest {
         assertThat(opciones(nuevo, coleccion).getString("validationAction")).isEqualTo("error");
     }
 
-    /** Mientras no exista una migración posterior que cambie servicios, la copia de M008 (v3) es la última versión. */
+    /** Mientras no exista una migración posterior que cambie servicios, la copia de M011 (v4) es la última versión. */
     @Test
-    void laCopiaDelValidadorDeServiciosDeM008EsLaUltimaVersion() throws IOException {
-        assertThat(Document.parse(Files.readString(VALIDADOR_M008_SERVICIOS)))
+    void laCopiaDelValidadorDeServiciosDeM011EsLaUltimaVersion() throws IOException {
+        assertThat(Document.parse(Files.readString(VALIDADOR_M011_SERVICIOS)))
                 .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("servicios.schema.json"))));
     }
 
@@ -527,6 +527,36 @@ class MigracionesMongoTest {
         }
     }
 
+    /** N25 (DEC-194): el pin queda en tierra, en El Rodadero; volver a aplicarla no lo cambia (ver más abajo). */
+    @Test
+    void laSemillaDeM010LlevaElPinDeCocinaCaribeElRodaderoATierra() {
+        for (MongoDatabase base : List.of(nuevo, existente)) {
+            Document coordenadas = base.getCollection("servicios")
+                    .find(Filters.eq("nombreComercial", "Cocina Caribe El Rodadero")).first()
+                    .get("coordenadas", Document.class);
+            assertThat(coordenadas.getList("coordinates", Double.class)).containsExactly(-74.2255, 11.2055);
+        }
+    }
+
+    /** M011 (DEC-186): todos los servicios anteriores reciben la versión 0, como int32. */
+    @Test
+    void m011RellenaLaVersionEnTodosLosServiciosEnVolumenNuevoYExistente() {
+        for (MongoDatabase base : List.of(nuevo, existente)) {
+            for (Document servicio : base.getCollection("servicios").find()) {
+                assertThat(servicio.get("version")).as(servicio.getString("nombreComercial")).isEqualTo(0);
+            }
+        }
+    }
+
+    @Test
+    void elValidadorV4ExigeLaVersionComoEnteroNoNegativo() {
+        aceptado(tourV3(d -> d.put("version", 7)));
+        assertRechazado(tourV3(d -> d.remove("version")));
+        assertRechazado(tourV3(d -> d.put("version", -1)));
+        assertRechazado(tourV3(d -> d.put("version", "0")));
+        assertRechazado(tourV3(d -> d.put("version", 1.5)));
+    }
+
     @Test
     void elValidadorV3ExigeLaOfertaSegunLaCategoria() {
         aceptado(alojamientoV2());
@@ -624,6 +654,8 @@ class MigracionesMongoTest {
             assertThat(servicios.countDocuments(Filters.exists("direccion"))).isZero();
             assertThat(servicios.countDocuments(Filters.exists("rnt"))).isZero();
             assertThat(servicios.countDocuments(Filters.exists("fechaRegistro"))).isEqualTo(14);
+            // M011 rellenó la versión antes de exigirla: la escritura de RF22 sigue siendo válida.
+            assertThat(servicios.countDocuments(Filters.eq("version", 0))).isEqualTo(14);
             assertThat(servicios.updateMany(Filters.eq("prestadorId", "00000000-0000-4000-8000-000000000002"),
                     new Document("$set", new Document("prestadorActivo", false))).getMatchedCount()).isEqualTo(13);
         }
@@ -675,7 +707,7 @@ class MigracionesMongoTest {
         MongoDePrueba.exigirExito("aplicar.js", segunda);
         assertThat(segunda.getStdout()).contains("ya aplicada: M001", "ya aplicada: M002", "ya aplicada: M003",
                 "ya aplicada: M004", "ya aplicada: M005", "ya aplicada: M006", "ya aplicada: M007",
-                "ya aplicada: M008", "ya aplicada: M009");
+                "ya aplicada: M008", "ya aplicada: M009", "ya aplicada: M010", "ya aplicada: M011");
         assertThat(documentos(existente, "servicios")).isEqualTo(antes);
         assertThat(idsMigraciones(existente)).containsExactlyElementsOf(MIGRACIONES);
     }
@@ -727,7 +759,7 @@ class MigracionesMongoTest {
 
         assertThat(idsMigraciones(errores)).containsExactly("M001__unidades-alojamiento", "M003__cuentas",
                 "M004__indice-servicios-prestador", "M005__faq-avisos", "M007__favoritos-historial",
-                "M008__registro-servicios");
+                "M008__registro-servicios", "M011__servicios-version");
         assertThat(errores.getCollection("faq").countDocuments()).isZero();
         assertThat(unidadesDe(errores, "Hotel Casa Tayrona")).hasSize(1);
     }
@@ -871,7 +903,9 @@ class MigracionesMongoTest {
                         .append("unidades", unidades))
                 // Desde el validador v3 (M008): fecha de registro y oferta del alojamiento.
                 .append("fechaRegistro", new java.util.Date())
-                .append("oferta", new Document("diasOperacion", List.of("Lunes", "Martes")));
+                .append("oferta", new Document("diasOperacion", List.of("Lunes", "Martes")))
+                // Desde el validador v4 (M011): la versión de la edición del Prestador.
+                .append("version", 0);
         cambio.accept(documento);
         return documento;
     }
@@ -920,7 +954,8 @@ class MigracionesMongoTest {
                 .append("precioBase", Decimal128.parse("50000"))
                 .append("imagenes", List.of())
                 .append("detalleCategoria", detalle)
-                .append("fechaRegistro", new java.util.Date());
+                .append("fechaRegistro", new java.util.Date())
+                .append("version", 0);
     }
 
     private static void assertRechazado(Document documento) {

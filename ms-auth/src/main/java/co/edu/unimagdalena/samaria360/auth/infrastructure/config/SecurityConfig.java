@@ -46,6 +46,8 @@ public class SecurityConfig {
                     acceso.requestMatchers("/api/v1/auth/admin/**").hasRole("Administrador");
                     // Perfil del turista (RF53, DEC-79): solo el Turista; /me sigue abierto a cualquier rol autenticado.
                     acceso.requestMatchers("/api/v1/auth/perfil").hasRole("Turista");
+                    // Perfil comercial del Prestador (RF43, DEC-188): solo el Prestador.
+                    acceso.requestMatchers("/api/v1/auth/prestador/**").hasRole("Prestador");
                     if (dev) {
                         acceso.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
                     }

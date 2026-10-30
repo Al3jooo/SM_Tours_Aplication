@@ -4,13 +4,14 @@ import co.edu.unimagdalena.samaria360.catalog.domain.model.EstadoPublicacion;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.PaginaResultados;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.Revision;
 import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioComercial;
+import co.edu.unimagdalena.samaria360.catalog.domain.model.ServicioEditado;
 
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Colección {@code servicios} sin la regla de visibilidad pública: el registro (RF09), «Mis servicios» (DEC-143) y la
- * aprobación del Administrador (RF21). La lectura pública sigue en {@link ServicioRepositoryPort}. Los ids son ObjectId
+ * Colección {@code servicios} sin la regla de visibilidad pública: el registro (RF09), «Mis servicios» (DEC-143), la
+ * edición del Prestador (RF32, RF43) y la aprobación del Administrador (RF21). La lectura pública sigue en {@link ServicioRepositoryPort}. Los ids son ObjectId
  * en texto (24 hexadecimales en minúscula), ya validados.
  */
 public interface GestionServiciosPort {
@@ -32,11 +33,22 @@ public interface GestionServiciosPort {
 
     /**
      * UPDATE condicional (DEC-128, como DEC-39): pasa de Pendiente a {@code estadoNuevo} con su revisión solo si sigue
-     * Pendiente.
+     * Pendiente, y sube la versión (DEC-186).
      *
      * @return false si no hay un servicio Pendiente con ese id (no existe o ya se decidió)
      */
     boolean decidir(String id, EstadoPublicacion estadoNuevo, Revision revision);
+
+    /**
+     * RF32: escribe {@code precioBase} y, en Alojamiento, las unidades con sus precios nuevos, y sube la versión. UPDATE
+     * condicional sobre el id, el prestador, un estado editable (Pendiente o Publicado) y la versión esperada (DEC-186).
+     *
+     * @return false si ninguna de esas condiciones se cumple
+     */
+    boolean actualizarPrecio(ServicioEditado edicion);
+
+    /** RF43: como {@link #actualizarPrecio}, con el nombre comercial y el contacto. */
+    boolean actualizarDatosComerciales(ServicioEditado edicion);
 
     /** Fija {@code prestadorActivo} en un solo servicio (DEC-142); idempotente. */
     void fijarPrestadorActivoEnServicio(String id, boolean activo);
