@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ApiError, servicioNoDisponible } from '../../shared/api/httpClient'
+import { ApiError, servicioDelProblema, servicioNoDisponible } from '../../shared/api/httpClient'
 import { consultarDisponibilidad, type Disponibilidad } from './reservasApi'
 
-export type ErrorDisponibilidad = 'noDisponible' | 'red' | 'otro'
+/**
+ * `catalogoNoDisponible`: el 503 de ms-booking con `servicio: ms-catalog` (falta materializar la oferta y el catálogo
+ * no responde, A2); no es el sistema de reservas el que falla (O14, DEC-171).
+ */
+export type ErrorDisponibilidad = 'noDisponible' | 'catalogoNoDisponible' | 'red' | 'otro'
 
 export type EstadoDisponibilidad =
   | { estado: 'inactivo' }
@@ -12,7 +16,7 @@ export type EstadoDisponibilidad =
 
 function clasificar(error: unknown): ErrorDisponibilidad {
   if (!(error instanceof ApiError)) return 'otro'
-  if (servicioNoDisponible(error)) return 'noDisponible'
+  if (servicioNoDisponible(error)) return servicioDelProblema(error) === 'ms-catalog' ? 'catalogoNoDisponible' : 'noDisponible'
   if (error.codigo === 'ERROR_RED') return 'red'
   return 'otro'
 }

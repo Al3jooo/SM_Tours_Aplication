@@ -380,3 +380,32 @@ describe('WF-10, tour', () => {
     expect(await screen.findByText(/Este servicio no se reserva en línea/)).toBeInTheDocument()
   })
 })
+
+describe('WF-10, 503 según el servicio que no responde (O14, DEC-171)', () => {
+  it.each([
+    ['ms-catalog', 'No pudimos consultar la disponibilidad: el catálogo de servicios no responde. Reintenta en unos minutos.'],
+    ['ms-booking', 'No pudimos consultar la disponibilidad: el sistema de reservas no responde.'],
+  ])('disponibilidad con servicio %s', async (servicio, mensaje) => {
+    simularHotel({ [DISPONIBILIDAD]: () => respuestaProblema(503, 'SERVICIO_NO_DISPONIBLE', { servicio }) })
+    renderApp(RUTA_HOTEL)
+
+    const alerta = await screen.findByRole('alert')
+    expect(alerta).toHaveTextContent(mensaje)
+    expect(within(alerta).getByRole('button', { name: 'Reintentar' })).toBeInTheDocument()
+  })
+
+  it('al confirmar, un 503 con servicio ms-catalog no se atribuye al sistema de reservas', async () => {
+    iniciarSesion()
+    simularHotel({ [RESERVAR]: () => respuestaProblema(503, 'SERVICIO_NO_DISPONIBLE', { servicio: 'ms-catalog' }) })
+    const { usuario } = renderApp(RUTA_SUITE)
+
+    await screen.findByRole('radio', { name: 'Suite familiar' })
+    await waitFor(() => expect(confirmar()).not.toHaveAttribute('aria-disabled'))
+    await usuario.click(confirmar())
+    const alerta = await screen.findByRole('alert')
+    expect(alerta).toHaveTextContent(
+      'No pudimos confirmar los datos del servicio en el catálogo. Puedes reintentar: no se reservará dos veces.',
+    )
+    expect(alerta).not.toHaveTextContent('sistema de reservas')
+  })
+})

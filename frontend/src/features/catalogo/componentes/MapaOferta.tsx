@@ -4,20 +4,13 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect, useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { TRAZO_CORAZON } from '../../../shared/components/Iconos'
+import { ATRIBUCION_OSM, SVG_PIN, URL_TESELAS, ZOOM_INICIAL, ZOOM_MAXIMO } from '../../../shared/mapa/mapaBase'
 import type { ResultadoOferta, Ubicacion } from '../catalogoApi'
 import { rutaDetalle } from '../detalle/navegacionDetalle'
 import { CENTRO_SANTA_MARTA } from '../geo'
 import { imagenDeCategoria } from './etiquetas'
 
-/**
- * Política de uso de las teselas de OpenStreetMap (único recurso externo permitido, ver CLAUDE.md): atribución
- * siempre visible, zoom máximo 19, solo las teselas del área visible (sin prefetching, caché offline ni descarga
- * masiva) y el Referer por defecto del navegador.
- */
-const URL_TESELAS = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-const ATRIBUCION_OSM = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-const ZOOM_MAXIMO = 19
-const ZOOM_INICIAL = 12
+// La política de uso de las teselas de OpenStreetMap está en shared/mapa/mapaBase.ts.
 const ZOOM_MAXIMO_ENCUADRE = 15
 const ZOOM_UBICACION = 14
 const RELLENO_ENCUADRE: L.PointTuple = [32, 32]
@@ -26,11 +19,7 @@ const DESPLAZAMIENTO_RESALTADO = 500
 const ANCHO_MINIATURA = 120
 const ALTO_MINIATURA = 80
 
-/** SVG fijos (sin datos de la API). El color sale de la clase del marcador, con los tokens de estilos.css. */
-const SVG_PIN =
-  '<svg viewBox="0 0 28 36" width="28" height="36" aria-hidden="true" focusable="false">' +
-  '<path class="marcador__pin" d="M14 1.5C7.1 1.5 1.75 6.8 1.75 13.5 1.75 22.6 14 34.5 14 34.5s12.25-11.9 12.25-21C26.25 6.8 20.9 1.5 14 1.5Z"/>' +
-  '<circle class="marcador__centro" cx="14" cy="13.5" r="4.5"/></svg>'
+/** SVG fijo (sin datos de la API). El color sale de la clase del marcador, con los tokens de estilos.css. */
 const SVG_UBICACION =
   '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">' +
   '<circle class="marcador__punto" cx="12" cy="12" r="8.5"/></svg>'

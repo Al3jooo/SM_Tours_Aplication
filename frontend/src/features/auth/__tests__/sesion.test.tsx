@@ -127,8 +127,9 @@ describe('Menú del avatar', () => {
     const { usuario, avatar } = await abrirMenu({ ...USUARIO_TURISTA, rol: 'Prestador', nombreVisible: 'Hotel Prueba' })
     await usuario.click(avatar)
 
+    // DEC-161: el Prestador tiene sus propias pantallas (WF-18 y WF-08), pero no «Mis reservas».
     const opciones = within(screen.getByRole('menu')).getAllByRole('menuitem')
-    expect(opciones.map((opcion) => opcion.textContent)).toEqual(['Cerrar sesión'])
+    expect(opciones.map((opcion) => opcion.textContent)).toEqual(['Mis servicios', 'Registrar servicio', 'Cerrar sesión'])
     await waitFor(() => expect(opciones[0]).toHaveFocus())
   })
 

@@ -5,7 +5,7 @@
  */
 
 type Punto = [number, number]
-type Manejador = (evento: { type: string }) => void
+type Manejador = (evento: { type: string; [dato: string]: unknown }) => void
 
 class Emisor {
   private readonly manejadores = new Map<string, Manejador[]>()
@@ -17,9 +17,9 @@ class Emisor {
     return this
   }
 
-  /** En las pruebas: simula un evento de Leaflet (click, focus, blur…). */
-  fire(tipo: string) {
-    for (const manejador of this.manejadores.get(tipo) ?? []) manejador({ type: tipo })
+  /** En las pruebas: simula un evento de Leaflet (click, focus, blur…), con datos opcionales (p. ej. `latlng`). */
+  fire(tipo: string, datos: Record<string, unknown> = {}) {
+    for (const manejador of this.manejadores.get(tipo) ?? []) manejador({ ...datos, type: tipo })
     return this
   }
 }
@@ -45,8 +45,8 @@ export interface IconoSimulado {
 }
 
 export class MarcadorSimulado extends Emisor {
-  readonly posicion: Punto
-  readonly opciones: { icon: IconoSimulado; title?: string; keyboard?: boolean; zIndexOffset?: number }
+  posicion: Punto
+  readonly opciones: { icon: IconoSimulado; title?: string; keyboard?: boolean; zIndexOffset?: number; draggable?: boolean }
   popup: unknown = null
   zIndexOffset: number
   readonly elemento: HTMLElement
@@ -80,6 +80,18 @@ export class MarcadorSimulado extends Emisor {
 
   getElement() {
     return this.elemento
+  }
+
+  getLatLng() {
+    return { lat: this.posicion[0], lng: this.posicion[1] }
+  }
+
+  /** En las pruebas: como Leaflet al soltar un marcador arrastrable (WF-08, DEC-165). */
+  arrastrarA(latitud: number, longitud: number) {
+    if (!this.opciones.draggable) throw new Error('El marcador no es arrastrable')
+    this.posicion = [latitud, longitud]
+    this.fire('dragend')
+    return this
   }
 
   setZIndexOffset(desplazamiento: number) {

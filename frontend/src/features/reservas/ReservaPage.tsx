@@ -542,7 +542,15 @@ function ErrorEnvio({
   if (reintentable) {
     return (
       <>
-        <p>{t(codigo === 'ERROR_RED' ? 'reserva.errores.red' : 'reserva.errores.noDisponible')}</p>
+        <p>
+          {t(
+            codigo === 'ERROR_RED'
+              ? 'reserva.errores.red'
+              : problema?.servicio === 'ms-catalog'
+                ? 'reserva.errores.catalogoNoDisponible'
+                : 'reserva.errores.noDisponible',
+          )}
+        </p>
         <button type="button" className="boton-secundario" onClick={onReintentar}>
           {t('catalogo.busqueda.reintentar')}
         </button>

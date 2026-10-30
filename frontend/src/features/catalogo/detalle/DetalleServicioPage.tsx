@@ -22,7 +22,8 @@ const MAXIMO_MINIATURAS = 4
  * WF-06 (pública), con todas sus regiones en el orden del wireframe. Política de visibilidad (docs/trazabilidad.md):
  * - lo que trae el catálogo (contacto, accesibilidad, horario de RF58 y precios) se muestra;
  * - lo que falta, sea un dato que el servicio no trae o una función pendiente (calificación RF17, etiquetas,
- *   compartir, alerta de afluencia RF39, WhatsApp, dirección y RNT, «Reportar» RF57 y destinos alternativos RF51),
+ *   compartir, alerta de afluencia RF39, WhatsApp, «Reportar» RF57 y destinos alternativos RF51; la dirección y el RNT
+ *   cuando el servicio no los trae, HC2 y DEC-170),
  *   tiene un único estado deshabilitado: sin texto visible de estado, con una señal que no depende del color («—» como
  *   valor o borde discontinuo) y «No disponible» solo para lectores de pantalla (WCAG 1.4.1). Los botones llevan
  *   aria-disabled y no hacen nada.
@@ -101,7 +102,10 @@ function FichaServicio({ servicio, volverA }: { servicio: DetalleServicio; volve
   const precio = centavos(servicio.precioBase)
   const [portada, ...resto] = servicio.imagenes
   const miniaturas = resto.slice(0, MAXIMO_MINIATURAS)
-  const { contacto, condicionesAccesibilidad, horarioAtencion } = servicio
+  const { contacto, condicionesAccesibilidad, horarioAtencion, direccion, rnt, oferta } = servicio
+  const diasOferta = oferta?.diasOperacion ?? []
+  const salidasOferta = oferta?.salidas ?? []
+  const hayOferta = diasOferta.length > 0 || salidasOferta.length > 0
   const datoContacto = (etiqueta: string, valor?: ReactNode) => (
     <div key={etiqueta}>
       <dt>{etiqueta}</dt>
@@ -210,12 +214,12 @@ function FichaServicio({ servicio, volverA }: { servicio: DetalleServicio; volve
               ) : undefined,
             )}
             {datoContacto(t('detalle.whatsapp'))}
-            {datoContacto(t('detalle.direccion'))}
+            {datoContacto(t('detalle.direccion'), direccion || undefined)}
             {datoContacto(
               t('detalle.correo'),
               contacto?.correo ? <a href={`mailto:${contacto.correo}`}>{contacto.correo}</a> : undefined,
             )}
-            {datoContacto(t('detalle.rnt'))}
+            {datoContacto(t('detalle.rnt'), rnt || undefined)}
           </dl>
           <p className="detalle__reportar">
             <BotonNoDisponible>{t('detalle.reportar')}</BotonNoDisponible>
@@ -239,10 +243,21 @@ function FichaServicio({ servicio, volverA }: { servicio: DetalleServicio; volve
           )}
         </section>
 
-        {horarioAtencion ? (
+        {horarioAtencion || hayOferta ? (
           <section aria-labelledby={`${idTitulo}-horarios`}>
             <h2 id={`${idTitulo}-horarios`}>{t('detalle.horarios')}</h2>
-            <p className="detalle__horario">{horarioAtencion}</p>
+            {horarioAtencion && <p className="detalle__horario">{horarioAtencion}</p>}
+            {/* Oferta inicial (DEC-170): días de operación y, en Tour, las salidas. */}
+            {hayOferta && (
+              <dl className="detalle__datos">
+                {diasOferta.length > 0 &&
+                  dato(
+                    t('detalle.oferta.dias'),
+                    diasOferta.map((dia) => t(`comun.dias.${dia}`, { defaultValue: dia })).join(', '),
+                  )}
+                {salidasOferta.length > 0 && dato(t('detalle.oferta.salidas'), salidasOferta.join(', '))}
+              </dl>
+            )}
           </section>
         ) : (
           <RegionDeshabilitada id={`${idTitulo}-horarios`} titulo={t('detalle.horarios')} />

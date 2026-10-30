@@ -50,6 +50,20 @@ const MisFavoritosPage = lazy(() =>
   import('../features/perfil/MisFavoritosPage').then((m) => ({ default: m.MisFavoritosPage })),
 )
 
+/**
+ * «Registrar servicio comercial» (iteración C, B1, DEC-161): «Mis servicios» (WF-18), su detalle y el registro
+ * (WF-08), diferidas y solo para el Prestador.
+ */
+const MisServiciosPage = lazy(() =>
+  import('../features/prestador/MisServiciosPage').then((m) => ({ default: m.MisServiciosPage })),
+)
+const RegistrarServicioPage = lazy(() =>
+  import('../features/prestador/RegistrarServicioPage').then((m) => ({ default: m.RegistrarServicioPage })),
+)
+const DetalleMiServicioPage = lazy(() =>
+  import('../features/prestador/DetalleMiServicioPage').then((m) => ({ default: m.DetalleMiServicioPage })),
+)
+
 /** Una página diferida: estado de carga mientras llega y aviso con «Reintentar» si la descarga falla. */
 function Diferida({ children }: { children: ReactNode }) {
   return (
@@ -65,7 +79,8 @@ function Diferida({ children }: { children: ReactNode }) {
  * (WF-15) son públicas, con el diseño de la plataforma (confirmar una reserva pide la sesión dentro de WF-10); «Mis
  * reservas» (WF-11) es privada; el perfil (WF-16) y «Mis favoritos» (WF-17), privadas y solo para el Turista; y
  * «Administrar cuentas» (WF-12), la gestión de preguntas frecuentes (WF-13) y la de avisos (WF-14), privadas y solo
- * para el Administrador. El inicio de sesión (WF-01) y el registro (WF-02, WF-03) usan el diseño de acceso. Los
+ * para el Administrador; y «Mis servicios» (WF-18) y el registro de servicios (WF-08), privadas y solo para el
+ * Prestador. El inicio de sesión (WF-01) y el registro (WF-02, WF-03) usan el diseño de acceso. Los
  * favoritos del turista (DEC-93) se comparten entre pantallas, dentro de la sesión.
  */
 export function App() {
@@ -165,6 +180,32 @@ export function App() {
                 element={
                   <Diferida>
                     <AdministrarAvisosPage />
+                  </Diferida>
+                }
+              />
+            </Route>
+            <Route element={<RutaProtegida rol="Prestador" />}>
+              <Route
+                path="/prestador/servicios"
+                element={
+                  <Diferida>
+                    <MisServiciosPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/prestador/servicios/nuevo"
+                element={
+                  <Diferida>
+                    <RegistrarServicioPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/prestador/servicios/:id"
+                element={
+                  <Diferida>
+                    <DetalleMiServicioPage />
                   </Diferida>
                 }
               />

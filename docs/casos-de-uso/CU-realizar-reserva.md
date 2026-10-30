@@ -12,7 +12,7 @@ Fase de Construcción (RUP). Especificación del CU que el prototipo implementa 
 | **Casos de uso** | «Realizar reserva»; incluido «Verificar disponibilidad». El incluido «Notificar cambios de reserva» está fuera de alcance |
 | **Actores** | Turista |
 | **Requisitos que traza** | RF10 (oferta inicial: días de operación y salidas, ampliación DEC-130), RF11, RF20 y RF37. Además RNF06 |
-| **No traza** | RF18 y RF44 (son de «Cancelar reserva», sin archivo propio: HC1 sigue abierto para ese CU) ni RF32 (del subsistema «Gestionar servicios») |
+| **No traza** | RF18 y RF44 (son de [«Cancelar reserva»](CU-cancelar-reserva.md), especificado en B1, DEC-172) ni RF32 (del subsistema «Gestionar servicios») |
 | **Nivel** | Objetivo de usuario |
 | **Alcance** | `ms-booking` (`reservas_db`: `inventario_cupo`, `oferta_materializada`, `reserva`, `reserva_cupo_dia`), con la consulta síncrona al detalle público de `ms-catalog` (ADR-007) |
 
@@ -41,7 +41,8 @@ rectangle "Gestionar Reservas" {
   usecase "Realizar reserva\n(RF20, RF37)" as RR
   usecase "Verificar disponibilidad\n(RF11; RF10: oferta)" as VD
   usecase "Notificar cambios de reserva\n(fuera de alcance:\nRF13, RF30, RF63)" as NC
-  usecase "Cancelar reserva\n(RF18, RF44;\nsin archivo, HC1)" as CR
+  usecase "Cancelar reserva\n(RF18; ver\nCU-cancelar-reserva.md)" as CR
+  usecase "Validar antelación 24h\n(RF44)" as VA
 }
 Turista --> RR
 Turista --> VD
@@ -49,6 +50,7 @@ Turista --> CR
 RR ..> VD : <<include>>
 RR ..> NC : <<include>>
 CR ..> NC : <<include>>
+CR ..> VA : <<include>>
 note right of NC : Pendiente: llega con\nms-notificaciones
 @enduml
 ```

@@ -8,7 +8,7 @@ export interface UsuarioEncabezado {
   correo: string
   /**
    * «Mi perfil» (WF-16), «Mis favoritos» (WF-17) y «Mis reservas» (WF-11) solo aparecen para el Turista; las pantallas
-   * de gestión (WF-12 a WF-14), para el Administrador.
+   * de gestión (WF-12 a WF-14), para el Administrador; «Mis servicios» (WF-18) y el registro (WF-08), para el Prestador.
    */
   rol?: string
 }
@@ -20,6 +20,11 @@ const OPCIONES_POR_ROL: Record<string, { ruta: string; texto: string }[]> = {
     { ruta: '/perfil', texto: 'encabezado.miPerfil' },
     { ruta: '/perfil/favoritos', texto: 'encabezado.misFavoritos' },
     { ruta: '/mis-reservas', texto: 'encabezado.misReservas' },
+  ],
+  // DEC-161: «Mis servicios» (WF-18) y el registro de un servicio (WF-08).
+  Prestador: [
+    { ruta: '/prestador/servicios', texto: 'encabezado.misServicios' },
+    { ruta: '/prestador/servicios/nuevo', texto: 'encabezado.registrarServicio' },
   ],
   // DEC-70: cuentas (WF-12), preguntas frecuentes (WF-13) y avisos (WF-14).
   Administrador: [

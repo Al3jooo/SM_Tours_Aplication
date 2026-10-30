@@ -107,3 +107,18 @@ describe('Disponibilidad de las tarjetas (RF11): resumen de ms-booking para los 
     expect(within(cascada).getByRole('button', { name: /Ver detalle/ })).toHaveAttribute('aria-disabled', 'true')
   })
 })
+
+describe('Tarjetas y O14 (DEC-171)', () => {
+  it('un 503 del resumen con servicio ms-catalog deja «—» y no menciona el sistema de reservas', async () => {
+    const { solicitudes } = simularFetch({
+      [OFERTA]: () => respuestaJson(200, paginaOferta([HOTEL])),
+      [RESUMEN]: () => respuestaProblema(503, 'SERVICIO_NO_DISPONIBLE', { servicio: 'ms-catalog' }),
+    })
+    renderApp('/explorar')
+
+    await screen.findByRole('article', { name: 'Hotel Casa Tayrona' })
+    await waitFor(() => expect(consultasResumen(solicitudes)).toHaveLength(1))
+    expect(disponibilidadDe('Hotel Casa Tayrona')).toHaveTextContent('—sin datos')
+    expect(screen.queryByText(/sistema de reservas/)).not.toBeInTheDocument()
+  })
+})
