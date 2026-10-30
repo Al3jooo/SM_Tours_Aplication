@@ -1,0 +1,26 @@
+' WF-21 — Editar datos comerciales del servicio (CU «Actualizar datos comerciales», flujo B, RF43; DEC-188, DEC-189,
+' DEC-196, DEC-199 a DEC-201). Propuesto por arquitectura, pendiente de validación del equipo. Solo estructura.
+' Solo para el Prestador; se llega con «Editar datos comerciales» desde el detalle propio de WF-18, en Pendiente o
+' Publicado. Ruta: /prestador/servicios/:id/datos-comerciales. Los 409 se atienden como en WF-20.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+Mis servicios › Kayaks Taganga › Editar datos comerciales
+<b>Editar datos comerciales: Kayaks Taganga
+El nombre del establecimiento y el contacto que ven los viajeros en la ficha de este servicio.
+Aviso: «Publicado: el cambio se ve de inmediato en la ficha pública, sin nueva aprobación»
+--
+<b>Nombre y contacto del servicio
+{ Nombre comercial * | "Kayaks Taganga                    " | 14/150 }
+Nota: «Este contacto es solo de este servicio. Es distinto del correo corporativo
+de tu perfil comercial (WF-22) y del correo con el que inicias sesión.»
+{ Teléfono / WhatsApp * | "+57 311 222 3344" | Correo electrónico * | "atencion@kayak.test" }
+--
+Región de mensajes (role=alert): error general · 409 SERVICIO_MODIFICADO con «Valor actual»
+{ [Guardar cambios] | [Descartar cambios] | [Cancelar] }
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt

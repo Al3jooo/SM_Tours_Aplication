@@ -1,0 +1,61 @@
+' WF-20 — Actualizar precio (CU «Actualizar tarifas», RF32; DEC-183 a DEC-187, DEC-196, DEC-198, DEC-200, DEC-201).
+' Propuesto por arquitectura, pendiente de validación del equipo. Solo estructura: regiones, elementos y flujo.
+' Diagramas: (1) Tour, Gastronomía o Alquiler de equipos; (2) Alojamiento, con el precio de cada unidad; (3) 409
+' SERVICIO_MODIFICADO. Solo para el Prestador; se llega con «Actualizar precio» desde el detalle propio de WF-18, en
+' Pendiente o Publicado (en Rechazado no aparece). Ruta: /prestador/servicios/:id/precio.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+Mis servicios › Tour de Café en Minca › Actualizar precio
+<b>Actualizar precio: Tour de Café en Minca
+Aviso: «Publicado: el cambio se ve de inmediato en la ficha pública, sin nueva aprobación»
+(o «Pendiente: se verá cuando el Administrador lo apruebe»)
+--
+<b>Precio
+{ Precio «desde» (COP) * | "80000        " | COP }
+Los días de operación, las salidas y los cupos no cambian aquí (DEC-183).
+Las reservas ya confirmadas conservan su precio.
+--
+Región de mensajes (role=alert): error general · 409 · «Recargar»
+{ [Guardar cambios] | [Descartar cambios] | [Cancelar] }
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt
+
+@startsalt
+{+
+Mis servicios › Hotel Casa Tayrona › Actualizar precio
+<b>Actualizar precio: Hotel Casa Tayrona
+--
+<b>Precio por noche de cada unidad
+{+
+<b>Doble · Doble
+{ Precio por noche de Doble * | "150000      " | COP }
+}
+{+
+<b>Suite familiar · Suite
+{ Precio por noche de Suite familiar * | "260000.50   " | COP }
+error por campo: «unidades[1].precioNoche» junto a su unidad
+}
+{ Precio «desde» (COP) | <b>150.000 COP (output derivado: el menor precio por noche) }
+--
+{ [Guardar cambios] | [Descartar cambios] | [Cancelar] }
+}
+@endsalt
+
+@startsalt
+{+
+<b>409 SERVICIO_MODIFICADO (DEC-200)
+--
+«El servicio cambió mientras lo editabas. Conservamos lo que escribiste y
+marcamos el valor actual junto a cada campo que cambió. Revisa y vuelve a guardar.»
+{ Precio «desde» (COP) * | "95000        " | COP }
+Valor actual: 85.000 COP
+--
+{ [Guardar cambios] (reenvía con la versión nueva) | [Descartar cambios] (toma el valor actual) }
+409 ESTADO_CAMBIADO → vuelve al detalle con «No se guardó: el servicio ahora está Rechazado» (DEC-201)
+}
+@endsalt

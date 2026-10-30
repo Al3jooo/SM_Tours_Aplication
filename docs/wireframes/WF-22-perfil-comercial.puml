@@ -1,0 +1,29 @@
+' WF-22 — Mi perfil comercial (CU «Actualizar datos comerciales», flujo A, RF43; DEC-188, DEC-196, DEC-202; cierra
+' O16). Propuesto por arquitectura, pendiente de validación del equipo. Solo estructura. Solo para el Prestador; se
+' llega desde el menú del avatar («Mi perfil comercial»). Ruta: /prestador/perfil.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+<b>Mi perfil comercial
+Los datos de tu empresa como prestador de servicios turísticos.
+--
+<b>Datos de tu registro
+Estos datos no se editan aquí.
+{ Correo de acceso | prestador@samaria360.test }
+{ Representante legal | Carlos Gómez }
+{ Razón social | Tours Sierra Nevada S.A.S. (o «—») }
+{ Registro Nacional de Turismo (RNT) | RNT-00000 }
+Nota: «El correo de acceso es tu credencial y no se cambia aquí (ADR-006).
+El correo corporativo es el contacto de tu empresa; el de cada servicio se edita en el servicio (WF-21).»
+--
+<b>Contacto de la empresa
+{ Correo corporativo * | "contacto@tours-sierra.test" | Teléfono * | "+57 3000000000" }
+Es un correo de contacto, no el de inicio de sesión.
+{ [Guardar cambios] | [Descartar cambios] }
+Región de estado (role=status): «Perfil comercial actualizado» · errores
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt

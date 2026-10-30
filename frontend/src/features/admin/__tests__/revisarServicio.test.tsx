@@ -81,7 +81,8 @@ describe('Revisión por categoría (DEC-176)', () => {
     expect(within(datos).getByText('07:00, 13:30')).toBeInTheDocument()
     expect(valor('Ubicación en el mapa', datos)).toHaveTextContent('Latitud 11.1432, longitud -74.1121')
 
-    const mapa = mapaVivo()
+    // O22: se espera al mapa en lugar de suponer que su efecto ya corrió.
+    const mapa = await waitFor(() => mapaVivo(), LENTO)
     expect(mapa.marcadores()).toHaveLength(1)
     expect(mapa.marcadores()[0].posicion).toEqual([11.1432, -74.1121])
     expect(mapa.marcadores()[0].opciones.draggable).toBeFalsy()

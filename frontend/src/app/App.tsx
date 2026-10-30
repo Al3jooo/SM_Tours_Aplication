@@ -70,6 +70,23 @@ const RegistrarServicioPage = lazy(() =>
 const DetalleMiServicioPage = lazy(() =>
   import('../features/prestador/DetalleMiServicioPage').then((m) => ({ default: m.DetalleMiServicioPage })),
 )
+/**
+ * «Oferta del prestador» (iteración D, sesión B, DEC-196): actualizar precio (WF-20, RF32), datos comerciales del
+ * servicio (WF-21) y perfil comercial (WF-22, RF43), e historial de reservas (WF-23, RF12); diferidas y solo para el
+ * Prestador.
+ */
+const ActualizarPrecioPage = lazy(() =>
+  import('../features/prestador/ActualizarPrecioPage').then((m) => ({ default: m.ActualizarPrecioPage })),
+)
+const DatosComercialesPage = lazy(() =>
+  import('../features/prestador/DatosComercialesPage').then((m) => ({ default: m.DatosComercialesPage })),
+)
+const PerfilComercialPage = lazy(() =>
+  import('../features/prestador/PerfilComercialPage').then((m) => ({ default: m.PerfilComercialPage })),
+)
+const HistorialReservasPage = lazy(() =>
+  import('../features/prestador/HistorialReservasPage').then((m) => ({ default: m.HistorialReservasPage })),
+)
 
 /** Una página diferida: estado de carga mientras llega y aviso con «Reintentar» si la descarga falla. */
 function Diferida({ children }: { children: ReactNode }) {
@@ -87,7 +104,8 @@ function Diferida({ children }: { children: ReactNode }) {
  * reservas» (WF-11) es privada; el perfil (WF-16) y «Mis favoritos» (WF-17), privadas y solo para el Turista; y
  * «Administrar cuentas» (WF-12), la gestión de preguntas frecuentes (WF-13) y la de avisos (WF-14), privadas y solo
  * para el Administrador; y «Mis servicios» (WF-18) y el registro de servicios (WF-08), privadas y solo para el
- * Prestador. El inicio de sesión (WF-01) y el registro (WF-02, WF-03) usan el diseño de acceso. Los
+ * Prestador, como la edición del precio y de los datos comerciales (WF-20, WF-21), el perfil comercial (WF-22) y el
+ * historial de reservas (WF-23). El inicio de sesión (WF-01) y el registro (WF-02, WF-03) usan el diseño de acceso. Los
  * favoritos del turista (DEC-93) se comparten entre pantallas, dentro de la sesión.
  */
 export function App() {
@@ -229,6 +247,38 @@ export function App() {
                 element={
                   <Diferida>
                     <DetalleMiServicioPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/prestador/servicios/:id/precio"
+                element={
+                  <Diferida>
+                    <ActualizarPrecioPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/prestador/servicios/:id/datos-comerciales"
+                element={
+                  <Diferida>
+                    <DatosComercialesPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/prestador/perfil"
+                element={
+                  <Diferida>
+                    <PerfilComercialPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/prestador/reservas"
+                element={
+                  <Diferida>
+                    <HistorialReservasPage />
                   </Diferida>
                 }
               />

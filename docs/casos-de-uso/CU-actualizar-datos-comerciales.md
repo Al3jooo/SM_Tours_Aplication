@@ -1,7 +1,7 @@
 # Subsistema «Gestionar cuenta»: «Actualizar datos comerciales»
 
 Fase de Construcción (RUP). Caso de uso de la iteración D «Oferta del prestador» (DEC-54): RF43. Cierra HC1 para RF43 y O16.
-- **Pantallas:** sin wireframe todavía. Las pantallas son de la sesión B (frontend): el perfil comercial del Prestador y el detalle propio de WF-18.
+- **Pantallas:** WF-22 «Mi perfil comercial» (`/prestador/perfil`, flujo A; desde el menú del avatar) y WF-21 «Editar datos comerciales» del servicio (`/prestador/servicios/:id/datos-comerciales`, flujo B; desde el detalle propio de WF-18 en `Pendiente` o `Publicado`). Propuestas por arquitectura, pendientes de validación; implementadas en la iteración D, sesión B (DEC-196, DEC-199, DEC-202). WF-08 muestra el RNT del perfil (O16, DEC-203).
 - **Requisitos:** citados de `docs/srs/especificacion de requisitos.pdf`.
 - **Decisiones:** en `docs/trazabilidad.md` («Oferta del prestador — decisiones», DEC-183 a DEC-195).
 - **Contrato HTTP:** [`sad/api/ms-auth.md`](../sad/api/ms-auth.md) («Perfil comercial del Prestador») y [`sad/api/ms-catalog.md`](../sad/api/ms-catalog.md) («Editar un servicio (RF32, RF43)»).
@@ -135,10 +135,61 @@ G --> P : respuesta
 @enduml
 ```
 
+## Secuencia desde las pantallas (WF-22 y WF-21)
+
+Flujo A, perfil comercial: el PUT envía solo `correoCorporativo` y `telefono`; sin control de concurrencia. Flujo B, datos comerciales del servicio: el mismo manejo de la `version` y de los 409 que WF-20 (DEC-200, DEC-201). Componentes del frontend: [`componentes-frontend-prestador.puml`](../sad/diagramas/componentes-frontend-prestador.puml).
+
+```plantuml
+@startuml
+actor Prestador as P
+participant "PerfilComercialPage\n(/prestador/perfil)" as F
+participant "DatosComercialesPage\n(/prestador/servicios/:id/datos-comerciales)" as D
+participant "API Gateway" as G
+participant "ms-auth" as A
+participant "ms-catalog" as C
+== Flujo A: perfil comercial ==
+P -> F : «Mi perfil comercial» (menú del avatar)
+F -> G : GET /api/v1/auth/prestador/perfil
+G -> A
+A --> F : 200 {correo, representanteLegal, razonSocial, rnt, correoCorporativo, telefono}
+F --> P : solo lectura (correo de acceso, representante, razón social, RNT) y nota del correo de acceso
+P -> F : edita correo corporativo y teléfono; «Guardar cambios»
+F -> G : PUT /api/v1/auth/prestador/perfil {correoCorporativo, telefono}
+G -> A
+alt 200
+  A --> F : 200 {perfil}
+  F --> P : «Perfil comercial actualizado»
+else 400 DATOS_INVALIDOS {campos}
+  A --> F : 400
+  F --> P : error junto al campo
+end
+== Flujo B: datos comerciales del servicio ==
+P -> D : «Editar datos comerciales» (detalle propio)
+D -> G : GET /api/v1/catalogo/prestador/servicios/{id}
+G -> C
+C --> D : 200 {nombreComercial, contacto, version: n}
+P -> D : edita nombre y contacto; «Guardar cambios»
+D -> G : PUT …/{id}/datos-comerciales {nombreComercial, contacto, version: n}
+G -> C
+alt 200
+  C --> D : 200 {…, version: n+1}
+  D --> P : detalle propio con «Datos comerciales actualizados»
+else 409 SERVICIO_MODIFICADO
+  C --> D : 409 {versionActual}
+  D -> G : GET …/{id}
+  G -> C
+  C --> D : 200 {…, version: n+1}
+  D --> P : aviso; conserva lo escrito; «Valor actual»; el reenvío es otro clic
+else 409 ESTADO_CAMBIADO
+  C --> D : 409 {estadoActual}
+  D --> P : detalle propio con el aviso (DEC-201)
+end
+@enduml
+```
+
 ## Fuera de alcance
 
 - Cambiar el correo de acceso (credencial) o la contraseña (DEC-79, ADR-006).
 - Cambiar el RNT, la razón social o el representante legal (los valida el Administrador al aprobar la cuenta, RF28).
 - Mostrar al Turista datos de `auth_db` (DEC-144; Ley 1581).
 - Nueva aprobación de un servicio editado (DEC-189).
-- Las pantallas (sesión B).

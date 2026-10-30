@@ -1,7 +1,7 @@
 # Subsistema «Gestionar reservas»: «Consultar historial»
 
 Fase de Construcción (RUP). Caso de uso de la iteración D «Oferta del prestador» (DEC-54): RF12, del lado del Turista (ya implementado, PR #13) y del lado del Prestador (DEC-34). Cierra HC1 y O1 para RF12.
-- **Pantallas:** WF-11 «Mis reservas» (`/mis-reservas`, Turista; pendiente de diseño). La pantalla del Prestador es de la sesión B (frontend), sin wireframe todavía.
+- **Pantallas:** WF-11 «Mis reservas» (`/mis-reservas`, Turista; pendiente de diseño; ya filtra por estado y por rango de fechas) y WF-23 «Historial de reservas» del Prestador (`/prestador/reservas?desde=&hasta=&estado=&servicio=&pagina=`, desde el menú del avatar; propuesto por arquitectura, pendiente de validación; implementado en la iteración D, sesión B, DEC-196 y DEC-204).
 - **Requisitos:** citados de `docs/srs/especificacion de requisitos.pdf`.
 - **Decisiones:** en `docs/trazabilidad.md` («Oferta del prestador — decisiones», DEC-183 a DEC-195).
 - **Contrato HTTP:** en [`sad/api/ms-booking.md`](../sad/api/ms-booking.md) (`GET /reservas/mias` y `GET /reservas/prestador`).
@@ -115,9 +115,52 @@ G --> P : respuesta
 @enduml
 ```
 
+## Secuencia desde la pantalla del Prestador (WF-23)
+
+Los filtros viven en la URL (DEC-169). El selector «Servicio» se llena con las páginas de «Mis servicios» (hasta 20 páginas de 10: los 200 servicios registrados más recientes); si falla, queda deshabilitado y el historial sigue (DEC-204). Componentes del frontend: [`componentes-frontend-prestador.puml`](../sad/diagramas/componentes-frontend-prestador.puml).
+
+```plantuml
+@startuml
+actor Prestador as P
+participant "HistorialReservasPage\n(/prestador/reservas)" as V
+participant "API Gateway" as G
+participant "ms-catalog" as C
+participant "ms-booking" as B
+P -> V : «Historial de reservas» (menú del avatar)
+par selector de servicios
+  loop página 0 .. min(totalPaginas, 20) - 1
+    V -> G : GET /api/v1/catalogo/prestador/servicios?pagina=k
+    G -> C
+    C --> V : 200 {elementos (10), totalPaginas}
+  end
+  alt falla
+    V --> P : selector deshabilitado con aviso (el historial sigue)
+  end
+else historial
+  V -> V : valida los filtros (hasta ≥ desde, 366 días como mucho)
+  alt filtros inválidos
+    V --> P : error junto a «Hasta» (no consulta)
+  else
+    V -> G : GET /api/v1/reservas/prestador?desde&hasta&estado&servicio&pagina
+    G -> B
+    alt 200
+      B --> V : {elementos (20, sin datos del Turista), totalPaginas}
+      V --> P : tarjetas, contador y paginación (o el vacío)
+    else 400 DATOS_INVALIDOS {campos}
+      B --> V : 400
+      V --> P : error junto al filtro
+    else red o 5xx
+      V --> P : mensaje y «Reintentar»
+    end
+  end
+end
+P -> V : cambia un filtro
+V -> V : URL nueva (página 1) y vuelve a consultar
+@enduml
+```
+
 ## Fuera de alcance
 
 - Datos personales del Turista para el Prestador (RF42, descartado; Ley 1581).
 - Que el Prestador cancele o modifique una reserva.
 - Exportar el historial.
-- Las pantallas del Prestador (sesión B).

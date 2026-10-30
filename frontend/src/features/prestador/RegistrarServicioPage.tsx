@@ -22,6 +22,7 @@ import { EditorUnidades } from './componentes/EditorUnidades'
 import { SelectorUbicacion } from './componentes/SelectorUbicacion'
 import { erroresAnidados, idDeCampo, textoErrorServicio, type ErroresServicio } from './rutasCampos'
 import { registrarServicio } from './serviciosPrestadorApi'
+import { usePerfilPrestador } from './usePerfilPrestador'
 import './prestador.css'
 
 /** Estado de la navegación al detalle propio después del 201 (DEC-168). */
@@ -67,6 +68,9 @@ function DatoNoDisponible({ etiqueta }: { etiqueta: string }) {
  * longitudes (DEC-166); el resto lo decide el servidor y su 400 marca cada control por su ruta. El 201 lleva al
  * detalle propio con «Pendiente de aprobación» (DEC-168). Un 403 PRESTADOR_NO_HABILITADO (DEC-162) o un error del
  * servidor no borran lo escrito; un 401 cierra la sesión (httpClient) y RutaProtegida lleva al login.
+ *
+ * El RNT se muestra con el de `GET /api/v1/auth/prestador/perfil` (O16, DEC-203): esa llamada no bloquea el
+ * formulario; mientras carga, si falla o si no hay RNT, queda el texto de DEC-167. El RNT nunca viaja en el cuerpo.
  */
 export function RegistrarServicioPage() {
   const { t, i18n } = useTranslation()
@@ -77,6 +81,8 @@ export function RegistrarServicioPage() {
   const [general, setGeneral] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const mensajeGeneral = useRef<HTMLParagraphElement>(null)
+  const { carga: perfil } = usePerfilPrestador()
+  const rnt = perfil.estado === 'ok' && perfil.perfil.rnt ? perfil.perfil.rnt : null
 
   const cambiar = (cambios: Partial<BorradorServicio>, rutas: string[] = []) => {
     setBorrador((actual) => ({ ...actual, ...cambios }))
@@ -190,7 +196,8 @@ export function RegistrarServicioPage() {
           </div>
           <div className="prestador__rnt">
             <span className="prestador__rnt-etiqueta">{t('prestador.campos.rnt')}</span>
-            <span>{t('prestador.registro.rntDeTuCuenta')}</span>
+            <span>{rnt ?? t('prestador.registro.rntDeTuCuenta')}</span>
+            {rnt && <span className="campo__ayuda">{t('prestador.registro.rntAyuda')}</span>}
           </div>
           <CampoServicio ruta="descripcion" etiqueta={t('prestador.campos.descripcion')} multilinea
             valor={borrador.descripcion} onCambiar={(v) => cambiar({ descripcion: v }, ['descripcion'])}

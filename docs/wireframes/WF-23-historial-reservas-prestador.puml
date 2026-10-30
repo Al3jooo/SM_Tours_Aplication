@@ -1,0 +1,42 @@
+' WF-23 — Historial de reservas del Prestador (CU «Consultar historial», RF12 del lado del Prestador; DEC-191, DEC-192,
+' DEC-196, DEC-204). Propuesto por arquitectura, pendiente de validación del equipo. Solo estructura. Solo para el
+' Prestador; se llega desde el menú del avatar («Historial de reservas»). Ruta:
+' /prestador/reservas?desde=&hasta=&estado=&servicio=&pagina= (filtros y página en la URL, DEC-169).
+' Sin ningún dato del Turista (Ley 1581) y sin acciones: el Prestador no cancela.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+<b>Historial de reservas
+Las reservas de tus servicios, filtradas por la fecha de la actividad. No incluye datos de los viajeros.
+--
+<b>Filtros
+{ Desde | "aaaa-mm-dd" | Hasta | "aaaa-mm-dd" | Servicio | ^Todos tus servicios^ }
+error junto a «Hasta»: «Hasta» antes de «Desde» · más de 366 días (no consulta)
+aviso del selector: los 200 servicios registrados más recientes · si falla, deshabilitado (el historial sigue)
+{ Estado | [X] Confirmada | [ ] Cancelada | [ ] Completada }
+[Quitar filtros]
+--
+<b>2 reservas
+{+
+Confirmada
+<b>Tour de Café en Minca
+Tour · 13 dic 2026 · 07:00 · 3 personas
+{ Precio unitario | 80.000 por persona | Reservada el | 2 nov 2026, 09:30 }
+{ Total | <b>240.000 }
+}
+{+
+Cancelada
+<b>Hotel Casa Tayrona
+Alojamiento · Suite familiar · 20 dic → 22 dic 2026 (2 noches) · 1 habitación · 2 huéspedes
+{ Precio unitario | 260.000,50 por noche | Reservada el | … | Cancelada el | 5 nov 2026, 08:00 }
+{ Total | <b>520.001 }
+}
+{ [<] 1 2 3 [>] (20 por página) }
+Vacío: «Aún no hay reservas de tus servicios» · «No hay reservas con esos filtros»
+Error de red: mensaje y [Reintentar]
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt

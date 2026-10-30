@@ -49,3 +49,34 @@ export function listarMisServicios(estado: string, pagina: number): Promise<Pagi
 export function consultarMiServicio(id: string): Promise<ServicioGestion> {
   return solicitar<ServicioGestion>(`${RUTA}/${encodeURIComponent(id)}`)
 }
+
+/**
+ * RF32 «Actualizar tarifas» (iteración D, DEC-184 a DEC-187): `{precioBase, version}` en Tour, Gastronomía y Alquiler;
+ * `{unidades:[{idUnidad, precioNoche}], version}` en Alojamiento (todas las unidades). 200 con la forma de gestión y la
+ * versión nueva; 409 SERVICIO_MODIFICADO (`versionActual`) o ESTADO_CAMBIADO (`estadoActual`).
+ */
+export function actualizarPrecio(id: string, cuerpo: Record<string, unknown>): Promise<ServicioGestion> {
+  return solicitar<ServicioGestion>(`${RUTA}/${encodeURIComponent(id)}/precio`, { method: 'PUT', cuerpo })
+}
+
+/** RF43, datos comerciales del servicio: `{nombreComercial, contacto{telefono, correo}, version}`; mismos estados y errores. */
+export function actualizarDatosComerciales(id: string, cuerpo: Record<string, unknown>): Promise<ServicioGestion> {
+  return solicitar<ServicioGestion>(`${RUTA}/${encodeURIComponent(id)}/datos-comerciales`, { method: 'PUT', cuerpo })
+}
+
+/** Tope del selector «Servicio» del historial (DEC-204, C6): 20 páginas de 10, es decir, 200 servicios. */
+export const MAXIMO_PAGINAS_SELECTOR = 20
+
+/**
+ * Los servicios del Prestador para el filtro del historial (RF12, DEC-204): las páginas en secuencia, del más reciente
+ * al más antiguo (`fechaRegistro`, como la API), hasta `MAXIMO_PAGINAS_SELECTOR`. `truncado` indica que hay más.
+ */
+export async function listarServiciosParaFiltro(): Promise<{ servicios: ServicioResumen[]; truncado: boolean }> {
+  const servicios: ServicioResumen[] = []
+  for (let pagina = 1; pagina <= MAXIMO_PAGINAS_SELECTOR; pagina += 1) {
+    const actual = await listarMisServicios('', pagina)
+    servicios.push(...actual.elementos)
+    if (pagina >= actual.totalPaginas) return { servicios, truncado: false }
+  }
+  return { servicios, truncado: true }
+}

@@ -1,0 +1,82 @@
+' Componentes del frontend del Prestador después de la iteración D, sesión B (RF09, RF12, RF32, RF43; DEC-161,
+' DEC-176, DEC-196 a DEC-205). Vista de componentes (UML) de la SPA: páginas diferidas detrás de RutaProtegida
+' rol="Prestador", hooks y clientes de API, hasta los servicios a través del API Gateway (ADR-005: el gateway reenvía
+' el token sin validarlo). Las piezas comunes de un servicio viven en features/servicios (DEC-176); shared no importa de
+' features. Lo nuevo de la sesión B lleva el estereotipo <<iteración D>>.
+
+@startuml
+skinparam componentStyle uml2
+left to right direction
+
+package "frontend (SPA, React)" {
+  package "app" {
+    [App\n(rutas diferidas)] as App
+    [RutaProtegida\nrol="Prestador"] as Ruta
+  }
+  package "shared" {
+    [MenuUsuario] as Menu
+    [httpClient\n(ApiError, sesión)] as Http
+    [Paginacion] as Pag
+  }
+  package "features/prestador" {
+    [MisServiciosPage\n(WF-18)] as Mis
+    [DetalleMiServicioPage\n(WF-18)] as Det
+    [RegistrarServicioPage\n(WF-08)] as Reg
+    [ActualizarPrecioPage\n(WF-20)] <<iteración D>> as Pre
+    [DatosComercialesPage\n(WF-21)] <<iteración D>> as Dat
+    [PerfilComercialPage\n(WF-22)] <<iteración D>> as Per
+    [HistorialReservasPage\n(WF-23)] <<iteración D>> as His
+    [edicionServicio\n(useEdicionServicio)] <<iteración D>> as Edi
+    [usePerfilPrestador] <<iteración D>> as UPer
+    [serviciosPrestadorApi] as ApiS
+    [perfilPrestadorApi] <<iteración D>> as ApiP
+    [reservasPrestadorApi] <<iteración D>> as ApiR
+  }
+  package "features/servicios" {
+    [servicioGestion\n(+ version, DEC-205)] as Ges
+    [DatosServicio] as DS
+  }
+  package "features/reservas" {
+    [filtrosReservas] as Fil
+    [InsigniaReserva, dinero,\nfechasBogota] as Res
+  }
+}
+
+node "api-gateway" as GW
+node "ms-auth" as AUTH
+node "ms-catalog" as CAT
+node "ms-booking" as BOOK
+
+App --> Ruta
+Ruta --> Mis
+Ruta --> Det
+Ruta --> Reg
+Ruta --> Pre
+Ruta --> Dat
+Ruta --> Per
+Ruta --> His
+Menu ..> His : «Historial de reservas»
+Menu ..> Per : «Mi perfil comercial»
+Det ..> Pre : «Actualizar precio»
+Det ..> Dat : «Editar datos comerciales»
+Det --> DS
+Pre --> Edi
+Dat --> Edi
+Edi --> ApiS
+Edi --> Ges
+Per --> UPer
+Reg --> UPer : RNT (O16, DEC-203)
+UPer --> ApiP
+His --> ApiR
+His --> ApiS : selector (≤ 200)
+His --> Fil
+His --> Res
+His --> Pag
+ApiS --> Http
+ApiP --> Http
+ApiR --> Http
+Http --> GW : HTTPS /api/v1/** (Bearer)
+GW --> AUTH : /api/v1/auth/prestador/perfil
+GW --> CAT : /api/v1/catalogo/prestador/servicios/**
+GW --> BOOK : /api/v1/reservas/prestador
+@enduml

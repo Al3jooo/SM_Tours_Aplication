@@ -35,4 +35,9 @@ export interface ServicioGestion {
   fechaRegistro: string
   motivoRechazo: string | null
   fechaRevision: string | null
+  /**
+   * Versión del documento (iteración D, DEC-186; DEC-205): la edición del Prestador la envía y el servidor responde 409
+   * SERVICIO_MODIFICADO si ya no es la vigente. La decisión del Administrador (RF21) también la sube.
+   */
+  version: number
 }
