@@ -104,6 +104,15 @@ export function servicioNoDisponible(error: ApiError): boolean {
   return ESTADOS_NO_DISPONIBLE.has(error.status) || error.codigo === 'SERVICIO_NO_DISPONIBLE'
 }
 
+/**
+ * Servicio que no respondió, según el campo `servicio` del ProblemDetail (p. ej. el 503 de ms-booking con
+ * `servicio: ms-catalog` cuando falta materializar la oferta, O14 y DEC-171); null si no lo trae.
+ */
+export function servicioDelProblema(error: ApiError): string | null {
+  const servicio = error.problema?.servicio
+  return typeof servicio === 'string' ? servicio : null
+}
+
 /** 401, o 403 por cuenta no activa (RF22, RF62). Un 403 por rol (ACCESO_DENEGADO) no cierra la sesión. */
 export function sesionInvalida(error: ApiError): boolean {
   return error.status === 401 || (error.status === 403 && error.codigo === 'CUENTA_INACTIVA')

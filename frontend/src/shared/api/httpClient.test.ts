@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { solicitar } from './httpClient'
+import { ApiError, servicioDelProblema, solicitar } from './httpClient'
 
 /** Respuesta con `json()` espiado, para saber si el cliente intentó leer el cuerpo. */
 function respuestaEspiada(status: number, cuerpo: string | null) {
@@ -22,5 +22,15 @@ describe('solicitar: respuestas sin cuerpo (DEC-73)', () => {
 
     await expect(solicitar('/api/v1/catalogo/faq', { publica: true })).resolves.toEqual({ elementos: [] })
     expect(json).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('servicioDelProblema (O14, DEC-171)', () => {
+  it('lee el servicio que no respondió del ProblemDetail; sin él, null', () => {
+    expect(servicioDelProblema(new ApiError(503, 'SERVICIO_NO_DISPONIBLE', { codigo: 'SERVICIO_NO_DISPONIBLE', servicio: 'ms-catalog' }))).toBe(
+      'ms-catalog',
+    )
+    expect(servicioDelProblema(new ApiError(503, 'SERVICIO_NO_DISPONIBLE', { codigo: 'SERVICIO_NO_DISPONIBLE' }))).toBeNull()
+    expect(servicioDelProblema(new ApiError(502, 'HTTP_502', null))).toBeNull()
   })
 })

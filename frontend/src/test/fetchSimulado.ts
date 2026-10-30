@@ -562,3 +562,51 @@ export const BUSQUEDA_CERCA = {
   fecha: '2026-10-22T15:00:00Z',
   criterios: criteriosHistorial({ usarUbicacion: true, distanciaKm: 5, orden: 'Distancia' }),
 }
+
+// ------------------------------------------------------------------ servicios del Prestador (iteración C, B1)
+
+/** Forma de gestión de `/api/v1/catalogo/prestador/servicios/{id}` (WF-18), en el estado que pida la prueba. */
+export function servicioGestion(extra: Record<string, unknown> = {}) {
+  return {
+    id: '6a3000000000000000000001',
+    idPrestador: USUARIO_PRESTADOR.idUsuario,
+    nombreComercial: 'Tour de Café en Minca',
+    categoria: 'Tour',
+    descripcion: 'Recorrido guiado por fincas cafeteras.',
+    direccion: 'Iglesia de Minca, parque principal',
+    coordenadas: { longitud: -74.1121, latitud: 11.1432 },
+    contacto: { telefono: '+57 300 000 0301', correo: 'tours@cafeminca.test' },
+    condicionesAccesibilidad: ['Auditiva'],
+    horarioAtencion: null,
+    precioBase: 80000,
+    moneda: 'COP',
+    detalleCategoria: { puntoEncuentro: 'Iglesia de Minca', duracionHoras: 4, nivelDificultad: null, aforoMaxGrupo: 12 },
+    oferta: { diasOperacion: ['Lunes', 'Sabado'], salidas: ['07:00', '13:30'] },
+    imagenes: [],
+    estadoPublicacion: 'Pendiente',
+    prestadorActivo: true,
+    rnt: 'RNT-00000',
+    fechaRegistro: '2026-10-28T15:00:00Z',
+    motivoRechazo: null,
+    fechaRevision: null,
+    ...extra,
+  }
+}
+
+/** Fila del listado de «Mis servicios». */
+export function servicioResumen(extra: Record<string, unknown> = {}) {
+  return {
+    id: '6a3000000000000000000001',
+    nombreComercial: 'Tour de Café en Minca',
+    categoria: 'Tour',
+    estadoPublicacion: 'Pendiente',
+    motivoRechazo: null,
+    fechaRegistro: '2026-10-28T15:00:00Z',
+    ...extra,
+  }
+}
+
+/** Página de `GET /api/v1/catalogo/prestador/servicios` (`pagina` desde 0, como la API). */
+export function paginaServicios(elementos: unknown[], pagina = 0, totalElementos = elementos.length) {
+  return { elementos, pagina, tamano: 10, totalElementos, totalPaginas: Math.ceil(totalElementos / 10) }
+}

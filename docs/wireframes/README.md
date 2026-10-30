@@ -29,7 +29,7 @@
 | WF-05-exploracion.png | Exploración: mapa y resultados | Buscar oferta, filtrar, ordenar, navegar el mapa | RF16, RF10, RF23, RF27, RF38, RF39, RF50, RF61 | **Sí** (núcleo del catálogo, incluye «Más filtros») |
 | WF-06-detalle.png | Detalle de lugar o servicio | Consultar detalle de oferta | RF37, RF39, RF51, RF54, RF57, RF58 | Sí (versión mínima: solo servicios y los datos que existen) |
 | WF-07-asistente-ia.png | Asistente virtual IA | Interactuar con el asistente | RF04, RF35, RF36, RF59 | No |
-| WF-08-registrar-servicio.png (+ `WF-08-registrar-servicio.puml`, ampliación) | Registrar servicio comercial | Registrar servicio | RF09, RF10, RF27, RF37, RF48, RF58 | Backend en la iteración C (sesión A1); pantalla en B1, sin fotos (iteración E), «cobra por» ni impuestos. La ampliación en Salt está **propuesta por arquitectura, pendiente de validación del equipo** |
+| WF-08-registrar-servicio.png (+ `WF-08-registrar-servicio.puml`, ampliación) | Registrar servicio comercial | Registrar servicio comercial | RF09, RF10, RF27, RF37, RF48, RF58 | Backend en la iteración C (sesión A1); **pantalla hecha en B1** (`/prestador/servicios/nuevo`), sin fotos (iteración E), «cobra por» ni impuestos. La ampliación en Salt está **propuesta por arquitectura, pendiente de validación del equipo** |
 | WF-09-registrar-atractivo.png | Registrar atractivo turístico | Registrar atractivo | RF06, RF07, RF24, RF27, RF33 | No |
 | WF-10-disponibilidad-reserva.png | Disponibilidad y reserva **(nuevo)** | Reservar servicio | RF11, RF20, RF37, RF44 | **Sí** (sin RNT, impuestos, pagos ni «Notificarme si se libera») |
 | — (WF-11, sin imagen) | Mis reservas **(pendiente de diseño)** | Reservar servicio | RF12, RF18, RF44, RF52 | Sí (diseño provisional) |
@@ -39,7 +39,7 @@
 | WF-15-terminos.puml | Términos y condiciones **(nuevo)** | Consultar términos y condiciones | RF46 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-16-perfil-turista.puml | Perfil del turista **(nuevo)** | Actualizar datos personales, Actualizar intereses turísticos | RF53 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-17-mis-favoritos.puml | Mis favoritos **(nuevo)** | Guardar favoritos | RF54 | **Sí** (sesión B de B1; sin el detalle de atractivo). **Propuesto por arquitectura, pendiente de validación del equipo** |
-| WF-18-mis-servicios.puml | Mis servicios **(nuevo)** | Registrar servicio (flujo «Consultar mis servicios», DEC-129) | RF09 | Backend en la iteración C (A1); pantalla en B1. **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-18-mis-servicios.puml | Mis servicios **(nuevo)** | Registrar servicio comercial (flujo «Consultar mis servicios», DEC-129) | RF09 | Backend en la iteración C (A1); **pantalla hecha en B1** (`/prestador/servicios` y `/prestador/servicios/:id`). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-19-aprobar-servicios.puml | Aprobar servicios **(nuevo)** | Aprobar o rechazar servicio; Consultar listado pendiente; Justificar rechazo de servicio | RF21 | Backend en la iteración C (A1); pantalla en B2. **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-05-06-11-cambios-turista.puml | Cambios en WF-05, WF-06 y WF-11 **(nuevo)** | Consultar historial de búsquedas, Guardar favoritos, Compartir reserva completada | RF60, RF54, RF49 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
 
@@ -93,6 +93,8 @@ Pestaña **Registrarse** activa; opción **Prestador de Servicios** seleccionada
 
 Nombre; tipo, ubicación y calificación con reseñas; indicador de accesibilidad; etiquetas (Prestador verificado, Aforo en vivo, Reserva inmediata); favorito y compartir; galería (1 grande + 4 miniaturas); alerta de afluencia; descripción; información de contacto (teléfono, WhatsApp, dirección, correo, registro RNT); **Reportar información falsa o desactualizada** (RF57); tabla de precios; **Ver disponibilidad y reservar** (lleva a WF-10); horarios de atención (RF58); **Destinos alternativos con menor afluencia** (RF51, 3 tarjetas).
 
+**Diferencias de la pantalla con WF-06 desde B1** (DEC-170): la dirección y el registro RNT del contacto muestran el valor del servicio (HC2), o «—» si no lo trae. «Horarios de atención» suma la **oferta inicial** («Días de operación» y, en Tour, «Salidas»), que no está en el wireframe (mejora de diseño: el turista la necesita para elegir fecha). La ubicación del subtítulo sigue deshabilitada: el contrato no tiene municipio.
+
 ## WF-07 — Asistente virtual IA
 
 Encabezado «Asistente Virtual IA» y estado «En línea»; aviso de versión beta; conversación; panel «Itinerario sugerido» por día y hora con **Compartir** y **Descargar PDF**; «Prestadores mencionados»; **Guardar itinerario en perfil** (RF35) y **Ver en el mapa**; chips rápidos (Aforo en vivo, Rutas alternas, Tours mañana, Alquiler de equipos); campo de texto y enviar; sección «El asistente también puede ayudarte con» (Aforos en vivo, Rutas y clima, Prestadores verificados).
@@ -111,9 +113,17 @@ Migas: Panel del Prestador › Mis Servicios › Registrar Nuevo Servicio. Aviso
 - **«Publicar servicio» pasa a «Enviar a aprobación»**: el servicio queda «Pendiente de aprobación» hasta que lo revise el Administrador (RF09, RF21).
 - La casilla de veracidad se conserva; no tiene requisito en el SRS y no se guarda.
 
+**Diferencias de la pantalla de B1 con WF-08** (`docs/trazabilidad.md`, DEC-161 a DEC-168):
+- **Después del 201** la pantalla lleva al **detalle propio** del servicio (`/prestador/servicios/{id}`, WF-18) con «Enviado a aprobación» y «Pendiente de aprobación», no a la lista que indica el `.puml` (línea 100) (DEC-168): el Prestador ve lo que guardó el servidor, con el precio derivado y el RNT.
+- El **RNT** aparece como «Se toma de tu registro de prestador», **sin el valor**: ningún endpoint se lo da al Prestador antes del registro (`/me` no lo trae). El valor se ve en el detalle propio y en WF-06 (DEC-167; pendiente de contrato).
+- La **casilla de veracidad** aparece deshabilitada (DEC-22): la «visita de verificación del municipio» del PNG no está en el SRS y exigirla sería una regla nueva (DEC-167).
+- Se omiten la alerta del PNG (RUT, certificado de sanidad, cámara de comercio, «2 días hábiles») y la nota «Recibirás la respuesta en el correo registrado»: no están en el SRS y el aviso por correo es de RF34 o ms-notificaciones. Queda el aviso del `.puml` («Pendiente de aprobación»). «Un gestor del municipio verifica» pasa a «el Administrador» (RF21).
+- Las migas empiezan en «Mis servicios»: no hay un «Panel del Prestador» aparte.
+- **Mejoras de diseño:** «Latitud» y «Longitud» editables y «Usar el centro de Santa Marta» como alternativa al pin sin ratón (DEC-165), y «Todos los días» en la oferta (DEC-164).
+
 ## WF-18 — Mis servicios (nuevo)
 
-**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-18-mis-servicios.puml`), solo de estructura. Lo implementa la sesión B1. Flujo «Consultar mis servicios» del CU «Registrar servicio» (DEC-129). Pantalla privada del Prestador.
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-18-mis-servicios.puml`), solo de estructura. Implementado en la sesión B1 (DEC-169). Flujo «Consultar mis servicios» del CU «Registrar servicio comercial» (DEC-129). Pantalla privada del Prestador.
 - Lista de sus servicios (nombre, categoría, estado, motivo del rechazo y fecha de registro), del más reciente al más antiguo, con filtro de estado y paginación de 10; **Registrar nuevo servicio** lleva a WF-08.
 - **Ver detalle** muestra los datos enviados y, si está Rechazado, el motivo. «Editar y reenviar» aparece deshabilitado (iteración D).
 

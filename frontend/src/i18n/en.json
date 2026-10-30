@@ -7,7 +7,16 @@
     "sinDatos": "no data",
     "noDisponible": "Not available",
     "sinPermisoTitulo": "No permission",
-    "sinPermiso": "Your account does not have permission to view this page."
+    "sinPermiso": "Your account does not have permission to view this page.",
+    "dias": {
+      "Lunes": "Monday",
+      "Martes": "Tuesday",
+      "Miercoles": "Wednesday",
+      "Jueves": "Thursday",
+      "Viernes": "Friday",
+      "Sabado": "Saturday",
+      "Domingo": "Sunday"
+    }
   },
   "encabezado": {
     "inicio": "Samaria360, go to home",
@@ -26,7 +35,9 @@
     "administrarPreguntas": "FAQ",
     "administrarAvisos": "Notices",
     "miPerfil": "My profile",
-    "misFavoritos": "My favorites"
+    "misFavoritos": "My favorites",
+    "misServicios": "My services",
+    "registrarServicio": "Register a service"
   },
   "login": {
     "titulo": "Sign in to Samaria360",
@@ -424,7 +435,11 @@
     "reportar": "Report false or outdated information",
     "precio": "Price",
     "horarios": "Opening hours",
-    "alternativos": "Alternative destinations with lower crowds"
+    "alternativos": "Alternative destinations with lower crowds",
+    "oferta": {
+      "dias": "Operating days",
+      "salidas": "Departures"
+    }
   },
   "reserva": {
     "titulo": "{{servicio}} – Availability and booking",
@@ -464,7 +479,8 @@
     "disponibilidadErrores": {
       "noDisponible": "We could not check availability: the booking system is not responding.",
       "red": "We could not reach the server. Check your connection.",
-      "otro": "An unexpected error occurred while checking availability."
+      "otro": "An unexpected error occurred while checking availability.",
+      "catalogoNoDisponible": "We could not check availability: the service catalog is not responding. Retry in a few minutes."
     },
     "motivos": {
       "verificar": "Check availability to continue.",
@@ -491,7 +507,8 @@
       "DATOS_INVALIDOS": "Review the booking details:",
       "noDisponible": "The booking system is not available right now. You can retry: it will not be booked twice.",
       "red": "We could not reach the server. Check your connection and retry: it will not be booked twice.",
-      "GENERICO": "An unexpected error occurred. Try again."
+      "GENERICO": "An unexpected error occurred. Try again.",
+      "catalogoNoDisponible": "We could not confirm the service details in the catalog. You can retry: it will not be booked twice."
     },
     "campos": {
       "idServicio": "Service",
@@ -953,5 +970,165 @@
     "fecha": "Search from {{fecha}}.",
     "pideUbicacion": "It will ask for your location again.",
     "sinUbicacion": "You did not share your location: the search was repeated without the distance or the nearest-first order."
+  },
+  "prestador": {
+    "migas": "Breadcrumb",
+    "estados": {
+      "Pendiente": "Pending approval",
+      "Publicado": "Published",
+      "Rechazado": "Rejected"
+    },
+    "errores": {
+      "REQUERIDO": "This field is required.",
+      "FORMATO": "The format is not valid.",
+      "LONGITUD_MAXIMA": "Use at most {{maximo}} characters.",
+      "NO_PERMITIDO": "This value is not allowed.",
+      "DUPLICADO": "This value is repeated.",
+      "VALOR_MINIMO": "The value is lower than allowed.",
+      "VALOR_MAXIMO": "The value is higher than allowed.",
+      "CANTIDAD_MINIMA": "Add at least one.",
+      "CANTIDAD_MAXIMA": "You exceeded the allowed number."
+    },
+    "campos": {
+      "nombreComercial": "Business name",
+      "categoria": "Category",
+      "rnt": "National Tourism Registry (RNT)",
+      "descripcion": "Description",
+      "telefono": "Phone / WhatsApp",
+      "correo": "Email",
+      "direccion": "Address",
+      "horarioAtencion": "Opening hours",
+      "precioBase": "Price “from” (COP)",
+      "serviciosIncluidos": "Included services",
+      "nombreUnidad": "Unit name",
+      "tipoHabitacion": "Room type",
+      "numHabitaciones": "Rooms",
+      "capacidadMaxHuespedes": "Guests per room",
+      "precioNoche": "Price per night",
+      "puntoEncuentro": "Meeting point",
+      "duracionHoras": "Duration (hours)",
+      "nivelDificultad": "Difficulty level",
+      "aforoMaxGrupo": "Maximum group size",
+      "tipoCocina": "Cuisine type",
+      "aforoMaxTurno": "Maximum capacity per shift",
+      "rangoPrecioPlato": "Price range per dish",
+      "menuVegetariano": "Offers a vegetarian menu",
+      "tipoVehiculoEquipo": "Vehicle or equipment type",
+      "unidadesDisponibles": "Available units",
+      "condicionesAlquiler": "Rental conditions"
+    },
+    "ubicacion": {
+      "titulo": "Location on the map",
+      "ayuda": "Click the map to drop the pin and drag it to adjust it, or type the latitude and longitude.",
+      "mapa": "Map to locate the service",
+      "pin": "Service location",
+      "latitud": "Latitude",
+      "longitud": "Longitude",
+      "centro": "Use the center of Santa Marta"
+    },
+    "registro": {
+      "titulo": "Register a business service",
+      "apoyo": "This is how travelers will see your business. The Administrator reviews the information before publishing it.",
+      "avisoPendiente": "Your service will be “Pending approval” until the Administrator reviews it.",
+      "contador": "{{n}}/{{maximo}}",
+      "elegirCategoria": "Choose a category",
+      "categoriaAyuda": "The category defines the fields and the offer you must fill in.",
+      "rntDeTuCuenta": "Taken from your provider registration.",
+      "horarioAyuda": "For example: Monday to Sunday, 7:00 a.m. to 8:00 p.m.",
+      "precioDerivado": "Calculated from the lowest price per night of your units.",
+      "precioSinCategoria": "For Accommodation it is calculated from your units.",
+      "cobraPor": "Charged per",
+      "incluyeImpuestos": "The price includes taxes",
+      "sinCategoria": "Choose a category to see its fields.",
+      "ofertaAyuda": "The days the service operates. It can be booked on those days.",
+      "ofertaSinCategoria": "Choose a category: tours and accommodations register their initial offer.",
+      "sinOferta": "This category does not register an initial offer.",
+      "fotosPendiente": "Service photos will arrive in a later iteration.",
+      "veracidad": "I confirm the information is truthful",
+      "enviar": "Submit for approval",
+      "enviando": "Submitting…",
+      "cancelar": "Cancel",
+      "unidades": "Units",
+      "unidadesAyuda": "From 1 to {{maximo}} units. Each booking is for a single unit.",
+      "unidad": "Unit {{numero}}",
+      "quitarUnidad": "Remove unit {{numero}}",
+      "agregarUnidad": "Add unit",
+      "diasOperacion": "Operating days",
+      "todosLosDias": "Every day",
+      "salidas": "Departures",
+      "salidasAyuda": "From 1 to {{maximo}} departure times. They are sorted on submit.",
+      "salida": "Departure {{numero}}",
+      "quitarSalida": "Remove departure {{numero}}",
+      "agregarSalida": "Add departure",
+      "secciones": {
+        "datos": "Service details",
+        "contacto": "Contact and location",
+        "precio": "Price",
+        "categoria": "Category fields",
+        "categoriaDe": "{{categoria}} fields",
+        "oferta": "Initial offer",
+        "fotos": "Service photos",
+        "accesibilidad": "Accessibility conditions"
+      },
+      "errores": {
+        "DATOS_INVALIDOS": "Some data is not valid. Check the form.",
+        "PRESTADOR_NO_HABILITADO": "Your account is not yet enabled to register services. What you typed is kept.",
+        "ACCESO_DENEGADO": "Only providers can register services.",
+        "SERVICIO_NO_DISPONIBLE": "The catalog is not available right now. What you typed is kept: try again.",
+        "ERROR_RED": "Could not connect to the server. Check your connection and try again.",
+        "GENERICO": "An unexpected error occurred. Try again."
+      }
+    },
+    "misServicios": {
+      "titulo": "My services",
+      "registrar": "Register a new service",
+      "filtroEstado": "Status",
+      "todos": "All",
+      "contador_one": "{{count}} service",
+      "contador_other": "{{count}} services",
+      "vacio": "You have not registered any services yet.",
+      "vacioFiltro": "You have no services with that status.",
+      "cargando": "Loading your services…",
+      "tabla": "Your services, from newest to oldest",
+      "columnas": {
+        "nombre": "Name",
+        "categoria": "Category",
+        "estado": "Status",
+        "registrado": "Registered",
+        "accion": "Action"
+      },
+      "motivo": "Reason: {{motivo}}",
+      "verDetalle": "View details",
+      "verDetalleDe": "View details of {{nombre}}",
+      "verFicha": "View public page",
+      "verFichaDe": "View the public page of {{nombre}}",
+      "errores": {
+        "sinPermiso": "Your account does not have permission to see this page.",
+        "noEncontrado": "We could not find your services.",
+        "noDisponible": "The catalog is not available right now.",
+        "red": "Could not connect to the server. Check your connection.",
+        "otro": "An unexpected error occurred while loading your services."
+      }
+    },
+    "detalle": {
+      "volver": "Back to My services",
+      "cargando": "Loading the service…",
+      "enviado": "Submitted for approval: the Administrator will review it.",
+      "revisado": "Reviewed on",
+      "motivoRechazo": "Rejection reason",
+      "datosEnviados": "Submitted data",
+      "editar": "Edit and resubmit",
+      "coordenadas": "Latitude {{latitud}}, longitude {{longitud}}",
+      "si": "Yes",
+      "no": "No",
+      "unidad": "{{nombre}} · {{tipo}} · {{habitaciones}} rooms · up to {{huespedes}} guests · {{precio}} per night",
+      "errores": {
+        "sinPermiso": "Your account does not have permission to see this page.",
+        "noEncontrado": "We could not find that service among yours.",
+        "noDisponible": "The catalog is not available right now.",
+        "red": "Could not connect to the server. Check your connection.",
+        "otro": "An unexpected error occurred while loading the service."
+      }
+    }
   }
 }

@@ -7,7 +7,16 @@
     "sinDatos": "sin datos",
     "noDisponible": "No disponible",
     "sinPermisoTitulo": "Sin permiso",
-    "sinPermiso": "Tu cuenta no tiene permiso para ver esta página."
+    "sinPermiso": "Tu cuenta no tiene permiso para ver esta página.",
+    "dias": {
+      "Lunes": "Lunes",
+      "Martes": "Martes",
+      "Miercoles": "Miércoles",
+      "Jueves": "Jueves",
+      "Viernes": "Viernes",
+      "Sabado": "Sábado",
+      "Domingo": "Domingo"
+    }
   },
   "encabezado": {
     "inicio": "Samaria360, ir al inicio",
@@ -26,7 +35,9 @@
     "administrarPreguntas": "Preguntas frecuentes",
     "administrarAvisos": "Avisos",
     "miPerfil": "Mi perfil",
-    "misFavoritos": "Mis favoritos"
+    "misFavoritos": "Mis favoritos",
+    "misServicios": "Mis servicios",
+    "registrarServicio": "Registrar servicio"
   },
   "login": {
     "titulo": "Iniciar sesión en Samaria360",
@@ -424,7 +435,11 @@
     "reportar": "Reportar información falsa o desactualizada",
     "precio": "Precio",
     "horarios": "Horarios de atención",
-    "alternativos": "Destinos alternativos con menor afluencia"
+    "alternativos": "Destinos alternativos con menor afluencia",
+    "oferta": {
+      "dias": "Días de operación",
+      "salidas": "Salidas"
+    }
   },
   "reserva": {
     "titulo": "{{servicio}} – Disponibilidad y reserva",
@@ -464,7 +479,8 @@
     "disponibilidadErrores": {
       "noDisponible": "No pudimos consultar la disponibilidad: el sistema de reservas no responde.",
       "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
-      "otro": "Ocurrió un error inesperado al consultar la disponibilidad."
+      "otro": "Ocurrió un error inesperado al consultar la disponibilidad.",
+      "catalogoNoDisponible": "No pudimos consultar la disponibilidad: el catálogo de servicios no responde. Reintenta en unos minutos."
     },
     "motivos": {
       "verificar": "Verifica la disponibilidad para continuar.",
@@ -491,7 +507,8 @@
       "DATOS_INVALIDOS": "Revisa los datos de la reserva:",
       "noDisponible": "El sistema de reservas no está disponible en este momento. Puedes reintentar: no se reservará dos veces.",
       "red": "No fue posible conectar con el servidor. Revisa tu conexión y reintenta: no se reservará dos veces.",
-      "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo."
+      "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo.",
+      "catalogoNoDisponible": "No pudimos confirmar los datos del servicio en el catálogo. Puedes reintentar: no se reservará dos veces."
     },
     "campos": {
       "idServicio": "Servicio",
@@ -953,5 +970,165 @@
     "fecha": "Búsqueda del {{fecha}}.",
     "pideUbicacion": "Volverá a pedir tu ubicación.",
     "sinUbicacion": "No compartiste tu ubicación: la búsqueda se repitió sin la distancia ni el orden por cercanía."
+  },
+  "prestador": {
+    "migas": "Ruta de navegación",
+    "estados": {
+      "Pendiente": "Pendiente de aprobación",
+      "Publicado": "Publicado",
+      "Rechazado": "Rechazado"
+    },
+    "errores": {
+      "REQUERIDO": "Este dato es obligatorio.",
+      "FORMATO": "El formato no es válido.",
+      "LONGITUD_MAXIMA": "Usa como máximo {{maximo}} caracteres.",
+      "NO_PERMITIDO": "Este valor no está permitido.",
+      "DUPLICADO": "Este valor está repetido.",
+      "VALOR_MINIMO": "El valor es menor que el permitido.",
+      "VALOR_MAXIMO": "El valor es mayor que el permitido.",
+      "CANTIDAD_MINIMA": "Agrega al menos uno.",
+      "CANTIDAD_MAXIMA": "Superaste la cantidad permitida."
+    },
+    "campos": {
+      "nombreComercial": "Nombre comercial",
+      "categoria": "Categoría",
+      "rnt": "Registro Nacional de Turismo (RNT)",
+      "descripcion": "Descripción",
+      "telefono": "Teléfono / WhatsApp",
+      "correo": "Correo electrónico",
+      "direccion": "Dirección",
+      "horarioAtencion": "Horario de atención",
+      "precioBase": "Precio «desde» (COP)",
+      "serviciosIncluidos": "Servicios incluidos",
+      "nombreUnidad": "Nombre de la unidad",
+      "tipoHabitacion": "Tipo de habitación",
+      "numHabitaciones": "Habitaciones",
+      "capacidadMaxHuespedes": "Huéspedes por habitación",
+      "precioNoche": "Precio por noche",
+      "puntoEncuentro": "Punto de encuentro",
+      "duracionHoras": "Duración (horas)",
+      "nivelDificultad": "Nivel de dificultad",
+      "aforoMaxGrupo": "Aforo máximo por grupo",
+      "tipoCocina": "Tipo de cocina",
+      "aforoMaxTurno": "Aforo máximo por turno",
+      "rangoPrecioPlato": "Rango de precio por plato",
+      "menuVegetariano": "Ofrece menú vegetariano",
+      "tipoVehiculoEquipo": "Tipo de vehículo o equipo",
+      "unidadesDisponibles": "Unidades disponibles",
+      "condicionesAlquiler": "Condiciones de alquiler"
+    },
+    "ubicacion": {
+      "titulo": "Ubicación en el mapa",
+      "ayuda": "Haz clic en el mapa para poner el pin y arrástralo para ajustarlo, o escribe la latitud y la longitud.",
+      "mapa": "Mapa para ubicar el servicio",
+      "pin": "Ubicación del servicio",
+      "latitud": "Latitud",
+      "longitud": "Longitud",
+      "centro": "Usar el centro de Santa Marta"
+    },
+    "registro": {
+      "titulo": "Registrar servicio comercial",
+      "apoyo": "Así verán tu negocio los viajeros. El Administrador revisa la información antes de publicarla.",
+      "avisoPendiente": "Tu servicio quedará «Pendiente de aprobación» hasta que el Administrador lo revise.",
+      "contador": "{{n}}/{{maximo}}",
+      "elegirCategoria": "Elige una categoría",
+      "categoriaAyuda": "La categoría define los campos y la oferta que debes completar.",
+      "rntDeTuCuenta": "Se toma de tu registro de prestador.",
+      "horarioAyuda": "Por ejemplo: lunes a domingo, de 7:00 a. m. a 8:00 p. m.",
+      "precioDerivado": "Se calcula con el menor precio por noche de tus unidades.",
+      "precioSinCategoria": "En Alojamiento se calcula con tus unidades.",
+      "cobraPor": "Cobra por",
+      "incluyeImpuestos": "El precio incluye impuestos",
+      "sinCategoria": "Elige una categoría para ver sus campos.",
+      "ofertaAyuda": "Los días en que opera el servicio. Podrás reservar en esos días.",
+      "ofertaSinCategoria": "Elige una categoría: los tours y los alojamientos registran su oferta inicial.",
+      "sinOferta": "Esta categoría no registra oferta inicial.",
+      "fotosPendiente": "Las fotos del servicio llegarán en una próxima iteración.",
+      "veracidad": "Confirmo que la información es veraz",
+      "enviar": "Enviar a aprobación",
+      "enviando": "Enviando…",
+      "cancelar": "Cancelar",
+      "unidades": "Unidades",
+      "unidadesAyuda": "De 1 a {{maximo}} unidades. Cada reserva es de una sola unidad.",
+      "unidad": "Unidad {{numero}}",
+      "quitarUnidad": "Quitar la unidad {{numero}}",
+      "agregarUnidad": "Agregar unidad",
+      "diasOperacion": "Días de operación",
+      "todosLosDias": "Todos los días",
+      "salidas": "Salidas",
+      "salidasAyuda": "De 1 a {{maximo}} horas de salida. Se ordenan al enviar.",
+      "salida": "Salida {{numero}}",
+      "quitarSalida": "Quitar la salida {{numero}}",
+      "agregarSalida": "Agregar salida",
+      "secciones": {
+        "datos": "Datos del servicio",
+        "contacto": "Datos de contacto y ubicación",
+        "precio": "Precio",
+        "categoria": "Campos de la categoría",
+        "categoriaDe": "Campos de {{categoria}}",
+        "oferta": "Oferta inicial",
+        "fotos": "Fotos del servicio",
+        "accesibilidad": "Condiciones de accesibilidad"
+      },
+      "errores": {
+        "DATOS_INVALIDOS": "Algunos datos no son válidos. Revisa el formulario.",
+        "PRESTADOR_NO_HABILITADO": "Tu cuenta aún no está habilitada para registrar servicios. Lo que escribiste se conserva.",
+        "ACCESO_DENEGADO": "Solo los prestadores pueden registrar servicios.",
+        "SERVICIO_NO_DISPONIBLE": "El catálogo no está disponible en este momento. Lo que escribiste se conserva: inténtalo de nuevo.",
+        "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
+        "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo."
+      }
+    },
+    "misServicios": {
+      "titulo": "Mis servicios",
+      "registrar": "Registrar nuevo servicio",
+      "filtroEstado": "Estado",
+      "todos": "Todos",
+      "contador_one": "{{count}} servicio",
+      "contador_other": "{{count}} servicios",
+      "vacio": "Aún no registraste servicios.",
+      "vacioFiltro": "No tienes servicios con ese estado.",
+      "cargando": "Cargando tus servicios…",
+      "tabla": "Tus servicios, del más reciente al más antiguo",
+      "columnas": {
+        "nombre": "Nombre",
+        "categoria": "Categoría",
+        "estado": "Estado",
+        "registrado": "Registrado",
+        "accion": "Acción"
+      },
+      "motivo": "Motivo: {{motivo}}",
+      "verDetalle": "Ver detalle",
+      "verDetalleDe": "Ver detalle de {{nombre}}",
+      "verFicha": "Ver ficha pública",
+      "verFichaDe": "Ver la ficha pública de {{nombre}}",
+      "errores": {
+        "sinPermiso": "Tu cuenta no tiene permiso para ver esta página.",
+        "noEncontrado": "No encontramos tus servicios.",
+        "noDisponible": "El catálogo no está disponible en este momento.",
+        "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
+        "otro": "Ocurrió un error inesperado al cargar tus servicios."
+      }
+    },
+    "detalle": {
+      "volver": "Volver a Mis servicios",
+      "cargando": "Cargando el servicio…",
+      "enviado": "Enviado a aprobación: el Administrador lo revisará.",
+      "revisado": "Revisado el",
+      "motivoRechazo": "Motivo del rechazo",
+      "datosEnviados": "Datos enviados",
+      "editar": "Editar y reenviar",
+      "coordenadas": "Latitud {{latitud}}, longitud {{longitud}}",
+      "si": "Sí",
+      "no": "No",
+      "unidad": "{{nombre}} · {{tipo}} · {{habitaciones}} habitaciones · hasta {{huespedes}} huéspedes · {{precio}} por noche",
+      "errores": {
+        "sinPermiso": "Tu cuenta no tiene permiso para ver esta página.",
+        "noEncontrado": "No encontramos ese servicio entre los tuyos.",
+        "noDisponible": "El catálogo no está disponible en este momento.",
+        "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
+        "otro": "Ocurrió un error inesperado al cargar el servicio."
+      }
+    }
   }
 }

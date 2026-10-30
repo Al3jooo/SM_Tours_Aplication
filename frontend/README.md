@@ -391,6 +391,11 @@ Con tinte del mar (`rgb(7 59 68 / …)`), nunca gris puro.
 | Tarjeta de favorito | `.tarjeta-favorito`, `.insignia-favorito--disponible` / `--no-disponible` (`features/perfil/perfil.css`) | Imagen 3:2, nombre, categoría e insignia con icono y texto (mar-900/mar-100 o error/error-fondo); acciones a la derecha desde 40 rem. |
 | Pestañas del perfil | `.pestanas-perfil` (`features/perfil/perfil.css`) | El mismo patrón `tablist` que `.pestanas-cuentas`, sin depender de `admin.css`. |
 | Formulario en línea | `.formulario-aviso` | Superficie con borde superior atardecer-600; contador a la derecha, en error al pasarse; acción principal `aria-disabled` en arena con tinta-suave. |
+| Formulario por secciones (WF-08) | `.prestador__seccion`, `CampoServicio` (`features/prestador/prestador.css`) | Una `.tarjeta` por sección con h2 en Fraunces mar-900; el `id` de cada control sale de la ruta del contrato (`servicio-detalleCategoria-unidades-1-precioNoche`), y su error y su contador (tinta-suave, en error al pasarse) van en `aria-describedby`. Lo que no tiene contrato: `.prestador__no-disponible`, borde discontinuo y «—» (DEC-22). |
+| Editor de filas | `.prestador__filas`, `.prestador__unidad`, `.prestador__fila--salida` | Lista ordenada de `fieldset` (fondo arena, borde, `legend` mar-900 «Unidad N») o de filas en línea (salidas); «Quitar» deshabilitado con una sola fila y «Agregar» con el tope; al quitar, el foco va a la fila anterior. |
+| Selector de ubicación | `SelectorUbicacion`, `.prestador__mapa` (sobre `.mapa-oferta`) | Mapa de 18 rem con la base de `shared/mapa/mapaBase.ts` (teselas y atribución de OSM, zoom máximo 19) y el pin `.marcador--servicio` arrastrable; «Latitud» y «Longitud» visibles debajo, sincronizadas, y «Usar el centro de Santa Marta» como alternativa sin ratón. |
+| Tabla de «Mis servicios» | `.prestador__tabla` | Encabezado arena; por debajo de 40 rem, una tarjeta por fila y cada celda con su columna (`data-etiqueta`), con roles ARIA explícitos como `.tabla-cuentas`. |
+| Insignia de servicio | `.insignia-servicio--<estado>` | Texto siempre: Pendiente de aprobación café-700/sol-100 · Publicado mar-900/mar-100 · Rechazado error/error-fondo. WF-18. |
 
 ### Maquetación y responsivo
 

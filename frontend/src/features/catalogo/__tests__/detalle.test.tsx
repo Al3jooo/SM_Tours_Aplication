@@ -224,3 +224,41 @@ describe('Detalle de un servicio (WF-06)', () => {
     expect(llamadas).toBe(2)
   })
 })
+
+describe('WF-06: dirección, RNT y oferta (HC2, DEC-170)', () => {
+  it('muestra la dirección y el RNT en el contacto, y los días y salidas de la oferta en los horarios', async () => {
+    simularFetch({
+      [`${DETALLE}/s-tour-cafe`]: () =>
+        respuestaJson(200, {
+          ...DETALLE_TOUR,
+          direccion: 'Iglesia de Minca, parque principal',
+          rnt: 'RNT-00000',
+          oferta: { diasOperacion: ['Lunes', 'Miercoles', 'Sabado'], salidas: ['07:00', '13:30'] },
+        }),
+    })
+    renderApp('/servicios/s-tour-cafe')
+
+    const contacto = await screen.findByRole('region', { name: 'Información de contacto' })
+    expect(within(contacto).getByText('Dirección').nextElementSibling).toHaveTextContent('Iglesia de Minca, parque principal')
+    expect(within(contacto).getByText('Registro RNT').nextElementSibling).toHaveTextContent('RNT-00000')
+    const horarios = screen.getByRole('region', { name: 'Horarios de atención' })
+    expect(within(horarios).getByText('Días de operación').nextElementSibling).toHaveTextContent('Lunes, Miércoles, Sábado')
+    expect(within(horarios).getByText('Salidas').nextElementSibling).toHaveTextContent('07:00, 13:30')
+  })
+
+  it('con dirección, RNT y oferta nulos no rompe: «—» y sin oferta', async () => {
+    simularFetch({
+      [`${DETALLE}/s-restaurante`]: () =>
+        respuestaJson(200, { ...DETALLE_RESTAURANTE, direccion: null, rnt: null, oferta: null }),
+    })
+    renderApp('/servicios/s-restaurante')
+
+    const contacto = await screen.findByRole('region', { name: 'Información de contacto' })
+    for (const campo of ['Dirección', 'Registro RNT']) {
+      expect(within(contacto).getByText(campo).nextElementSibling).toHaveTextContent('—No disponible')
+    }
+    // Sin horario ni oferta, la región sigue deshabilitada.
+    expect(screen.getByRole('group', { name: 'Horarios de atención' })).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.queryByText('Días de operación')).not.toBeInTheDocument()
+  })
+})

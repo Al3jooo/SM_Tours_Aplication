@@ -1,15 +1,15 @@
-# Subsistema «Gestionar servicios»: «Registrar servicio»
+# Subsistema «Gestionar servicios»: «Registrar servicio comercial»
 
 Fase de Construcción (RUP). Caso de uso de la iteración C «Registrar y aprobar servicio» (DEC-54, DEC-134): RF09, RF10 y RF37, con parte de RF27 y RF58. Incluye el flujo «Consultar mis servicios» (DEC-129).
-- **Pantallas:** WF-08 «Registrar servicio» ([ampliación en Salt](../wireframes/WF-08-registrar-servicio.puml) del PNG) y WF-18 «Mis servicios» ([wireframe](../wireframes/WF-18-mis-servicios.puml)), propuestos por arquitectura y pendientes de validación del equipo. Las implementa la sesión B1.
+- **Pantallas:** WF-08 «Registrar servicio comercial» ([ampliación en Salt](../wireframes/WF-08-registrar-servicio.puml) del PNG) y WF-18 «Mis servicios» ([wireframe](../wireframes/WF-18-mis-servicios.puml)), propuestos por arquitectura y pendientes de validación del equipo. Implementadas en la sesión B1 (DEC-161 a DEC-171): `/prestador/servicios/nuevo`, `/prestador/servicios` y `/prestador/servicios/:id`, solo para el Prestador.
 - **Requisitos:** citados de `docs/srs/especificacion de requisitos.pdf`.
 - **Decisiones:** en `docs/trazabilidad.md` («Registrar y aprobar servicio — decisiones», DEC-124 a DEC-151).
 - **Contrato HTTP:** en [`sad/api/ms-catalog.md`](../sad/api/ms-catalog.md), sección «Registrar servicio y Mis servicios».
-- **Nombre:** se conserva el nombre original del CU (Entregable 2, figura 4; DEC-59).
+- **Nombre:** se conserva el nombre original del CU, «Registrar servicio comercial» (Entregable 2, figura 4; DEC-59). Hasta B1 el documento lo llamaba «Registrar servicio» (N22, DEC-173); el archivo conserva su nombre porque lo citan comentarios del backend.
 
 | Campo | Valor |
 |---|---|
-| **Casos de uso** | «Registrar servicio», con el flujo «Consultar mis servicios» (ampliación, DEC-129) |
+| **Casos de uso** | «Registrar servicio comercial», con el flujo «Consultar mis servicios» (ampliación, DEC-129) |
 | **Actores** | Prestador |
 | **Requisitos que traza** | RF09, RF10, RF37; parte de RF27 (declarar la accesibilidad) y de RF58 (registrar el horario de atención). Además RNF06 |
 | **Nivel** | Objetivo de usuario |
@@ -42,7 +42,7 @@ left to right direction
 actor Prestador
 actor Administrador
 rectangle "Gestionar servicios" {
-  usecase "Registrar servicio\n(RF09, RF10, RF37;\nparte de RF27 y RF58)" as RS
+  usecase "Registrar servicio comercial\n(RF09, RF10, RF37;\nparte de RF27 y RF58)" as RS
   usecase "Consultar mis servicios\n«ampliación» (DEC-129)\nRF09: resultado de la aprobación previa" as CMS
   usecase "Aprobar o rechazar servicio\n(RF21)" as AR
   usecase "Consultar listado pendiente" as CLP
@@ -53,7 +53,7 @@ Prestador --> CMS
 Administrador --> AR
 AR ..> CLP : <<include>>
 JR ..> AR : <<extend>>\n[decisión = Rechazar]
-note right of CMS : Flujo de consulta del resultado\nde «Registrar servicio»;\nampliación del modelo (como N15)
+note right of CMS : Flujo de consulta del resultado\nde «Registrar servicio comercial»;\nampliación del modelo (como N15)
 @enduml
 ```
 
@@ -61,7 +61,7 @@ note right of CMS : Flujo de consulta del resultado\nde «Registrar servicio»;\
 - «Consultar mis servicios» es una **ampliación del modelo de casos de uso del Entregable 2**, trazada a RF09 («requerirá aprobación previa»: el prestador consulta el resultado). Se especifica aquí como flujo, sin archivo propio (DEC-129).
 - «Aprobar o rechazar servicio» está en [`CU-aprobar-rechazar-servicio.md`](CU-aprobar-rechazar-servicio.md).
 
-## CU «Registrar servicio» (RF09, RF10, RF37)
+## CU «Registrar servicio comercial» (RF09, RF10, RF37)
 
 **Actor:** Prestador.
 
@@ -78,7 +78,7 @@ note right of CMS : Flujo de consulta del resultado\nde «Registrar servicio»;\
 6. ms-catalog valida cada campo y genera el id del servicio y los `idUnidad`.
 7. ms-catalog guarda el servicio `Pendiente`, con `prestadorId` = `sub`, la copia del RNT, `prestadorActivo` de la proyección y `fechaRegistro`. En Alojamiento, `precioBase` es el menor `precioNoche`.
 8. ms-catalog relee la proyección: si el prestador se inactivó mientras tanto, oculta el servicio (DEC-142).
-9. El sistema responde 201 con el servicio y `Location`. La pantalla muestra «Pendiente de aprobación» y lleva a «Mis servicios».
+9. El sistema responde 201 con el servicio y `Location`. La pantalla lleva al detalle propio del servicio (WF-18) con el aviso «Enviado a aprobación» y el estado «Pendiente de aprobación» (DEC-168).
 
 **Flujo «Consultar mis servicios» (DEC-129, DEC-143):**
 1. El Prestador abre «Mis servicios» (WF-18).
@@ -159,7 +159,7 @@ G --> P : respuesta
 
 ```plantuml
 @startuml
-[*] --> Pendiente : Registrar servicio
+[*] --> Pendiente : Registrar servicio comercial
 Pendiente --> Publicado : Aprobar (RF21)
 Pendiente --> Rechazado : Rechazar + justificación (RF21)
 Publicado : visible si prestadorActivo (RF22)

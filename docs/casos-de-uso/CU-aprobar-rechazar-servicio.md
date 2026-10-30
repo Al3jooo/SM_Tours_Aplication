@@ -46,7 +46,7 @@ JR ..> AR : <<extend>>\n[decisión = Rechazar]
 ```
 
 - **Punto de extensión** de «Aprobar o rechazar servicio»: «decisión», en el paso 4 del flujo básico. «Justificar rechazo de servicio» lo extiende cuando el Administrador elige Rechazar.
-- El modelo completo del subsistema (con «Registrar servicio») está en [`CU-registrar-servicio.md`](CU-registrar-servicio.md).
+- El modelo completo del subsistema (con «Registrar servicio comercial») está en [`CU-registrar-servicio.md`](CU-registrar-servicio.md).
 
 ## CU «Aprobar o rechazar servicio» (RF21)
 
@@ -69,7 +69,7 @@ JR ..> AR : <<extend>>\n[decisión = Rechazar]
 1. El Administrador elige **Rechazar** y escribe la justificación (obligatoria, de 1 a 500 caracteres).
 2. El sistema envía `{decision: "Rechazar", justificacion}`.
 3. ms-catalog hace el UPDATE condicional a `Rechazado` con `motivoRechazo` (sin los espacios de los extremos), `revisadoPor` y `fechaRevision`.
-4. El sistema responde 200. El prestador ve el motivo en «Mis servicios» (CU «Registrar servicio»).
+4. El sistema responde 200. El prestador ve el motivo en «Mis servicios» (CU «Registrar servicio comercial»).
 
 **Flujos alternos:**
 - **FA1. Justificación inválida.** Rechazar sin justificación, en blanco o con más de 500 caracteres → 400 `DATOS_INVALIDOS` con `campos.justificacion` (`REQUERIDO` o `LONGITUD_MAXIMA`). No cambia nada.

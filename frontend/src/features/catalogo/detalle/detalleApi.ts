@@ -32,6 +32,12 @@ interface BaseDetalle {
   condicionesAccesibilidad: CondicionAccesibilidad[]
   /** Días y horarios como texto libre (RF58); null si no hay. */
   horarioAtencion: string | null
+  /** Iteración C (DEC-150, HC2): null (o ausente) si el servicio no la tiene. */
+  direccion?: string | null
+  /** Copia del RNT del prestador (DEC-126). */
+  rnt?: string | null
+  /** Oferta inicial: Tour con días y salidas, Alojamiento solo con días; null en las demás (DEC-136). */
+  oferta?: { diasOperacion: string[]; salidas?: string[] | null } | null
 }
 
 export type DetalleServicio = BaseDetalle &
