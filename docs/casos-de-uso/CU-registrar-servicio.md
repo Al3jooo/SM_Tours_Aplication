@@ -4,7 +4,7 @@ Fase de Construcción (RUP). Caso de uso de la iteración C «Registrar y aproba
 - **Pantallas:** WF-08 «Registrar servicio comercial» ([ampliación en Salt](../wireframes/WF-08-registrar-servicio.puml) del PNG) y WF-18 «Mis servicios» ([wireframe](../wireframes/WF-18-mis-servicios.puml)), propuestos por arquitectura y pendientes de validación del equipo. Implementadas en la sesión B1 (DEC-161 a DEC-171): `/prestador/servicios/nuevo`, `/prestador/servicios` y `/prestador/servicios/:id`, solo para el Prestador.
 - **Requisitos:** citados de `docs/srs/especificacion de requisitos.pdf`.
 - **Decisiones:** en `docs/trazabilidad.md` («Registrar y aprobar servicio — decisiones», DEC-124 a DEC-151).
-- **Contrato HTTP:** en [`sad/api/ms-catalog.md`](../sad/api/ms-catalog.md), sección «Registrar servicio y Mis servicios».
+- **Contrato HTTP:** en [`sad/api/ms-catalog.md`](../sad/api/ms-catalog.md), sección «Registrar servicio comercial y Mis servicios».
 - **Nombre:** se conserva el nombre original del CU, «Registrar servicio comercial» (Entregable 2, figura 4; DEC-59). Hasta B1 el documento lo llamaba «Registrar servicio» (N22, DEC-173); el archivo conserva su nombre porque lo citan comentarios del backend.
 
 | Campo | Valor |

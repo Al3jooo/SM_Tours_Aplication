@@ -40,7 +40,7 @@
 | WF-16-perfil-turista.puml | Perfil del turista **(nuevo)** | Actualizar datos personales, Actualizar intereses turísticos | RF53 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-17-mis-favoritos.puml | Mis favoritos **(nuevo)** | Guardar favoritos | RF54 | **Sí** (sesión B de B1; sin el detalle de atractivo). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-18-mis-servicios.puml | Mis servicios **(nuevo)** | Registrar servicio comercial (flujo «Consultar mis servicios», DEC-129) | RF09 | Backend en la iteración C (A1); **pantalla hecha en B1** (`/prestador/servicios` y `/prestador/servicios/:id`). **Propuesto por arquitectura, pendiente de validación del equipo** |
-| WF-19-aprobar-servicios.puml | Aprobar servicios **(nuevo)** | Aprobar o rechazar servicio; Consultar listado pendiente; Justificar rechazo de servicio | RF21 | Backend en la iteración C (A1); pantalla en B2. **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-19-aprobar-servicios.puml | Aprobar servicios **(nuevo)** | Aprobar o rechazar servicio; Consultar listado pendiente; Justificar rechazo de servicio | RF21 | Backend en la iteración C (A1); pantalla hecha en B2 (DEC-174 a DEC-181). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-05-06-11-cambios-turista.puml | Cambios en WF-05, WF-06 y WF-11 **(nuevo)** | Consultar historial de búsquedas, Guardar favoritos, Compartir reserva completada | RF60, RF54, RF49 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
 
 ## WF-01 — Inicio de sesión
@@ -129,10 +129,18 @@ Migas: Panel del Prestador › Mis Servicios › Registrar Nuevo Servicio. Aviso
 
 ## WF-19 — Aprobar servicios (nuevo)
 
-**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-19-aprobar-servicios.puml`), solo de estructura. Lo implementa la sesión B2. CU «Aprobar o rechazar servicio» (RF21). Pantalla privada del Administrador.
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-19-aprobar-servicios.puml`), solo de estructura. Implementado en la sesión B2. CU «Aprobar o rechazar servicio» (RF21). Pantalla privada del Administrador.
 - **Cola de pendientes** del más antiguo al más reciente (DEC-144), con filtro de estado y paginación de 10: nombre, categoría, RNT del prestador, si el prestador está activo y fecha de registro.
 - **Revisar**: todos los datos del registro, la oferta y el estado de la cuenta del prestador; **Aprobar → Publicado** y **Rechazar**, que abre el diálogo con la **justificación obligatoria** (máximo 500 caracteres, con contador y error por campo; DEC-145).
 - **Región de estado** con el 409 `ESTADO_CAMBIADO`: avisa y recarga (DEC-52).
+
+**Diferencias de la pantalla de B2 con WF-19** (`docs/trazabilidad.md`, DEC-174 a DEC-181; el `.puml` no cambia):
+- **Revisión de un servicio ya decidido:** la sección «Revisión» (fecha, revisor y, si se rechazó, el motivo) no está en el wireframe. Un `Publicado` o un `Rechazado` no muestra «Aprobar» ni «Rechazar» (DEC-179).
+- **Campos por categoría:** el wireframe dibuja solo un Alojamiento. La pantalla muestra los datos de las cuatro categorías: las unidades y servicios incluidos de Alojamiento, los datos de Tour con sus salidas, y los de Gastronomía y Alquiler de equipos, que no tienen oferta (DEC-176).
+- **Prestador:** se muestran el id, el RNT, el estado de la cuenta y «Prestador activo». No hay nombre: no está en `catalog_db` (DEC-144). Con el prestador no activo aparece un aviso de que el servicio quedará oculto aunque se apruebe (DEC-180).
+- **Diálogo de rechazo:** suma el aviso de decisión definitiva, como el de WF-12 (DEC-177).
+- **Cola:** las rutas son `/admin/servicios` y `/admin/servicios/:id`, a las que se entra con «Aprobar servicios» en el menú del avatar (DEC-174).
+- **Mejoras de diseño:** las coordenadas también en texto junto al mapa, el foco en los títulos al cargar y al volver, y «Volver» conserva el filtro y la página de la cola.
 
 ## WF-09 — Registrar atractivo turístico
 

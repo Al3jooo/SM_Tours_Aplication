@@ -1,7 +1,7 @@
 # Subsistema «Gestionar servicios»: «Aprobar o rechazar servicio»
 
 Fase de Construcción (RUP). Caso de uso de la iteración C «Registrar y aprobar servicio» (DEC-54, DEC-134): RF21. Incluye «Consultar listado pendiente» y lo extiende «Justificar rechazo de servicio».
-- **Pantalla:** WF-19 «Aprobar servicios» ([wireframe](../wireframes/WF-19-aprobar-servicios.puml), propuesto por arquitectura y pendiente de validación del equipo). La implementa la sesión B2.
+- **Pantalla:** WF-19 «Aprobar servicios» ([wireframe](../wireframes/WF-19-aprobar-servicios.puml), propuesto por arquitectura y pendiente de validación del equipo). Implementada en la sesión B2: `/admin/servicios` (cola) y `/admin/servicios/:id` (revisión), solo para el Administrador (DEC-174 a DEC-182; ver «Pantalla» abajo).
 - **Requisitos:** citados de `docs/srs/especificacion de requisitos.pdf`.
 - **Decisiones:** en `docs/trazabilidad.md` («Registrar y aprobar servicio — decisiones», DEC-124 a DEC-151).
 - **Contrato HTTP:** en [`sad/api/ms-catalog.md`](../sad/api/ms-catalog.md), sección «Aprobar o rechazar servicio».
@@ -138,6 +138,74 @@ else
   end
 end
 G --> A : respuesta
+@enduml
+```
+
+## Pantalla (WF-19, sesión B2)
+
+Cómo recorre el Administrador el flujo en WF-19. Decisiones en `docs/trazabilidad.md`, sesión B2, DEC-174 a DEC-182.
+
+- **Paso 1:** «Aprobar servicios» en el menú del avatar lleva a la cola.
+- **Pasos 2 y 3:**
+  - «Revisar» abre `/admin/servicios/:id`, con los datos del registro, el mapa de solo lectura y el prestador (id, RNT, estado de la cuenta).
+  - Con el prestador no activo aparece el aviso de FA6.
+- **Paso 4:** «Aprobar → Publicado» envía la decisión sin diálogo. Es definitiva en C (DEC-177).
+- **Extensión:** «Rechazar» abre el diálogo de la justificación, con el contador y «Confirmar rechazo» deshabilitado mientras esté vacía.
+- **Paso 7 y extensión:** tras el 200, la pantalla vuelve a la cola, que se recarga y anuncia el estado nuevo.
+- **FA1:** el error va junto al campo.
+- **FA3 y FA4:** se vuelve a la cola con el aviso (DEC-52).
+- **FA5:** «Sin permiso» o el login con el motivo.
+- **Estados finales:** un servicio ya decidido no muestra acciones; muestra la fecha, el revisor (id) y el motivo (DEC-179).
+
+```plantuml
+@startuml
+actor Administrador as A
+participant "AprobarServiciosPage\n(/admin/servicios)" as C
+participant "RevisarServicioPage\n(/admin/servicios/:id)" as R
+participant "API Gateway" as G
+participant "ms-catalog" as M
+A -> C : «Aprobar servicios»
+C -> G : GET /api/v1/catalogo/admin/servicios?estado=Pendiente&pagina=0
+G -> M : (Authorization sin cambios)
+M --> C : 200 página (más antiguo primero)
+A -> R : «Revisar»
+R -> G : GET …/admin/servicios/{id}
+G -> M
+M --> R : 200 forma de gestión (+ revisadoPor, estadoCuentaPrestador)
+A -> R : «Aprobar → Publicado»
+R -> G : POST …/{id}/aprobacion {decision: "Aprobar"}
+G -> M
+M --> R : 200 (Publicado, revisadoPor, fechaRevision)
+R -> C : vuelve a la cola con el aviso
+C -> G : GET …/admin/servicios?estado=Pendiente&pagina=0
+M --> C : 200 (sin el servicio)
+C --> A : región aria-live: «Se aprobó «…»: ahora está Publicado»
+@enduml
+```
+
+```plantuml
+@startuml
+actor Administrador as A
+participant "RevisarServicioPage" as R
+participant "DialogoRechazo" as D
+participant "ms-catalog\n(vía API Gateway)" as M
+participant "AprobarServiciosPage" as C
+A -> R : «Rechazar»
+R -> D : abre (foco en la justificación)
+A -> D : escribe de 1 a 500 caracteres y confirma
+D -> R : onConfirmar(texto)
+R -> M : POST …/{id}/aprobacion {decision: "Rechazar", justificacion}
+alt 200
+  M --> R : Rechazado + motivoRechazo
+  R -> C : vuelve a la cola con «Se rechazó «…»»
+else 400 DATOS_INVALIDOS (FA1)
+  M --> R : campos.justificacion
+  R -> D : error junto al campo (sigue abierto)
+else 409 ESTADO_CAMBIADO (FA4)
+  M --> R : estadoActual
+  R -> C : vuelve a la cola con «ya fue revisado… (ahora está {estadoActual})»
+  C -> M : GET cola (recarga)
+end
 @enduml
 ```
 

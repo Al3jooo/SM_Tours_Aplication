@@ -32,6 +32,7 @@
     "cerrarSesion": "Cerrar sesión",
     "misReservas": "Mis reservas",
     "administrarCuentas": "Administrar cuentas",
+    "aprobarServicios": "Aprobar servicios",
     "administrarPreguntas": "Preguntas frecuentes",
     "administrarAvisos": "Avisos",
     "miPerfil": "Mi perfil",
@@ -810,6 +811,7 @@
       "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión y reintenta.",
       "SERVICIO_NO_DISPONIBLE": "El servicio de cuentas no está disponible en este momento. Reintenta en unos minutos.",
       "CONTENIDO_NO_DISPONIBLE": "El servicio de contenidos no está disponible en este momento. Reintenta en unos minutos.",
+      "CATALOGO_NO_DISPONIBLE": "El catálogo no está disponible en este momento. Reintenta en unos minutos.",
       "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo."
     },
     "erroresLista": {
@@ -901,6 +903,75 @@
       "erroresTipo": {
         "REQUERIDO": "Elige el tipo del aviso.",
         "NO_PERMITIDO": "Elige un tipo de la lista."
+      }
+    },
+    "servicios": {
+      "migas": "Ruta de navegación",
+      "migaAdministracion": "Administración",
+      "migaServicios": "Servicios",
+      "titulo": "Servicios por aprobar",
+      "apoyo": "Revisa los servicios que registraron los prestadores, del más antiguo al más reciente, y apruébalos o recházalos.",
+      "filtroEstado": "Estado",
+      "tabla": "Servicios, del más antiguo al más reciente",
+      "contador_one": "{{count}} servicio",
+      "contador_other": "{{count}} servicios",
+      "cargando": "Cargando los servicios…",
+      "vacio": {
+        "Pendiente": "No hay servicios pendientes de aprobación.",
+        "Publicado": "No hay servicios publicados.",
+        "Rechazado": "No hay servicios rechazados."
+      },
+      "columnas": {
+        "nombre": "Nombre",
+        "categoria": "Categoría",
+        "rnt": "RNT del prestador",
+        "prestadorActivo": "Prestador activo",
+        "registrado": "Registrado",
+        "accion": "Acción"
+      },
+      "si": "Sí",
+      "no": "No",
+      "noOculto": "No (quedará oculto aunque se apruebe)",
+      "revisar": "Revisar",
+      "revisarDe": "Revisar {{nombre}}",
+      "erroresLista": {
+        "noDisponible": "El catálogo no está disponible en este momento.",
+        "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
+        "otro": "Ocurrió un error inesperado al cargar los servicios.",
+        "sinPermiso": "Tu cuenta no tiene permiso para ver esta página."
+      },
+      "revision": {
+        "cargando": "Cargando el servicio…",
+        "titulo": "Revisar: {{nombre}} · {{categoria}}",
+        "estado": "Estado",
+        "registrado": "Registrado el",
+        "avisoInactivo": "La cuenta del prestador no está activa: si apruebas el servicio, quedará Publicado pero oculto en el catálogo público.",
+        "prestador": "Prestador",
+        "idPrestador": "Identificador",
+        "rnt": "RNT",
+        "cuenta": "Cuenta",
+        "revision": "Revisión",
+        "revisadoEl": "Revisado el",
+        "revisadoPor": "Revisado por (identificador)",
+        "motivoRechazo": "Motivo del rechazo",
+        "datos": "Datos enviados",
+        "mapa": "Ubicación de {{nombre}} en el mapa",
+        "volver": "Volver",
+        "rechazar": "Rechazar",
+        "aprobar": "Aprobar → Publicado"
+      },
+      "rechazo": {
+        "titulo": "Rechazar servicio «{{nombre}}»",
+        "aviso": "La decisión es definitiva: el servicio no se publicará y el prestador verá la justificación en «Mis servicios»."
+      },
+      "exito": {
+        "aprobado": "Se aprobó «{{nombre}}»: ahora está Publicado.",
+        "rechazado": "Se rechazó «{{nombre}}»: ahora está Rechazado."
+      },
+      "errores": {
+        "ESTADO_CAMBIADO": "«{{nombre}}» ya fue revisado por otro administrador (ahora está {{estado}}); se recargó la lista.",
+        "ESTADO_CAMBIADO_SIN_ESTADO": "«{{nombre}}» ya fue revisado por otro administrador; se recargó la lista.",
+        "SERVICIO_NO_ENCONTRADO": "El servicio ya no existe; se recargó la lista."
       }
     }
   },

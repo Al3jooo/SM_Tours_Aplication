@@ -133,20 +133,22 @@ describe('Menú del avatar', () => {
     await waitFor(() => expect(opciones[0]).toHaveFocus())
   })
 
-  it('para el Administrador, sus tres pantallas van antes de «Cerrar sesión» (WF-12 a WF-14, DEC-70)', async () => {
+  it('para el Administrador, sus cuatro pantallas van antes de «Cerrar sesión» (WF-12 a WF-14 y WF-19, DEC-70, DEC-174)', async () => {
     const { usuario, avatar } = await abrirMenu(USUARIO_ADMIN)
     await usuario.click(avatar)
 
     const opciones = within(screen.getByRole('menu')).getAllByRole('menuitem')
     expect(opciones.map((opcion) => opcion.textContent)).toEqual([
       'Administrar cuentas',
+      'Aprobar servicios',
       'Preguntas frecuentes',
       'Avisos',
       'Cerrar sesión',
     ])
     expect(opciones[0]).toHaveAttribute('href', '/admin/cuentas')
-    expect(opciones[1]).toHaveAttribute('href', '/admin/preguntas-frecuentes')
-    expect(opciones[2]).toHaveAttribute('href', '/admin/avisos')
+    expect(opciones[1]).toHaveAttribute('href', '/admin/servicios')
+    expect(opciones[2]).toHaveAttribute('href', '/admin/preguntas-frecuentes')
+    expect(opciones[3]).toHaveAttribute('href', '/admin/avisos')
     // El foco inicial va a la primera opción, «Administrar cuentas».
     await waitFor(() => expect(opciones[0]).toHaveFocus())
   })

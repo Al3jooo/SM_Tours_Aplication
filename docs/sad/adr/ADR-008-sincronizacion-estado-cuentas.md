@@ -149,7 +149,7 @@ SELECT id_evento, d.destino, now() FROM evento CROSS JOIN (VALUES ('ms-catalog')
 ## Enmienda «Registrar y aprobar servicio» (iteración C): el RNT en el evento
 
 - **Fecha:** 2026-10-24
-- **Fase:** Construcción (RUP), iteración C, sesión A1 ([CU «Registrar servicio»](../../casos-de-uso/CU-registrar-servicio.md))
+- **Fase:** Construcción (RUP), iteración C, sesión A1 ([CU «Registrar servicio comercial»](../../casos-de-uso/CU-registrar-servicio.md))
 - **Registra las decisiones:** DEC-125 y DEC-126 (del equipo) y DEC-142, DEC-146 y DEC-147 (de arquitectura). Resuelve HC2 en el backend.
 
 Esta enmienda no crea un ADR nuevo: el RNT y la cuenta del prestador viajan por el mismo mecanismo del punto 1 al 4. HC2 pedía elegir entre una réplica (como `prestadorActivo`) y una composición de API; se eligió la **réplica**, porque el RNT no tiene RF de edición y la consulta pública no debe depender de ms-auth (como ADR-007).

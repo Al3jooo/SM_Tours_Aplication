@@ -456,30 +456,6 @@
   font-weight: 600;
 }
 
-/* Estado de publicación: siempre con texto (N21). */
-.insignia-servicio {
-  display: inline-block;
-  padding: var(--espacio-1) var(--espacio-3);
-  border-radius: var(--radio-pill);
-  font-size: var(--texto-xs);
-  font-weight: 700;
-}
-
-.insignia-servicio--pendiente {
-  background: var(--color-sol-100);
-  color: var(--color-cafe-700);
-}
-
-.insignia-servicio--publicado {
-  background: var(--color-mar-100);
-  color: var(--color-mar-900);
-}
-
-.insignia-servicio--rechazado {
-  background: var(--color-error-fondo);
-  color: var(--color-error);
-}
-
 /* Detalle propio. */
 .prestador__datos {
   display: grid;
@@ -506,13 +482,6 @@
 .prestador__datos dd {
   margin: 0;
   white-space: pre-line;
-}
-
-.prestador__lista-unidades {
-  display: grid;
-  gap: var(--espacio-1);
-  margin: 0;
-  padding-left: var(--espacio-4);
 }
 
 .prestador__rechazo {

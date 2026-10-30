@@ -610,3 +610,52 @@ export function servicioResumen(extra: Record<string, unknown> = {}) {
 export function paginaServicios(elementos: unknown[], pagina = 0, totalElementos = elementos.length) {
   return { elementos, pagina, tamano: 10, totalElementos, totalPaginas: Math.ceil(totalElementos / 10) }
 }
+
+// ------------------------------------------------------------------ servicios del Administrador (iteración C, B2)
+
+/**
+ * Forma de gestión de la vista del Administrador (`/api/v1/catalogo/admin/servicios/{id}`, WF-19): la del Prestador
+ * más `revisadoPor` y `estadoCuentaPrestador`. Tour Pendiente por defecto; `servicioAdminDe` arma las otras categorías.
+ */
+export function servicioAdmin(extra: Record<string, unknown> = {}) {
+  return { ...servicioGestion(), estadoCuentaPrestador: 'Activo', ...extra }
+}
+
+export function servicioAdminDe(categoria: 'Alojamiento' | 'Gastronomia' | 'AlquilerEquipo', extra: Record<string, unknown> = {}) {
+  const porCategoria = {
+    Alojamiento: {
+      nombreComercial: 'Hotel Casa Tayrona',
+      precioBase: 150000,
+      detalleCategoria: DETALLE_HOTEL.detalleCategoria,
+      oferta: { diasOperacion: ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'] },
+    },
+    Gastronomia: {
+      nombreComercial: 'Mirador Gourmet',
+      precioBase: 45000,
+      detalleCategoria: DETALLE_RESTAURANTE.detalleCategoria,
+      oferta: null,
+    },
+    AlquilerEquipo: {
+      nombreComercial: 'Kayaks Taganga',
+      precioBase: 60000,
+      detalleCategoria: { tipoVehiculoEquipo: 'Kayak doble', unidadesDisponibles: 6, condicionesAlquiler: 'Chaleco incluido' },
+      oferta: null,
+    },
+  }[categoria]
+  return servicioAdmin({ categoria, ...porCategoria, ...extra })
+}
+
+/** Fila de la cola de revisión (`GET /api/v1/catalogo/admin/servicios`). */
+export function servicioCola(extra: Record<string, unknown> = {}) {
+  return {
+    id: '6a3000000000000000000001',
+    nombreComercial: 'Tour de Café en Minca',
+    categoria: 'Tour',
+    idPrestador: USUARIO_PRESTADOR.idUsuario,
+    rnt: 'RNT-00000',
+    estadoPublicacion: 'Pendiente',
+    prestadorActivo: true,
+    fechaRegistro: '2026-10-20T15:00:00Z',
+    ...extra,
+  }
+}

@@ -6,7 +6,7 @@ Este documento nace con la iteración «Contenido público» (RF26, RF47, RF40; 
 - las **preguntas frecuentes** (CU [«Gestionar FAQs»](../../casos-de-uso/CU-gestionar-faqs.md));
 - los **avisos generales** (CU [«Crear y publicar aviso general»](../../casos-de-uso/CU-crear-publicar-aviso-general.md));
 - los **favoritos** (CU [«Guardar favoritos»](../../casos-de-uso/CU-guardar-favoritos.md)) y el **historial de búsquedas** (CU [«Consultar historial de búsquedas»](../../casos-de-uso/CU-consultar-historial-busquedas.md)), de la iteración B1 «Turista» (RF54, RF60; DEC-80, DEC-56);
-- el **registro de servicios**, «Mis servicios» y la **aprobación** (CU [«Registrar servicio»](../../casos-de-uso/CU-registrar-servicio.md) y [«Aprobar o rechazar servicio»](../../casos-de-uso/CU-aprobar-rechazar-servicio.md)), de la iteración C (RF09, RF10, RF37, RF21; DEC-124 a DEC-151), con los campos nuevos del detalle público y el RNT de la proyección `cuentas`.
+- el **registro de servicios**, «Mis servicios» y la **aprobación** (CU [«Registrar servicio comercial»](../../casos-de-uso/CU-registrar-servicio.md) y [«Aprobar o rechazar servicio»](../../casos-de-uso/CU-aprobar-rechazar-servicio.md)), de la iteración C (RF09, RF10, RF37, RF21; DEC-124 a DEC-151), con los campos nuevos del detalle público y el RNT de la proyección `cuentas`.
 
 La búsqueda, los filtros, el detalle de un servicio y el endpoint interno de la proyección `cuentas` están descritos en `docs/trazabilidad.md` («Endpoints de ms-catalog») y en [`ms-auth.md`](ms-auth.md) («Endpoint interno de los consumidores»). Las decisiones están en `docs/trazabilidad.md` («Contenido público — decisiones» y «Turista (B1) — decisiones»).
 
@@ -202,9 +202,9 @@ Solo el rol **Turista**. Es una llamada aparte de `GET /oferta`, que sigue públ
 
 `criterios` trae todos los campos (los que no se usaron, en null; las listas, vacías), con los nombres de `GET /oferta`, para repetir la búsqueda con un clic.
 
-## Registrar servicio y Mis servicios (RF09, RF10, RF37)
+## Registrar servicio comercial y Mis servicios (RF09, RF10, RF37)
 
-CU [«Registrar servicio»](../../casos-de-uso/CU-registrar-servicio.md), con el flujo «Consultar mis servicios» (DEC-129). Solo el rol **Prestador**; el prestador es siempre el del claim `sub`. Decisiones DEC-124 a DEC-151 en `docs/trazabilidad.md` («Registrar y aprobar servicio — decisiones»).
+CU [«Registrar servicio comercial»](../../casos-de-uso/CU-registrar-servicio.md), con el flujo «Consultar mis servicios» (DEC-129). Solo el rol **Prestador**; el prestador es siempre el del claim `sub`. Decisiones DEC-124 a DEC-151 en `docs/trazabilidad.md` («Registrar y aprobar servicio — decisiones»).
 
 ### Registrar
 

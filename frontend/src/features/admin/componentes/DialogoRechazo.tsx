@@ -6,10 +6,13 @@ import { DialogoAdmin } from './DialogoAdmin'
 /**
  * «Rechazar prestador» (RF28, FA1): justificación obligatoria de 1 a 500 caracteres sin los espacios de los extremos
  * (DEC-42). «Confirmar rechazo» queda deshabilitado (aria-disabled, sigue enfocable) mientras no sea válida; el 400
- * `campos.justificacion` del servidor se muestra en el campo. Avisa que la decisión es definitiva.
+ * `campos.justificacion` del servidor se muestra en el campo. Avisa que la decisión es definitiva. También rechaza un
+ * servicio (RF21, «Justificar rechazo de servicio», DEC-177) con su propio título y aviso.
  */
 export function DialogoRechazo({
   nombre,
+  titulo,
+  aviso,
   enviando,
   errorCampo,
   error,
@@ -17,6 +20,10 @@ export function DialogoRechazo({
   onCerrar,
 }: {
   nombre: string
+  /** Por defecto, «Rechazar prestador «nombre»» (RF28). */
+  titulo?: string
+  /** Por defecto, el aviso de la decisión definitiva de RF28. */
+  aviso?: string
   enviando: boolean
   /** Código de `campos.justificacion` del último 400. */
   errorCampo: string | null
@@ -46,7 +53,7 @@ export function DialogoRechazo({
 
   return (
     <DialogoAdmin
-      titulo={t('admin.rechazo.titulo', { nombre })}
+      titulo={titulo ?? t('admin.rechazo.titulo', { nombre })}
       bloqueado={enviando}
       focoInicial={campo}
       onCerrar={onCerrar}
@@ -59,7 +66,7 @@ export function DialogoRechazo({
             if (!bloqueado) onConfirmar(texto)
           }}
         >
-          <p id={idTexto}>{t('admin.rechazo.definitivo')}</p>
+          <p id={idTexto}>{aviso ?? t('admin.rechazo.definitivo')}</p>
           <div className="campo">
             <label htmlFor={`${id}-justificacion`}>{t('admin.rechazo.etiqueta')}</label>
             <textarea

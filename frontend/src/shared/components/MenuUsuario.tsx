@@ -26,9 +26,10 @@ const OPCIONES_POR_ROL: Record<string, { ruta: string; texto: string }[]> = {
     { ruta: '/prestador/servicios', texto: 'encabezado.misServicios' },
     { ruta: '/prestador/servicios/nuevo', texto: 'encabezado.registrarServicio' },
   ],
-  // DEC-70: cuentas (WF-12), preguntas frecuentes (WF-13) y avisos (WF-14).
+  // DEC-70: cuentas (WF-12), preguntas frecuentes (WF-13) y avisos (WF-14); DEC-174: servicios por aprobar (WF-19).
   Administrador: [
     { ruta: '/admin/cuentas', texto: 'encabezado.administrarCuentas' },
+    { ruta: '/admin/servicios', texto: 'encabezado.aprobarServicios' },
     { ruta: '/admin/preguntas-frecuentes', texto: 'encabezado.administrarPreguntas' },
     { ruta: '/admin/avisos', texto: 'encabezado.administrarAvisos' },
   ],

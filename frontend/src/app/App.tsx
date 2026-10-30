@@ -44,6 +44,13 @@ const AdministrarPreguntasPage = lazy(() =>
 const AdministrarAvisosPage = lazy(() =>
   import('../features/admin/AdministrarAvisosPage').then((m) => ({ default: m.AdministrarAvisosPage })),
 )
+/** WF-19 «Aprobar servicios» (RF21, DEC-174): cola y revisión, diferidas y solo para el Administrador. */
+const AprobarServiciosPage = lazy(() =>
+  import('../features/admin/servicios/AprobarServiciosPage').then((m) => ({ default: m.AprobarServiciosPage })),
+)
+const RevisarServicioPage = lazy(() =>
+  import('../features/admin/servicios/RevisarServicioPage').then((m) => ({ default: m.RevisarServicioPage })),
+)
 /** «Turista» (DEC-92): perfil (WF-16) y «Mis favoritos» (WF-17), diferidas y solo para el Turista. */
 const PerfilPage = lazy(() => import('../features/perfil/PerfilPage').then((m) => ({ default: m.PerfilPage })))
 const MisFavoritosPage = lazy(() =>
@@ -180,6 +187,22 @@ export function App() {
                 element={
                   <Diferida>
                     <AdministrarAvisosPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/admin/servicios"
+                element={
+                  <Diferida>
+                    <AprobarServiciosPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/admin/servicios/:id"
+                element={
+                  <Diferida>
+                    <RevisarServicioPage />
                   </Diferida>
                 }
               />
