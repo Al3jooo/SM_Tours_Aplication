@@ -71,6 +71,17 @@ El nombre del servicio, el de la unidad y los precios quedan **congelados** (RF3
 
 `GET /api/v1/reservas/{idReserva}` · rol Turista → la reserva. La de otro turista responde 404, igual que una que no existe.
 
+## Reservas del Prestador
+
+`GET /api/v1/reservas/prestador?desde=&hasta=&estado=&servicio=&pagina=0` · rol **Prestador** → `{elementos, pagina, tamano: 20, totalElementos, totalPaginas}`. CU [«Consultar historial»](../../casos-de-uso/CU-consultar-historial.md), RF12 del lado del prestador (DEC-191, DEC-192).
+
+- **Qué reservas:** las de `id_prestador = sub`. ms-booking copia el dueño del servicio del detalle del catálogo al reservar (V1); no llama al catálogo para consultar.
+- **`desde`, `hasta` y `estado`:** las mismas reglas y errores que «Mis reservas».
+- **`servicio`** (opcional): el id de un servicio (ObjectId en texto). Otro formato → `servicio: FORMATO`. Un servicio de otro prestador no da error: no tiene reservas suyas.
+- **Orden:** el de «Mis reservas» (índice `ix_reserva_prestador_inicio`, V6).
+- **Cada elemento:** `{idReserva, estado, idServicio, nombreServicio, categoria, idUnidad, nombreUnidad, fechaEntrada, fechaSalida, horaInicio, fechaInicio, fechaFin, cantidad, personas, precioUnitario, unidadCobro, precioTotal, moneda, fechaCreacion, fechaCancelacion}`. **Sin datos del Turista** (Ley 1581; RF42 descartado) y sin `cancelableHasta`: el Prestador no cancela.
+- Un Turista → **403 `ACCESO_DENEGADO`**; el Prestador en las rutas del Turista, también.
+
 ## Cancelar
 
 `POST /api/v1/reservas/{idReserva}/cancelacion` · rol Turista → `200` con la reserva en estado `Cancelada`.
@@ -129,7 +140,7 @@ Una tarea de ms-booking pasa de `Confirmada` a `Completada` las reservas cuya `f
 | `IDEMPOTENCIA_REQUERIDA` | 400 | Falta `Idempotency-Key` o no es un UUID |
 | `NO_AUTENTICADO` | 401 | Sin token o con uno inválido |
 | `SESION_INVALIDADA` | 401 | El token es de antes de un cambio de estado de la cuenta (`ver` menor que la versión conocida, DEC-29): hay que iniciar sesión de nuevo |
-| `ACCESO_DENEGADO` | 403 | El rol no es Turista |
+| `ACCESO_DENEGADO` | 403 | El rol no es Turista, o no es Prestador en `/reservas/prestador` |
 | `RESERVA_NO_ENCONTRADA` | 404 | No existe o es de otro turista |
 | `OFERTA_NO_DISPONIBLE` | 409 | El servicio no existe, no está Publicado o el prestador está inactivo |
 | `UNIDAD_NO_DISPONIBLE` | 409 | El alojamiento no tiene esa unidad: hay que volver a cargar el detalle |

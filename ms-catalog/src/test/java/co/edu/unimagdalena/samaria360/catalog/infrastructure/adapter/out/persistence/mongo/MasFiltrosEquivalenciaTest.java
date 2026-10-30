@@ -343,7 +343,9 @@ class MasFiltrosEquivalenciaTest {
                 .append("imagenes", List.of())
                 .append("detalleCategoria", detalle(detalle))
                 // El validador v3 (M008) exige la fecha de registro y la oferta de Tour y Alojamiento (DEC-136).
-                .append("fechaRegistro", new java.util.Date());
+                .append("fechaRegistro", new java.util.Date())
+                // El validador v4 (M011) exige la versión de la edición del Prestador (DEC-186).
+                .append("version", 0);
         switch (detalle.categoria()) {
             case Alojamiento -> documento.append("oferta", new Document("diasOperacion", List.of("Lunes")));
             case Tour -> documento.append("oferta", new Document("diasOperacion", List.of("Lunes"))

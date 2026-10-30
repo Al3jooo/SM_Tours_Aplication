@@ -15,6 +15,10 @@ import java.util.UUID;
  * Los datos de la iteración C ({@code direccion}, {@code oferta}, {@code rnt}, {@code fechaRegistro} y la revisión) son
  * nulables en el constructor solo para <b>rehidratar</b> documentos anteriores (sin M009 no tienen dirección ni RNT): un
  * servicio nuevo se crea siempre con {@link RegistroServicio}, que los exige (DEC-126, DEC-136, DEC-148).
+ * <p>
+ * El Prestador edita solo el precio (RF32, {@link ActualizacionPrecio}) y los datos comerciales (RF43,
+ * {@link ActualizacionDatosComerciales}); la oferta es inmutable después de la aprobación (DEC-183). {@code version} es
+ * el control de concurrencia de esas ediciones y de la decisión del Administrador (DEC-186).
  */
 public final class ServicioComercial {
 
@@ -40,8 +44,11 @@ public final class ServicioComercial {
     private final String rnt;
     private final Instant fechaRegistro;
     private final Revision revision;
+    private final int version;
 
     /**
+     * Un servicio en la versión 0, la de un registro nuevo (RF09).
+     *
      * @param id nulo antes de persistir
      * @param prestadorActivo copia desnormalizada del estado de la cuenta del prestador en ms-auth (RF22)
      * @param precioBase precio «desde» (RF37). En Alojamiento se deriva de las unidades (el menor precio por noche):
@@ -57,6 +64,18 @@ public final class ServicioComercial {
                              Set<CondicionAccesibilidad> condicionesAccesibilidad, String horarioAtencion,
                              BigDecimal precioBase, List<String> imagenes, String direccion, Oferta oferta, String rnt,
                              Instant fechaRegistro, Revision revision) {
+        this(id, prestadorId, nombreComercial, categoria, detalle, descripcion, coordenada, contacto, estadoPublicacion,
+                prestadorActivo, condicionesAccesibilidad, horarioAtencion, precioBase, imagenes, direccion, oferta, rnt,
+                fechaRegistro, revision, 0);
+    }
+
+    /** @param version la del documento (DEC-186): la sube cada edición del Prestador y la decisión del Administrador */
+    public ServicioComercial(String id, UUID prestadorId, String nombreComercial, Categoria categoria,
+                             DetalleCategoria detalle, String descripcion, Coordenada coordenada, Contacto contacto,
+                             EstadoPublicacion estadoPublicacion, boolean prestadorActivo,
+                             Set<CondicionAccesibilidad> condicionesAccesibilidad, String horarioAtencion,
+                             BigDecimal precioBase, List<String> imagenes, String direccion, Oferta oferta, String rnt,
+                             Instant fechaRegistro, Revision revision, int version) {
         this.id = id;
         this.prestadorId = Objects.requireNonNull(prestadorId, "prestadorId");
         this.nombreComercial = Validaciones.textoMaximo(nombreComercial, LONGITUD_MAXIMA_NOMBRE, "nombreComercial");
@@ -91,6 +110,10 @@ public final class ServicioComercial {
         this.fechaRegistro = fechaRegistro;
         exigirRevisionCoherente(estadoPublicacion, revision);
         this.revision = revision;
+        if (version < 0) {
+            throw new IllegalArgumentException("version no puede ser negativa");
+        }
+        this.version = version;
     }
 
     /**
@@ -113,7 +136,30 @@ public final class ServicioComercial {
     public ServicioComercial conPrestadorActivo(boolean activo) {
         return new ServicioComercial(id, prestadorId, nombreComercial, categoria, detalle, descripcion, coordenada,
                 contacto, estadoPublicacion, activo, condicionesAccesibilidad, horarioAtencion, precioBase, imagenes,
-                direccion, oferta, rnt, fechaRegistro, revision);
+                direccion, oferta, rnt, fechaRegistro, revision, version);
+    }
+
+    /**
+     * RF32: el mismo servicio con otros precios. En Alojamiento el «desde» se vuelve a derivar de las unidades
+     * (DEC-127); la oferta y lo demás no cambian (DEC-183). La versión la sube la escritura (DEC-186).
+     */
+    ServicioComercial conPrecios(BigDecimal nuevoPrecioBase, DetalleCategoria nuevoDetalle) {
+        return new ServicioComercial(id, prestadorId, nombreComercial, categoria, nuevoDetalle, descripcion,
+                coordenada, contacto, estadoPublicacion, prestadorActivo, condicionesAccesibilidad, horarioAtencion,
+                nuevoDetalle instanceof DetalleAlojamiento ? null : nuevoPrecioBase, imagenes, direccion, oferta, rnt,
+                fechaRegistro, revision, version);
+    }
+
+    /** RF43: el mismo servicio con otro nombre comercial y otro contacto de atención al público (DEC-188, DEC-189). */
+    ServicioComercial conDatosComerciales(String nuevoNombre, Contacto nuevoContacto) {
+        return new ServicioComercial(id, prestadorId, nuevoNombre, categoria, detalle, descripcion, coordenada,
+                nuevoContacto, estadoPublicacion, prestadorActivo, condicionesAccesibilidad, horarioAtencion, precioBase,
+                imagenes, direccion, oferta, rnt, fechaRegistro, revision, version);
+    }
+
+    /** RF32 y RF43: solo un servicio Pendiente o Publicado se edita; Rechazado es final (DEC-177, DEC-193). */
+    public boolean esEditablePorElPrestador() {
+        return estadoPublicacion != EstadoPublicacion.Rechazado;
     }
 
     private static BigDecimal precioDesde(DetalleAlojamiento alojamiento, BigDecimal recibido) {
@@ -208,5 +254,9 @@ public final class ServicioComercial {
 
     public Optional<Revision> getRevision() {
         return Optional.ofNullable(revision);
+    }
+
+    public int getVersion() {
+        return version;
     }
 }

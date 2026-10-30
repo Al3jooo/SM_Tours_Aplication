@@ -2,6 +2,7 @@ package co.edu.unimagdalena.samaria360.auth.infrastructure.config;
 
 import co.edu.unimagdalena.samaria360.auth.application.port.in.AdministrarCuentasUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.CambiarRolUseCase;
+import co.edu.unimagdalena.samaria360.auth.application.port.in.GestionarPerfilPrestadorUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.GestionarPerfilUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.IniciarSesionUseCase;
 import co.edu.unimagdalena.samaria360.auth.application.port.in.RegistrarPrestadorUseCase;
@@ -12,6 +13,7 @@ import co.edu.unimagdalena.samaria360.auth.application.port.out.DestinoCuentasPo
 import co.edu.unimagdalena.samaria360.auth.application.port.out.NotificadorCuentaPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.OutboxPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.PasswordHasherPort;
+import co.edu.unimagdalena.samaria360.auth.application.port.out.PerfilPrestadorRepositoryPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.PerfilRepositoryPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.RegistroRepositoryPort;
 import co.edu.unimagdalena.samaria360.auth.application.port.out.RelojPort;
@@ -23,6 +25,7 @@ import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarCuentasS
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarPersonalService;
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarPaisesService;
 import co.edu.unimagdalena.samaria360.auth.application.service.ConsultarUsuarioActualService;
+import co.edu.unimagdalena.samaria360.auth.application.service.GestionarPerfilPrestadorService;
 import co.edu.unimagdalena.samaria360.auth.application.service.GestionarPerfilService;
 import co.edu.unimagdalena.samaria360.auth.application.service.IniciarSesionService;
 import co.edu.unimagdalena.samaria360.auth.application.service.RegistrarPrestadorService;
@@ -166,6 +169,12 @@ public class BeanConfig {
     @Bean
     public GestionarPerfilService gestionarPerfilService(PerfilRepositoryPort perfiles) {
         return new GestionarPerfilService(perfiles);
+    }
+
+    /** Perfil comercial del Prestador (RF43): un solo UPDATE, sin decorador transaccional (DEC-188). */
+    @Bean
+    public GestionarPerfilPrestadorUseCase gestionarPerfilPrestadorUseCase(PerfilPrestadorRepositoryPort perfiles) {
+        return new GestionarPerfilPrestadorService(perfiles);
     }
 
     /** El que reciben los adaptadores de entrada: los datos y las categorías en una sola transacción (DEC-85). */

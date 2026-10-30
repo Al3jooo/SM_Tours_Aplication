@@ -30,7 +30,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Documento de {@code servicios} (esquema v3, migración M008) ↔ {@link ServicioComercial}. Mapeo explícito: las
+ * Documento de {@code servicios} (esquema v4, migración M011) ↔ {@link ServicioComercial}. Mapeo explícito: las
  * coordenadas GeoJSON van en orden [longitud, latitud], {@code idUnidad} es un ObjectId que el dominio recibe como
  * texto, los enteros van como int32, el dinero y las horas como Decimal128 y las salidas de la oferta como {@code HH:mm}.
  * Los campos opcionales que faltan no se escriben.
@@ -65,7 +65,14 @@ final class ServicioDocumentoMapper {
                 oferta(documento.get("oferta", Document.class)),
                 documento.getString("rnt"),
                 instante(documento.getDate("fechaRegistro")),
-                revision(documento));
+                revision(documento),
+                version(documento));
+    }
+
+    /** M011 la rellena en todos los servicios; un documento sin ella (una prueba anterior al v4) es la versión 0. */
+    private static int version(Document documento) {
+        Object version = documento.get("version");
+        return version == null ? 0 : numero(version).intValue();
     }
 
     private static Oferta oferta(Document oferta) {
@@ -110,7 +117,7 @@ final class ServicioDocumentoMapper {
         servicio.getOferta().ifPresent(oferta -> documento.append("oferta", oferta(oferta)));
         servicio.getFechaRegistro().ifPresent(fecha -> documento.append("fechaRegistro", Date.from(fecha)));
         servicio.getRevision().ifPresent(revision -> revision(documento, revision));
-        return documento;
+        return documento.append("version", servicio.getVersion());
     }
 
     /** Los campos de la revisión, para el insert y para el UPDATE condicional de la aprobación. */
@@ -121,6 +128,11 @@ final class ServicioDocumentoMapper {
             documento.append("motivoRechazo", revision.motivoRechazo());
         }
         return documento;
+    }
+
+    /** Las unidades de un alojamiento con sus precios, para el UPDATE condicional de RF32. */
+    static List<Document> unidades(DetalleAlojamiento alojamiento) {
+        return detalle(alojamiento).getList("unidades", Document.class);
     }
 
     private static Document detalle(DetalleCategoria detalle) {

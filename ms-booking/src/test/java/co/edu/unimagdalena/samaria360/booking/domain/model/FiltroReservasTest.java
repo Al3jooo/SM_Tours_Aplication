@@ -14,7 +14,10 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
-/** RF12 del lado del turista: la actividad cruza el rango [desde, hasta] de Santa Marta, y los estados. */
+/**
+ * CU «Consultar historial» (RF12): la actividad cruza el rango [desde, hasta] de Santa Marta, los estados y, del lado
+ * del Prestador, el servicio (DEC-192).
+ */
 class FiltroReservasTest {
 
     private static final FiltroReservas DICIEMBRE = new FiltroReservas(LocalDate.of(2030, 12, 1),
@@ -71,6 +74,31 @@ class FiltroReservasTest {
                 Map.entry("desde", MotivoInvalido.FORMATO), Map.entry("estado", MotivoInvalido.NO_PERMITIDO));
     }
 
+    @Test
+    void elPrestadorFiltraAdemasPorServicio() {
+        ValidadorCampos validador = new ValidadorCampos();
+        FiltroReservas filtro = FiltroReservas.validarDelPrestador("2030-12-01", "2030-12-31", "Confirmada",
+                " 0123456789abcdef01234567 ", validador);
+        validador.lanzarSiHayErrores();
+        Reserva deEseServicio = reserva(en(2030, 12, 5, 8, 0), en(2030, 12, 5, 12, 0), "0123456789abcdef01234567");
+
+        assertThat(filtro.idServicio()).isEqualTo("0123456789abcdef01234567");
+        assertThat(filtro.estados()).containsExactly(EstadoReserva.Confirmada);
+        assertThat(filtro.incluye(deEseServicio)).isTrue();
+        assertThat(filtro.incluye(reserva(en(2030, 12, 5, 8, 0), en(2030, 12, 5, 12, 0)))).isFalse();
+        assertThat(DICIEMBRE.idServicio()).isNull();
+    }
+
+    @Test
+    void unServicioQueNoEsUnObjectIdEsFormatoJuntoConLosDemasErrores() {
+        ValidadorCampos validador = new ValidadorCampos();
+        FiltroReservas.validarDelPrestador("2030-12-31", "2030-12-01", null, "no-es-un-id", validador);
+
+        assertThat(catchThrowableOfType(DatosReservaInvalidosException.class, validador::lanzarSiHayErrores)
+                .getCampos()).containsExactly(Map.entry("hasta", MotivoInvalido.RANGO_INVALIDO),
+                Map.entry("servicio", MotivoInvalido.FORMATO));
+    }
+
     private static FiltroReservas validar(String desde, String hasta, String estados) {
         ValidadorCampos validador = new ValidadorCampos();
         FiltroReservas filtro = FiltroReservas.validar(desde, hasta, estados, validador);
@@ -90,7 +118,11 @@ class FiltroReservasTest {
     }
 
     private static Reserva reserva(Instant inicio, Instant fin) {
-        return new Reserva(UUID.randomUUID(), UUID.randomUUID(), Ofertas.PRESTADOR, Ofertas.TOUR, "Tour",
+        return reserva(inicio, fin, Ofertas.TOUR);
+    }
+
+    private static Reserva reserva(Instant inicio, Instant fin, String idServicio) {
+        return new Reserva(UUID.randomUUID(), UUID.randomUUID(), Ofertas.PRESTADOR, idServicio, "Tour",
                 CategoriaReservable.Tour, null, null, EstadoReserva.Confirmada, 1, 1, BigDecimal.TEN,
                 UnidadCobro.Persona, BigDecimal.TEN, "COP", inicio.atZone(HorarioReservas.ZONA).toLocalDate(), null,
                 inicio.atZone(HorarioReservas.ZONA).toLocalTime(), inicio, fin, Ofertas.AHORA, null, UUID.randomUUID(),

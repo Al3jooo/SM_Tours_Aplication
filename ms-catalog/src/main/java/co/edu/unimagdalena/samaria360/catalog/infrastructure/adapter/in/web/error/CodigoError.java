@@ -31,6 +31,11 @@ public enum CodigoError {
     PRESTADOR_NO_HABILITADO,
     /** No existe un servicio con ese id, el id no es un ObjectId o es de otro prestador (DEC-143, DEC-151). */
     SERVICIO_NO_ENCONTRADO,
+    /**
+     * El servicio cambió después de que el Prestador lo leyó: otra edición o la decisión del Administrador subieron su
+     * versión (DEC-186). Lleva {@code versionActual}.
+     */
+    SERVICIO_MODIFICADO,
     ACCESO_DENEGADO,
     SOLICITUD_INVALIDA,
     ERROR_INTERNO

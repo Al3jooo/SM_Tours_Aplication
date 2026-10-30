@@ -274,7 +274,43 @@ En la vista del Administrador se suman `revisadoPor` (quien decidió) y `estadoC
 ### Mis servicios (DEC-143)
 
 - `GET /api/v1/catalogo/prestador/servicios?estado=&pagina=` → **200**, página de 10, del más reciente al más antiguo. `estado`: `Pendiente`, `Publicado` o `Rechazado`; sin él, todos. Cada elemento: `{id, nombreComercial, categoria, estadoPublicacion, motivoRechazo, fechaRegistro}`. **400** con `campos.estado` (`NO_PERMITIDO`) o `campos.pagina` (`FORMATO`).
-- `GET /api/v1/catalogo/prestador/servicios/{id}` → **200** con la forma de gestión, en cualquier estado. **404 `SERVICIO_NO_ENCONTRADO`** si no existe, el id no es un ObjectId o es de otro prestador.
+- `GET /api/v1/catalogo/prestador/servicios/{id}` → **200** con la forma de gestión, en cualquier estado, con su `version` (DEC-186; la forma de gestión la trae siempre, también en la vista del Administrador). **404 `SERVICIO_NO_ENCONTRADO`** si no existe, el id no es un ObjectId o es de otro prestador.
+
+## Editar un servicio (RF32, RF43)
+
+CU [«Actualizar tarifas»](../../casos-de-uso/CU-actualizar-tarifas.md) (RF32) y la parte del servicio de [«Actualizar datos comerciales»](../../casos-de-uso/CU-actualizar-datos-comerciales.md) (RF43). Iteración D, DEC-183 a DEC-189. Solo el rol **Prestador** (`/prestador/**`); el servicio debe ser del claim `sub`.
+
+- **Estados:** `Pendiente` o `Publicado`, **sin nueva aprobación** (DEC-185, DEC-189). `Rechazado` es final → **409 `ESTADO_CAMBIADO`** con `estadoActual: "Rechazado"`.
+- **Concurrencia (DEC-186):** el cuerpo lleva la `version` que el Prestador leyó (la trae `GET /prestador/servicios/{id}`). La escritura es un UPDATE condicional sobre `{_id, prestadorId, estado editable, version}` y sube `version` en 1. Si no coincide → **409 `SERVICIO_MODIFICADO`** con `versionActual`. La decisión del Administrador (RF21) también sube la versión.
+- **Orden:** 404 (no existe, id inválido o de otro prestador) → 409 `ESTADO_CAMBIADO` (Rechazado) → 400 (datos) → 409 `SERVICIO_MODIFICADO`.
+- **Respuesta:** **200** con la forma de gestión del Prestador y la `version` nueva.
+- Cualquier otro campo del cuerpo se ignora (DEC-141).
+
+### Precio (RF32)
+
+`PUT /api/v1/catalogo/prestador/servicios/{id}/precio`
+
+```json
+{ "precioBase": 120000, "version": 1 }
+{ "unidades": [ { "idUnidad": "6a1f…01", "precioNoche": 400000 }, { "idUnidad": "6a1f…02", "precioNoche": 290000 } ], "version": 0 }
+```
+
+- Tour, Gastronomía y Alquiler: `precioBase` (mayor que 0, hasta `99999999.99`, 2 decimales como mucho; DEC-138). `unidades` se ignora.
+- Alojamiento: `unidades` con **todas** las unidades del servicio, cada una una vez; el `precioBase` recibido se ignora y se deriva del menor `precioNoche` (DEC-127). Códigos: `unidades` (`REQUERIDO`, `CANTIDAD_MINIMA` si falta alguna), `unidades[i]` (`REQUERIDO`), `unidades[i].idUnidad` (`REQUERIDO`, `NO_PERMITIDO` si no es del servicio, `DUPLICADO`) y `unidades[i].precioNoche`.
+- `version`: obligatoria, entero ≥ 0 (`REQUERIDO`, `VALOR_MINIMO`).
+- **La oferta no cambia** (DEC-183): `oferta` en el cuerpo se ignora. Modificarla es RF19, fuera de alcance.
+- Las reservas ya confirmadas conservan su precio: ms-booking lo copia al reservar (DEC-187). Una reserva con el precio anterior recibe 409 `PRECIO_CAMBIADO` de ms-booking.
+
+### Datos comerciales (RF43)
+
+`PUT /api/v1/catalogo/prestador/servicios/{id}/datos-comerciales`
+
+```json
+{ "nombreComercial": "Kayaks Taganga", "contacto": { "telefono": "+57 311 222 3344", "correo": "atencion@kayak.test" }, "version": 2 }
+```
+
+- `nombreComercial` (1 a 150) y `contacto` con `telefono` (1 a 20) y `correo` (1 a 254, con la forma de un correo): las reglas del registro (RF09, DEC-138). `version` como arriba.
+- Es lo que ve el Turista en el detalle público (WF-06). Las reservas existentes conservan su copia de `nombre_servicio`.
 
 ## Aprobar o rechazar servicio (RF21)
 
@@ -319,7 +355,8 @@ CU [«Aprobar o rechazar servicio»](../../casos-de-uso/CU-aprobar-rechazar-serv
 | `SERVICIO_NO_ENCONTRADO` | 404 | Servicio inexistente, id que no es un ObjectId o, en «Mis servicios», de otro prestador |
 | `LIMITE_FAQ` | 409 | Ya hay 200 preguntas frecuentes |
 | `LIMITE_FAVORITOS` | 409 | El turista ya tiene 100 favoritos |
-| `ESTADO_CAMBIADO` | 409 | El aviso ya estaba despublicado (`estadoActual: "Inactivo"`) o el servicio ya no estaba Pendiente (`estadoActual`: `Publicado` o `Rechazado`) |
+| `ESTADO_CAMBIADO` | 409 | El aviso ya estaba despublicado (`estadoActual: "Inactivo"`), el servicio ya no estaba Pendiente (`estadoActual`: `Publicado` o `Rechazado`) o el Prestador quiso editar un servicio Rechazado |
+| `SERVICIO_MODIFICADO` | 409 | La `version` enviada al editar el precio o los datos comerciales ya no es la del servicio; lleva `versionActual` (DEC-186) |
 | `ERROR_INTERNO` | 500 | Cualquier otro error |
 
 ## Colecciones

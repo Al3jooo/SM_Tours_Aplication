@@ -21,6 +21,8 @@ import java.util.Optional;
  * @param revisadoPor           solo en la vista del Administrador: quién decidió (DEC-145)
  * @param estadoCuentaPrestador solo en la vista del Administrador: el estado de la cuenta según la proyección
  *                              {@code cuentas} (DEC-144); se omite si no hay fila
+ * @param version               la del documento: el Prestador la envía al editar el precio o los datos comerciales
+ *                              (DEC-186)
  */
 public record RespuestaServicioGestion(String id, String idPrestador, String nombreComercial, String categoria,
                                        String descripcion, String direccion, Coordenadas coordenadas,
@@ -30,7 +32,8 @@ public record RespuestaServicioGestion(String id, String idPrestador, String nom
                                        String estadoPublicacion, boolean prestadorActivo, String rnt,
                                        Instant fechaRegistro, String motivoRechazo, Instant fechaRevision,
                                        @JsonInclude(JsonInclude.Include.NON_NULL) String revisadoPor,
-                                       @JsonInclude(JsonInclude.Include.NON_NULL) String estadoCuentaPrestador) {
+                                       @JsonInclude(JsonInclude.Include.NON_NULL) String estadoCuentaPrestador,
+                                       int version) {
 
     public record Coordenadas(double longitud, double latitud) {
     }
@@ -62,6 +65,6 @@ public record RespuestaServicioGestion(String id, String idPrestador, String nom
                 servicio.getFechaRegistro().orElse(null), revision.map(Revision::motivoRechazo).orElse(null),
                 revision.map(Revision::fechaRevision).orElse(null),
                 administrador ? revision.map(r -> r.revisadoPor().toString()).orElse(null) : null,
-                administrador ? estadoCuenta.map(Enum::name).orElse(null) : null);
+                administrador ? estadoCuenta.map(Enum::name).orElse(null) : null, servicio.getVersion());
     }
 }

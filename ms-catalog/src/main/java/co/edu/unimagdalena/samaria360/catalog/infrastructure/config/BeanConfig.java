@@ -1,6 +1,7 @@
 package co.edu.unimagdalena.samaria360.catalog.infrastructure.config;
 
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ActualizarCuentaUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.ActualizarServicioUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.AdministrarServiciosUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarMisServiciosUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.RegistrarServicioUseCase;
@@ -25,6 +26,7 @@ import co.edu.unimagdalena.samaria360.catalog.application.port.out.RelojPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.ServicioRepositoryPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.VisibilidadPrestadorPort;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ActualizarCuentaService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.ActualizarServicioService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.AdministrarServiciosService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarMisServiciosService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.RegistrarServicioService;
@@ -107,6 +109,11 @@ public class BeanConfig {
     @Bean
     public ConsultarMisServiciosUseCase consultarMisServiciosUseCase(GestionServiciosPort servicios) {
         return new ConsultarMisServiciosService(servicios);
+    }
+
+    @Bean
+    public ActualizarServicioUseCase actualizarServicioUseCase(GestionServiciosPort servicios) {
+        return new ActualizarServicioService(servicios);
     }
 
     @Bean

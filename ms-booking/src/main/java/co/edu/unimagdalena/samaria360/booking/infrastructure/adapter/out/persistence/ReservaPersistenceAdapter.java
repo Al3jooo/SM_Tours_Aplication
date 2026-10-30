@@ -78,9 +78,22 @@ public class ReservaPersistenceAdapter implements ReservaRepositoryPort {
      */
     @Override
     public PaginaReservas listarDeTurista(UUID idTurista, FiltroReservas filtro, int pagina, int tamano) {
+        return listar("idTurista", idTurista, filtro, pagina, tamano);
+    }
+
+    /** La misma consulta sobre {@code id_prestador} (índice de V6, DEC-191). */
+    @Override
+    public PaginaReservas listarDePrestador(UUID idPrestador, FiltroReservas filtro, int pagina, int tamano) {
+        return listar("idPrestador", idPrestador, filtro, pagina, tamano);
+    }
+
+    private PaginaReservas listar(String dueno, UUID id, FiltroReservas filtro, int pagina, int tamano) {
         Specification<ReservaEntity> condiciones = (raiz, consulta, cb) -> {
             List<Predicate> partes = new ArrayList<>();
-            partes.add(cb.equal(raiz.get("idTurista"), idTurista));
+            partes.add(cb.equal(raiz.get(dueno), id));
+            if (filtro.idServicio() != null) {
+                partes.add(cb.equal(raiz.get("idServicioMongo"), filtro.idServicio()));
+            }
             if (filtro.terminaDespuesDe() != null) {
                 partes.add(cb.greaterThan(raiz.get("fechaFin"), filtro.terminaDespuesDe()));
             }
