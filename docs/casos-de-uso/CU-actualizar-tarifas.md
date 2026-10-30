@@ -1,7 +1,7 @@
 # Subsistema «Gestionar servicios»: «Actualizar tarifas»
 
 Fase de Construcción (RUP). Caso de uso de la iteración D «Oferta del prestador» (DEC-54): RF32. Cierra HC1 para RF32.
-- **Pantallas:** sin wireframe todavía. La pantalla es de la sesión B (frontend), sobre el detalle propio de WF-18 «Mis servicios».
+- **Pantallas:** WF-20 «Actualizar precio» (`/prestador/servicios/:id/precio`; propuesto por arquitectura, pendiente de validación), a la que se llega con «Actualizar precio» desde el detalle propio de WF-18 en `Pendiente` o `Publicado`. Implementada en la iteración D, sesión B (DEC-196, DEC-198, DEC-200, DEC-201).
 - **Requisitos:** citados de `docs/srs/especificacion de requisitos.pdf`.
 - **Decisiones:** en `docs/trazabilidad.md` («Oferta del prestador — decisiones», DEC-183 a DEC-195).
 - **Contrato HTTP:** en [`sad/api/ms-catalog.md`](../sad/api/ms-catalog.md), sección «Editar un servicio (RF32, RF43)».
@@ -133,9 +133,55 @@ G --> P : respuesta
 @enduml
 ```
 
+## Secuencia desde la pantalla (WF-20)
+
+El flujo básico con el 409 `SERVICIO_MODIFICADO` (FA4) tal como lo atiende la pantalla: conserva lo escrito, relee el servicio y el reenvío es otro clic del Prestador con la versión nueva (DEC-200). Componentes del frontend: [`componentes-frontend-prestador.puml`](../sad/diagramas/componentes-frontend-prestador.puml).
+
+```plantuml
+@startuml
+actor Prestador as P
+participant "ActualizarPrecioPage\n(/prestador/servicios/:id/precio)" as V
+participant "useEdicionServicio" as H
+participant "API Gateway" as G
+participant "ms-catalog" as C
+P -> V : abre «Actualizar precio» (detalle propio, Pendiente o Publicado)
+V -> H : cargar(id)
+H -> G : GET /api/v1/catalogo/prestador/servicios/{id}
+G -> C : (Authorization sin cambios)
+C --> H : 200 {precioBase | unidades, version: n}
+H --> V : formulario (Alojamiento: una fila por unidad y el «desde» derivado)
+P -> V : cambia el precio y pulsa «Guardar cambios»
+V -> H : guardar()
+note right of H : validación en el cliente (DEC-198): obligatorio,\n> 0, hasta 99 999 999,99 y 2 decimales;\nun solo PUT en curso (doble clic)
+H -> G : PUT …/{id}/precio {precioBase | unidades[todas], version: n}
+G -> C
+alt 200
+  C --> H : 200 {…, version: n+1}
+  H --> V : vuelve al detalle propio con «Precio actualizado»
+else 409 SERVICIO_MODIFICADO {versionActual}
+  C --> H : 409
+  H -> G : GET …/{id}
+  G -> C
+  C --> H : 200 {…, version: n+1}
+  H --> V : aviso; conserva lo escrito; «Valor actual» junto a lo que cambió
+  P -> V : revisa y pulsa «Guardar cambios» otra vez
+  V -> H : guardar()
+  H -> G : PUT …/{id}/precio {…, version: n+1}
+else 409 ESTADO_CAMBIADO {estadoActual}
+  C --> H : 409
+  H --> V : vuelve al detalle con «No se guardó: el servicio ahora está …» (DEC-201)
+else 400 DATOS_INVALIDOS {campos}
+  C --> H : 400
+  H --> V : error junto a cada control (unidades[i].precioNoche);\nsin control → mensaje general con «Recargar»
+else 404
+  C --> H : 404 SERVICIO_NO_ENCONTRADO
+  H --> V : «no encontrado», sin formulario
+end
+@enduml
+```
+
 ## Fuera de alcance
 
 - Modificar la oferta (días, salidas) o los cupos (RF19, DEC-34, DEC-183).
 - Historial de precios (RF41, descartado).
 - Precios por temporada o por fecha.
-- La pantalla (sesión B).

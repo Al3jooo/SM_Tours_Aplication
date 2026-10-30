@@ -5,19 +5,25 @@ import { SinPermiso } from '../../shared/components/SinPermiso'
 import { formatearDia } from '../../shared/formato'
 import { DatosServicio } from '../servicios/DatosServicio'
 import { InsigniaEstadoServicio } from '../servicios/InsigniaEstadoServicio'
+import { esEditable, type EstadoAnuncio } from './edicionServicio'
 import { useMiServicio } from './useMisServicios'
 import './prestador.css'
 
 /**
  * Detalle propio de WF-18 (DEC-169): estado, fecha de revisión y motivo del rechazo, más los datos tal como se
- * enviaron. «Editar y reenviar» sigue deshabilitado (DEC-22). Después del 201 llega con el aviso «Enviado a
- * aprobación» (DEC-168). Un servicio ajeno o inexistente responde 404 y se muestra como no encontrado.
+ * enviaron. Después del 201 llega con el aviso «Enviado a aprobación» (DEC-168). Un servicio ajeno o inexistente
+ * responde 404 y se muestra como no encontrado.
+ *
+ * Iteración D (DEC-196): en `Pendiente` y `Publicado`, «Actualizar precio» (WF-20, RF32) y «Editar datos comerciales»
+ * (WF-21, RF43). En `Rechazado` no hay acciones de edición y «Editar y reenviar» sigue deshabilitado (DEC-22, DEC-193).
+ * Al volver de una edición (o de un 409 ESTADO_CAMBIADO, DEC-201) muestra su anuncio una vez.
  */
 export function DetalleMiServicioPage() {
   const { t, i18n } = useTranslation()
   const { id = '' } = useParams()
   const ubicacion = useLocation()
   const enviado = (ubicacion.state as { enviado?: boolean } | null)?.enviado === true
+  const anuncio = (ubicacion.state as Partial<EstadoAnuncio> | null)?.anuncio
   const servicio = useMiServicio(id)
 
   if (servicio.estado === 'error' && servicio.error === 'sinPermiso') return <SinPermiso />
@@ -50,6 +56,11 @@ export function DetalleMiServicioPage() {
           {enviado && (
             <p className="prestador__aviso prestador__aviso--exito" role="status">
               {t('prestador.detalle.enviado')}
+            </p>
+          )}
+          {typeof anuncio === 'string' && anuncio !== '' && (
+            <p className="prestador__aviso prestador__aviso--exito" role="status">
+              {anuncio}
             </p>
           )}
           <h1 id="detalle-mi-servicio">{servicio.datos.nombreComercial}</h1>
@@ -88,7 +99,23 @@ export function DetalleMiServicioPage() {
                 {t('prestador.misServicios.verFicha')}
               </Link>
             )}
-            <BotonNoDisponible>{t('prestador.detalle.editar')}</BotonNoDisponible>
+            {esEditable(servicio.datos.estadoPublicacion) && (
+              <>
+                <Link className="boton-principal" to={`/prestador/servicios/${encodeURIComponent(servicio.datos.id)}/precio`}>
+                  {t('prestador.detalle.actualizarPrecio')}
+                </Link>
+                <Link
+                  className="boton-secundario"
+                  to={`/prestador/servicios/${encodeURIComponent(servicio.datos.id)}/datos-comerciales`}
+                >
+                  {t('prestador.detalle.editarDatos')}
+                </Link>
+              </>
+            )}
+            {/* «Editar y reenviar»: fuera de la iteración D y siempre deshabilitado; solo en Rechazado (DEC-193). */}
+            {servicio.datos.estadoPublicacion === 'Rechazado' && (
+              <BotonNoDisponible>{t('prestador.detalle.editar')}</BotonNoDisponible>
+            )}
           </div>
         </article>
       )}

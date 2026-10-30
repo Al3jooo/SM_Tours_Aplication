@@ -38,7 +38,9 @@
     "miPerfil": "Mi perfil",
     "misFavoritos": "Mis favoritos",
     "misServicios": "Mis servicios",
-    "registrarServicio": "Registrar servicio"
+    "registrarServicio": "Registrar servicio",
+    "historialReservas": "Historial de reservas",
+    "perfilComercial": "Mi perfil comercial"
   },
   "login": {
     "titulo": "Iniciar sesión en Samaria360",
@@ -1148,7 +1150,8 @@
         "SERVICIO_NO_DISPONIBLE": "El catálogo no está disponible en este momento. Lo que escribiste se conserva: inténtalo de nuevo.",
         "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
         "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo."
-      }
+      },
+      "rntAyuda": "Se toma de tu perfil comercial."
     },
     "misServicios": {
       "titulo": "Mis servicios",
@@ -1199,6 +1202,101 @@
         "noDisponible": "El catálogo no está disponible en este momento.",
         "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
         "otro": "Ocurrió un error inesperado al cargar el servicio."
+      },
+      "actualizarPrecio": "Actualizar precio",
+      "editarDatos": "Editar datos comerciales"
+    },
+    "edicion": {
+      "servicio": "Servicio",
+      "volverDetalle": "Volver al servicio",
+      "guardar": "Guardar cambios",
+      "guardando": "Guardando…",
+      "descartar": "Descartar cambios",
+      "recargar": "Recargar",
+      "avisoPublicado": "El servicio está Publicado: el cambio se ve de inmediato en la ficha pública, sin nueva aprobación.",
+      "avisoPendiente": "El servicio está Pendiente de aprobación: el cambio se verá en la ficha pública cuando el Administrador lo apruebe.",
+      "valorActual": "Valor actual: {{valor}}",
+      "noEditable": "Este servicio está {{estado}} y no se puede editar.",
+      "errores": {
+        "DATOS_INVALIDOS": "Algunos datos no son válidos. Revisa el formulario o recarga el servicio.",
+        "SERVICIO_MODIFICADO": "El servicio cambió mientras lo editabas. Conservamos lo que escribiste y marcamos el valor actual junto a cada campo que cambió. Revisa y vuelve a guardar.",
+        "SERVICIO_MODIFICADO_SIN_CAMBIOS": "El servicio se actualizó mientras lo editabas (por ejemplo, una revisión del Administrador). Conservamos lo que escribiste: vuelve a guardar.",
+        "RELECTURA": "El servicio cambió mientras lo editabas y no pudimos leer su versión actual. Recárgalo para continuar.",
+        "ESTADO_CAMBIADO": "No se guardó: el servicio ahora está {{estado}} y ya no se puede editar.",
+        "ESTADO_CAMBIADO_SIN_ESTADO": "No se guardó: el servicio cambió de estado y ya no se puede editar.",
+        "ACCESO_DENEGADO": "Solo los prestadores pueden editar sus servicios.",
+        "SERVICIO_NO_DISPONIBLE": "El catálogo no está disponible en este momento. Lo que escribiste se conserva: inténtalo de nuevo.",
+        "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
+        "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo."
+      }
+    },
+    "precio": {
+      "titulo": "Actualizar precio",
+      "tituloDe": "Actualizar precio: {{nombre}}",
+      "apoyo": "Cambia el precio de tu servicio de {{categoria}}. Los viajeros verán el precio nuevo al reservar.",
+      "unidades": "Precio por noche de cada unidad",
+      "unidad": "{{nombre}} · {{tipo}}",
+      "precioNocheDe": "Precio por noche de {{nombre}}",
+      "ofertaInmutable": "Los días de operación, las salidas y los cupos no cambian aquí.",
+      "reservasConservan": "Las reservas ya confirmadas conservan el precio con el que se hicieron.",
+      "guardado": "Precio actualizado."
+    },
+    "datosComerciales": {
+      "titulo": "Editar datos comerciales",
+      "tituloDe": "Editar datos comerciales: {{nombre}}",
+      "apoyo": "El nombre del establecimiento y el contacto que ven los viajeros en la ficha de este servicio.",
+      "seccion": "Nombre y contacto del servicio",
+      "notaContactos": "Este contacto es solo de este servicio. Es distinto del correo corporativo de tu perfil comercial y del correo con el que inicias sesión, que no cambian aquí.",
+      "guardado": "Datos comerciales actualizados."
+    },
+    "perfil": {
+      "titulo": "Mi perfil comercial",
+      "apoyo": "Los datos de tu empresa como prestador de servicios turísticos.",
+      "cargando": "Cargando tu perfil comercial…",
+      "registro": "Datos de tu registro",
+      "soloLectura": "Estos datos no se editan aquí.",
+      "correoAcceso": "Correo de acceso",
+      "representanteLegal": "Representante legal",
+      "razonSocial": "Razón social",
+      "sinDato": "sin datos",
+      "notaCorreo": "El correo de acceso es tu credencial para iniciar sesión y no se cambia aquí. El correo corporativo es el contacto de tu empresa, y el contacto de cada servicio se edita en el servicio.",
+      "contacto": "Contacto de la empresa",
+      "correoCorporativo": "Correo corporativo",
+      "correoCorporativoAyuda": "Es un correo de contacto, no el de inicio de sesión.",
+      "telefono": "Teléfono",
+      "guardado": "Perfil comercial actualizado.",
+      "errores": {
+        "carga": "No pudimos cargar tu perfil comercial.",
+        "DATOS_INVALIDOS": "Algunos datos no son válidos. Revisa el formulario.",
+        "ACCESO_DENEGADO": "Solo los prestadores pueden editar su perfil comercial.",
+        "SERVICIO_NO_DISPONIBLE": "El servicio de cuentas no está disponible en este momento. Lo que escribiste se conserva: inténtalo de nuevo.",
+        "ERROR_RED": "No fue posible conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
+        "GENERICO": "Ocurrió un error inesperado. Inténtalo de nuevo."
+      }
+    },
+    "historial": {
+      "titulo": "Historial de reservas",
+      "apoyo": "Las reservas de tus servicios, filtradas por la fecha de la actividad. No incluye datos de los viajeros.",
+      "servicio": "Servicio",
+      "todosServicios": "Todos tus servicios",
+      "servicioSeleccionado": "Servicio seleccionado",
+      "serviciosNoDisponibles": "No pudimos cargar tus servicios: el filtro por servicio no está disponible. El historial sigue funcionando.",
+      "limiteServicios": "El filtro muestra los {{n}} servicios registrados más recientes.",
+      "contador_one": "{{count}} reserva",
+      "contador_other": "{{count}} reservas",
+      "cargando": "Cargando el historial…",
+      "sinReservas": "Aún no hay reservas de tus servicios.",
+      "sinResultados": "No hay reservas con esos filtros.",
+      "precioUnitario": "Precio unitario",
+      "porNoche": "{{precio}} por noche",
+      "porPersona": "{{precio}} por persona",
+      "reservadaEl": "Reservada el",
+      "canceladaEl": "Cancelada el",
+      "errores": {
+        "noDisponible": "Las reservas no están disponibles en este momento.",
+        "red": "No fue posible conectar con el servidor. Revisa tu conexión.",
+        "otro": "Ocurrió un error inesperado al cargar el historial.",
+        "sinPermiso": "Tu cuenta no tiene permiso para ver esta página."
       }
     }
   }

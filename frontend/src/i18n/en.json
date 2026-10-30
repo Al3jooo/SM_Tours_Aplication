@@ -38,7 +38,9 @@
     "miPerfil": "My profile",
     "misFavoritos": "My favorites",
     "misServicios": "My services",
-    "registrarServicio": "Register a service"
+    "registrarServicio": "Register a service",
+    "historialReservas": "Booking history",
+    "perfilComercial": "My business profile"
   },
   "login": {
     "titulo": "Sign in to Samaria360",
@@ -1148,7 +1150,8 @@
         "SERVICIO_NO_DISPONIBLE": "The catalog is not available right now. What you typed is kept: try again.",
         "ERROR_RED": "Could not connect to the server. Check your connection and try again.",
         "GENERICO": "An unexpected error occurred. Try again."
-      }
+      },
+      "rntAyuda": "Taken from your business profile."
     },
     "misServicios": {
       "titulo": "My services",
@@ -1199,6 +1202,101 @@
         "noDisponible": "The catalog is not available right now.",
         "red": "Could not connect to the server. Check your connection.",
         "otro": "An unexpected error occurred while loading the service."
+      },
+      "actualizarPrecio": "Update price",
+      "editarDatos": "Edit business details"
+    },
+    "edicion": {
+      "servicio": "Service",
+      "volverDetalle": "Back to the service",
+      "guardar": "Save changes",
+      "guardando": "Saving…",
+      "descartar": "Discard changes",
+      "recargar": "Reload",
+      "avisoPublicado": "The service is Published: the change shows on the public page right away, without a new approval.",
+      "avisoPendiente": "The service is Pending approval: the change will show on the public page once the Administrator approves it.",
+      "valorActual": "Current value: {{valor}}",
+      "noEditable": "This service is {{estado}} and cannot be edited.",
+      "errores": {
+        "DATOS_INVALIDOS": "Some data is not valid. Check the form or reload the service.",
+        "SERVICIO_MODIFICADO": "The service changed while you were editing it. We kept what you typed and marked the current value next to each field that changed. Review it and save again.",
+        "SERVICIO_MODIFICADO_SIN_CAMBIOS": "The service was updated while you were editing it (for example, an Administrator review). We kept what you typed: save again.",
+        "RELECTURA": "The service changed while you were editing it and we could not read its current version. Reload it to continue.",
+        "ESTADO_CAMBIADO": "Not saved: the service is now {{estado}} and can no longer be edited.",
+        "ESTADO_CAMBIADO_SIN_ESTADO": "Not saved: the service changed status and can no longer be edited.",
+        "ACCESO_DENEGADO": "Only providers can edit their services.",
+        "SERVICIO_NO_DISPONIBLE": "The catalog is not available right now. What you typed is kept: try again.",
+        "ERROR_RED": "We could not reach the server. Check your connection and try again.",
+        "GENERICO": "An unexpected error occurred. Try again."
+      }
+    },
+    "precio": {
+      "titulo": "Update price",
+      "tituloDe": "Update price: {{nombre}}",
+      "apoyo": "Change the price of your {{categoria}} service. Travelers will see the new price when they book.",
+      "unidades": "Price per night of each unit",
+      "unidad": "{{nombre}} · {{tipo}}",
+      "precioNocheDe": "Price per night of {{nombre}}",
+      "ofertaInmutable": "Operating days, departures and capacity do not change here.",
+      "reservasConservan": "Bookings already confirmed keep the price they were made with.",
+      "guardado": "Price updated."
+    },
+    "datosComerciales": {
+      "titulo": "Edit business details",
+      "tituloDe": "Edit business details: {{nombre}}",
+      "apoyo": "The business name and the contact that travelers see on the page of this service.",
+      "seccion": "Service name and contact",
+      "notaContactos": "This contact belongs only to this service. It is different from the corporate email in your business profile and from the email you sign in with, which do not change here.",
+      "guardado": "Business details updated."
+    },
+    "perfil": {
+      "titulo": "My business profile",
+      "apoyo": "The details of your company as a tourism service provider.",
+      "cargando": "Loading your business profile…",
+      "registro": "Your registration details",
+      "soloLectura": "These details are not edited here.",
+      "correoAcceso": "Sign-in email",
+      "representanteLegal": "Legal representative",
+      "razonSocial": "Company name",
+      "sinDato": "no data",
+      "notaCorreo": "The sign-in email is your credential and does not change here. The corporate email is the contact of your company, and the contact of each service is edited in the service.",
+      "contacto": "Company contact",
+      "correoCorporativo": "Corporate email",
+      "correoCorporativoAyuda": "This is a contact email, not the sign-in email.",
+      "telefono": "Phone",
+      "guardado": "Business profile updated.",
+      "errores": {
+        "carga": "We could not load your business profile.",
+        "DATOS_INVALIDOS": "Some data is not valid. Check the form.",
+        "ACCESO_DENEGADO": "Only providers can edit their business profile.",
+        "SERVICIO_NO_DISPONIBLE": "The accounts service is not available right now. What you typed is kept: try again.",
+        "ERROR_RED": "We could not reach the server. Check your connection and try again.",
+        "GENERICO": "An unexpected error occurred. Try again."
+      }
+    },
+    "historial": {
+      "titulo": "Booking history",
+      "apoyo": "Bookings of your services, filtered by the activity date. Traveler data is not included.",
+      "servicio": "Service",
+      "todosServicios": "All your services",
+      "servicioSeleccionado": "Selected service",
+      "serviciosNoDisponibles": "We could not load your services: the service filter is not available. The history still works.",
+      "limiteServicios": "The filter shows the {{n}} most recently registered services.",
+      "contador_one": "{{count}} booking",
+      "contador_other": "{{count}} bookings",
+      "cargando": "Loading the history…",
+      "sinReservas": "There are no bookings of your services yet.",
+      "sinResultados": "No bookings match those filters.",
+      "precioUnitario": "Unit price",
+      "porNoche": "{{precio}} per night",
+      "porPersona": "{{precio}} per person",
+      "reservadaEl": "Booked on",
+      "canceladaEl": "Cancelled on",
+      "errores": {
+        "noDisponible": "Bookings are not available right now.",
+        "red": "We could not reach the server. Check your connection.",
+        "otro": "An unexpected error occurred while loading the history.",
+        "sinPermiso": "Your account does not have permission to see this page."
       }
     }
   }

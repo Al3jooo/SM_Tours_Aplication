@@ -169,7 +169,8 @@
   border-color: var(--color-error);
 }
 
-.prestador .campo__control select {
+.prestador .campo__control select,
+.prestador-historial .campo__control select {
   flex: 1;
   min-width: 0;
   padding: var(--espacio-3) 0;
@@ -179,7 +180,8 @@
   font: inherit;
 }
 
-.prestador .campo__control select:focus {
+.prestador .campo__control select:focus,
+.prestador-historial .campo__control select:focus {
   outline: none;
 }
 
@@ -495,4 +497,24 @@
 
 .prestador__rechazo p {
   margin: 0;
+}
+
+/* Iteración D, sesión B (WF-20 a WF-23): notas de los contactos (C2), precio por unidad e historial. */
+.prestador__nota {
+  margin: 0;
+  padding: var(--espacio-3) var(--espacio-4);
+  border-left: 4px solid var(--color-borde-campo);
+  border-radius: var(--radio-sm);
+  background: var(--color-arena);
+  color: var(--color-tinta-suave);
+}
+
+.prestador__unidad-nombre {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-mar-900);
+}
+
+.prestador-historial .campo__control select:disabled {
+  color: var(--color-tinta-suave);
 }

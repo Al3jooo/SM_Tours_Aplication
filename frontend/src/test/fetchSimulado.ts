@@ -589,8 +589,23 @@ export function servicioGestion(extra: Record<string, unknown> = {}) {
     fechaRegistro: '2026-10-28T15:00:00Z',
     motivoRechazo: null,
     fechaRevision: null,
+    // DEC-186: la forma de gestión siempre trae la versión (DEC-205).
+    version: 0,
     ...extra,
   }
+}
+
+/** Alojamiento propio con dos unidades (la de DETALLE_HOTEL), para el precio por unidad (RF32). */
+export function servicioGestionHotel(extra: Record<string, unknown> = {}) {
+  return servicioGestion({
+    id: '6a3000000000000000000003',
+    nombreComercial: 'Hotel Casa Tayrona',
+    categoria: 'Alojamiento',
+    precioBase: 150000,
+    detalleCategoria: DETALLE_HOTEL.detalleCategoria,
+    oferta: { diasOperacion: ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'] },
+    ...extra,
+  })
 }
 
 /** Fila del listado de «Mis servicios». */
@@ -658,4 +673,54 @@ export function servicioCola(extra: Record<string, unknown> = {}) {
     fechaRegistro: '2026-10-20T15:00:00Z',
     ...extra,
   }
+}
+
+// ------------------------------------------------------------------ oferta del prestador (iteración D, B)
+
+/** `GET /api/v1/auth/prestador/perfil` (RF43, DEC-188): correo de acceso, representante, razón social y RNT, de solo lectura. */
+export function perfilPrestador(extra: Record<string, unknown> = {}) {
+  return {
+    correo: USUARIO_PRESTADOR.correo,
+    representanteLegal: 'Carlos Gómez',
+    razonSocial: 'Casa Tayrona S.A.S.',
+    rnt: 'RNT-00000',
+    correoCorporativo: 'contacto@casatayrona.test',
+    telefono: '+57 3000000000',
+    ...extra,
+  }
+}
+
+/**
+ * Una reserva de `GET /api/v1/reservas/prestador` (RF12, DEC-191): la del turista sin `cancelableHasta` y, como el
+ * contrato, sin ningún dato del Turista. Tour Confirmada por defecto.
+ */
+export function reservaPrestador(extra: Record<string, unknown> = {}) {
+  return {
+    idReserva: '7b1d6f0e-0000-4000-8000-000000000001',
+    estado: 'Confirmada',
+    idServicio: '6a3000000000000000000001',
+    nombreServicio: 'Tour de Café en Minca',
+    categoria: 'Tour',
+    idUnidad: null,
+    nombreUnidad: null,
+    fechaEntrada: '2026-12-13',
+    fechaSalida: null,
+    horaInicio: '07:00:00',
+    fechaInicio: '2026-12-13T12:00:00Z',
+    fechaFin: '2026-12-13T16:00:00Z',
+    cantidad: 1,
+    personas: 3,
+    precioUnitario: 80000,
+    unidadCobro: 'Persona',
+    precioTotal: 240000,
+    moneda: 'COP',
+    fechaCreacion: '2026-11-02T14:30:00Z',
+    fechaCancelacion: null,
+    ...extra,
+  }
+}
+
+/** Página de `GET /api/v1/reservas/prestador` (20 por página, `pagina` desde 0). */
+export function paginaReservasPrestador(elementos: unknown[], pagina = 0, totalElementos = elementos.length) {
+  return { elementos, pagina, tamano: 20, totalElementos, totalPaginas: Math.ceil(totalElementos / 20) }
 }

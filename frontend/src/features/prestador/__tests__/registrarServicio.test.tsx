@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { mapaVivo } from '../../../test/leafletSimulado'
 import {
   USUARIO_PRESTADOR,
+  perfilPrestador,
   respuestaJson,
   respuestaProblema,
   servicioGestion,
@@ -325,7 +326,36 @@ describe('WF-08 «Registrar servicio comercial» (RF09, RF10, RF37)', () => {
     expect(screen.getByRole('group', { name: 'Fotos del servicio' })).toHaveAttribute('aria-disabled', 'true')
     expect(screen.getByText('Se toma de tu registro de prestador.')).toBeInTheDocument()
     expect(screen.queryByText(/RNT-/)).not.toBeInTheDocument()
-    expect(mapaVivo().teselas()[0].opciones.attribution).toContain('OpenStreetMap')
+    // O22: el mapa nace en un efecto del selector, que puede correr después de que aparezca el título.
+    const mapa = await waitFor(() => mapaVivo(), LENTO)
+    expect(mapa.teselas()[0].opciones.attribution).toContain('OpenStreetMap')
+  })
+
+  it('O16 (DEC-203): el RNT se muestra con el de `GET /prestador/perfil` y no viaja en el cuerpo', async () => {
+    const { solicitudes, usuario } = await abrirRegistro({
+      'GET /api/v1/auth/prestador/perfil': () => respuestaJson(200, perfilPrestador({ rnt: 'RNT-12345' })),
+      [REGISTRAR]: () => respuestaJson(201, servicioGestion()),
+    })
+    expect(await screen.findByText('RNT-12345', {}, LENTO)).toBeInTheDocument()
+    expect(screen.queryByText('Se toma de tu registro de prestador.')).not.toBeInTheDocument()
+
+    await llenarTour(usuario)
+    await enviar(usuario)
+    await waitFor(() => expect(registros(solicitudes)).toHaveLength(1))
+    expect(registros(solicitudes)[0].cuerpo).not.toHaveProperty('rnt')
+  })
+
+  it('O16 (DEC-203): si `GET /prestador/perfil` falla, queda el texto de DEC-167 y el formulario sigue usable', async () => {
+    const { solicitudes, usuario } = await abrirRegistro({
+      'GET /api/v1/auth/prestador/perfil': () => respuestaProblema(503, 'SERVICIO_NO_DISPONIBLE'),
+      [REGISTRAR]: () => respuestaJson(201, servicioGestion()),
+    })
+    await waitFor(() => expect(solicitudes.some((s) => s.url === '/api/v1/auth/prestador/perfil')).toBe(true))
+    expect(screen.getByText('Se toma de tu registro de prestador.')).toBeInTheDocument()
+
+    await llenarTour(usuario)
+    await enviar(usuario)
+    expect(await screen.findByText('Enviado a aprobación: el Administrador lo revisará.', {}, LENTO)).toBeInTheDocument()
   })
 
   it('unidades: de 1 a 20, «Quitar» no está con una sola y quitar una fila limpia sus errores', async () => {

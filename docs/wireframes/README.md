@@ -41,6 +41,10 @@
 | WF-17-mis-favoritos.puml | Mis favoritos **(nuevo)** | Guardar favoritos | RF54 | **Sí** (sesión B de B1; sin el detalle de atractivo). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-18-mis-servicios.puml | Mis servicios **(nuevo)** | Registrar servicio comercial (flujo «Consultar mis servicios», DEC-129) | RF09 | Backend en la iteración C (A1); **pantalla hecha en B1** (`/prestador/servicios` y `/prestador/servicios/:id`). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-19-aprobar-servicios.puml | Aprobar servicios **(nuevo)** | Aprobar o rechazar servicio; Consultar listado pendiente; Justificar rechazo de servicio | RF21 | Backend en la iteración C (A1); pantalla hecha en B2 (DEC-174 a DEC-181). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-20-actualizar-precio.puml | Actualizar precio **(nuevo)** | Actualizar tarifas | RF32 | **Sí** (iteración D, sesión B; `/prestador/servicios/:id/precio`). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-21-datos-comerciales-servicio.puml | Editar datos comerciales del servicio **(nuevo)** | Actualizar datos comerciales (flujo B) | RF43 | **Sí** (iteración D, sesión B; `/prestador/servicios/:id/datos-comerciales`). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-22-perfil-comercial.puml | Mi perfil comercial **(nuevo)** | Actualizar datos comerciales (flujo A) | RF43 | **Sí** (iteración D, sesión B; `/prestador/perfil`). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-23-historial-reservas-prestador.puml | Historial de reservas del Prestador **(nuevo)** | Consultar historial | RF12 | **Sí** (iteración D, sesión B; `/prestador/reservas`). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-05-06-11-cambios-turista.puml | Cambios en WF-05, WF-06 y WF-11 **(nuevo)** | Consultar historial de búsquedas, Guardar favoritos, Compartir reserva completada | RF60, RF54, RF49 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
 
 ## WF-01 — Inicio de sesión
@@ -115,7 +119,7 @@ Migas: Panel del Prestador › Mis Servicios › Registrar Nuevo Servicio. Aviso
 
 **Diferencias de la pantalla de B1 con WF-08** (`docs/trazabilidad.md`, DEC-161 a DEC-168):
 - **Después del 201** la pantalla lleva al **detalle propio** del servicio (`/prestador/servicios/{id}`, WF-18) con «Enviado a aprobación» y «Pendiente de aprobación», no a la lista que indica el `.puml` (línea 100) (DEC-168): el Prestador ve lo que guardó el servidor, con el precio derivado y el RNT.
-- El **RNT** aparece como «Se toma de tu registro de prestador», **sin el valor**: ningún endpoint se lo da al Prestador antes del registro (`/me` no lo trae). El valor se ve en el detalle propio y en WF-06 (DEC-167; pendiente de contrato).
+- El **RNT** aparece como «Se toma de tu registro de prestador», **sin el valor**: ningún endpoint se lo da al Prestador antes del registro (`/me` no lo trae). El valor se ve en el detalle propio y en WF-06 (DEC-167; pendiente de contrato). **Actualización de la iteración D (sesión B, O16, DEC-203):** el valor se muestra con el de `GET /api/v1/auth/prestador/perfil`; mientras carga, si falla o si no hay RNT, queda el texto anterior y el formulario sigue usable.
 - La **casilla de veracidad** aparece deshabilitada (DEC-22): la «visita de verificación del municipio» del PNG no está en el SRS y exigirla sería una regla nueva (DEC-167).
 - Se omiten la alerta del PNG (RUT, certificado de sanidad, cámara de comercio, «2 días hábiles») y la nota «Recibirás la respuesta en el correo registrado»: no están en el SRS y el aviso por correo es de RF34 o ms-notificaciones. Queda el aviso del `.puml` («Pendiente de aprobación»). «Un gestor del municipio verifica» pasa a «el Administrador» (RF21).
 - Las migas empiezan en «Mis servicios»: no hay un «Panel del Prestador» aparte.
@@ -126,6 +130,8 @@ Migas: Panel del Prestador › Mis Servicios › Registrar Nuevo Servicio. Aviso
 **Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-18-mis-servicios.puml`), solo de estructura. Implementado en la sesión B1 (DEC-169). Flujo «Consultar mis servicios» del CU «Registrar servicio comercial» (DEC-129). Pantalla privada del Prestador.
 - Lista de sus servicios (nombre, categoría, estado, motivo del rechazo y fecha de registro), del más reciente al más antiguo, con filtro de estado y paginación de 10; **Registrar nuevo servicio** lleva a WF-08.
 - **Ver detalle** muestra los datos enviados y, si está Rechazado, el motivo. «Editar y reenviar» aparece deshabilitado (iteración D).
+
+**Diferencias de la iteración D (sesión B) con WF-18** (DEC-196): en `Pendiente` y `Publicado`, el detalle propio muestra **Actualizar precio** (WF-20) y **Editar datos comerciales** (WF-21) y, al volver de una edición, su anuncio. En `Rechazado` no hay acciones de edición y «Editar y reenviar» sigue deshabilitado (DEC-193). El `.puml` no cambia.
 
 ## WF-19 — Aprobar servicios (nuevo)
 
@@ -141,6 +147,31 @@ Migas: Panel del Prestador › Mis Servicios › Registrar Nuevo Servicio. Aviso
 - **Diálogo de rechazo:** suma el aviso de decisión definitiva, como el de WF-12 (DEC-177).
 - **Cola:** las rutas son `/admin/servicios` y `/admin/servicios/:id`, a las que se entra con «Aprobar servicios» en el menú del avatar (DEC-174).
 - **Mejoras de diseño:** las coordenadas también en texto junto al mapa, el foco en los títulos al cargar y al volver, y «Volver» conserva el filtro y la página de la cola.
+
+## WF-20 — Actualizar precio (nuevo)
+
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-20-actualizar-precio.puml`), solo de estructura. Implementado en la iteración D, sesión B (DEC-196, DEC-198, DEC-200, DEC-201). CU «Actualizar tarifas» (RF32). Pantalla privada del Prestador, desde el detalle propio de WF-18.
+- Tour, Gastronomía y Alquiler de equipos: el **precio «desde»**. Alojamiento: el **precio por noche de cada unidad** (nombre y tipo en solo lectura) y el «desde» derivado, que no se escribe. El cuerpo lleva todas las unidades y la `version` leída.
+- Aviso de que no hace falta una nueva aprobación (en `Publicado`, el cambio se ve de inmediato) y de que la oferta y las reservas confirmadas no cambian.
+- **409 `SERVICIO_MODIFICADO`:** avisa, relee el servicio, conserva lo escrito y marca «Valor actual» junto a lo que cambió; el reenvío es otro clic (DEC-200). **409 `ESTADO_CAMBIADO`:** vuelve al detalle con el aviso (DEC-201).
+
+## WF-21 — Editar datos comerciales del servicio (nuevo)
+
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-21-datos-comerciales-servicio.puml`), solo de estructura. Implementado en la iteración D, sesión B (DEC-196, DEC-199). CU «Actualizar datos comerciales», flujo B (RF43). Pantalla privada del Prestador, desde el detalle propio de WF-18.
+- **Nombre comercial** (el «nombre del establecimiento») y el **contacto** del servicio (teléfono y correo), con las reglas del registro; mismos avisos y 409 que WF-20.
+- Una **nota** distingue este contacto del correo corporativo del perfil (WF-22) y del correo de acceso.
+
+## WF-22 — Mi perfil comercial (nuevo)
+
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-22-perfil-comercial.puml`), solo de estructura. Implementado en la iteración D, sesión B (DEC-196, DEC-202). CU «Actualizar datos comerciales», flujo A (RF43). Pantalla privada del Prestador, desde el menú del avatar.
+- **Solo lectura:** correo de acceso, representante legal, razón social y **RNT** (cierra O16). Nota: el correo de acceso es la credencial y no se cambia aquí (ADR-006).
+- **Editable:** correo corporativo (contacto) y teléfono. El PUT envía solo esos dos campos.
+
+## WF-23 — Historial de reservas del Prestador (nuevo)
+
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-23-historial-reservas-prestador.puml`), solo de estructura. Implementado en la iteración D, sesión B (DEC-196, DEC-204). CU «Consultar historial», RF12 del lado del Prestador. Pantalla privada del Prestador, desde el menú del avatar. Usa el lenguaje visual de WF-11.
+- **Filtros en la URL** (DEC-169): desde y hasta (fecha de la actividad, como mucho 366 días), estado (uno o varios) y servicio. El selector lista los servicios del Prestador, hasta los **200 registrados más recientes**; si no carga, queda deshabilitado y el historial sigue.
+- **Tarjetas** de 20 por página: servicio y categoría, unidad o salida, fechas, cantidades, precio unitario, total, estado y fechas de creación y de cancelación. **Ningún dato del Turista** y sin acciones.
 
 ## WF-09 — Registrar atractivo turístico
 
