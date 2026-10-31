@@ -9,11 +9,25 @@ import './servicio.css'
 const ZOOM_PIN = 16
 
 /**
- * Ubicación de un servicio en la revisión de WF-19 (DEC-176): Leaflet directo, con las teselas de OpenStreetMap y su
- * atribución (shared/mapa/mapaBase.ts), centrado en el pin. Solo lectura: el pin no se arrastra y un clic no lo mueve.
- * Las coordenadas se muestran también en texto, fuera del mapa.
+ * Ubicación de un servicio en la revisión de WF-19 (DEC-176) o de un atractivo en su ficha (DEC-224): Leaflet directo,
+ * con las teselas de OpenStreetMap y su atribución (shared/mapa/mapaBase.ts), centrado en el pin. Solo lectura: el pin
+ * no se arrastra y un clic no lo mueve. Las coordenadas se muestran también en texto, fuera del mapa.
  */
-export function MapaSoloLectura({ latitud, longitud, nombre }: { latitud: number; longitud: number; nombre: string }) {
+export function MapaSoloLectura({
+  latitud,
+  longitud,
+  nombre,
+  tipo = 'servicio',
+  etiqueta,
+}: {
+  latitud: number
+  longitud: number
+  nombre: string
+  /** El pin de WF-05 de su tipo (`marcador--servicio` o `marcador--atractivo`). */
+  tipo?: 'servicio' | 'atractivo'
+  /** Nombre accesible del mapa; por defecto, el de la revisión de WF-19. */
+  etiqueta?: string
+}) {
   const { t } = useTranslation()
   const contenedor = useRef<HTMLDivElement>(null)
   const mapa = useRef<L.Map | null>(null)
@@ -56,14 +70,14 @@ export function MapaSoloLectura({ latitud, longitud, nombre }: { latitud: number
     if (!capaPin || !mapa.current) return
     capaPin.clearLayers()
     const marcador = L.marker([latitud, longitud], {
-      icon: L.divIcon({ className: 'marcador marcador--servicio', html: SVG_PIN, iconSize: [28, 36], iconAnchor: [14, 35] }),
+      icon: L.divIcon({ className: `marcador marcador--${tipo}`, html: SVG_PIN, iconSize: [28, 36], iconAnchor: [14, 35] }),
       title: nombre,
       keyboard: false,
     })
     capaPin.addLayer(marcador)
     marcador.getElement()?.setAttribute('aria-hidden', 'true')
     mapa.current.setView([latitud, longitud], ZOOM_PIN)
-  }, [latitud, longitud, nombre])
+  }, [latitud, longitud, nombre, tipo])
 
   return (
     <div className="mapa-oferta mapa-servicio">
@@ -71,7 +85,7 @@ export function MapaSoloLectura({ latitud, longitud, nombre }: { latitud: number
         ref={contenedor}
         className="mapa-oferta__lienzo"
         role="region"
-        aria-label={t('admin.servicios.revision.mapa', { nombre })}
+        aria-label={etiqueta ?? t('admin.servicios.revision.mapa', { nombre })}
         tabIndex={0}
       />
     </div>

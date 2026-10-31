@@ -23,6 +23,10 @@ const ExplorarPage = lazy(() => import('../features/catalogo/ExplorarPage').then
 const DetalleServicioPage = lazy(() =>
   import('../features/catalogo/detalle/DetalleServicioPage').then((m) => ({ default: m.DetalleServicioPage })),
 )
+/** Ficha pública de un atractivo (WF-06 para atractivos, DEC-224): diferida, como la del servicio. */
+const DetalleAtractivoPage = lazy(() =>
+  import('../features/catalogo/detalle/DetalleAtractivoPage').then((m) => ({ default: m.DetalleAtractivoPage })),
+)
 const ReservaPage = lazy(() => import('../features/reservas/ReservaPage').then((m) => ({ default: m.ReservaPage })))
 const MisReservasPage = lazy(() =>
   import('../features/reservas/MisReservasPage').then((m) => ({ default: m.MisReservasPage })),
@@ -87,6 +91,19 @@ const PerfilComercialPage = lazy(() =>
 const HistorialReservasPage = lazy(() =>
   import('../features/prestador/HistorialReservasPage').then((m) => ({ default: m.HistorialReservasPage })),
 )
+/**
+ * «Atractivos y agenda» (iteración E, B1; DEC-220, DEC-233): el panel «Atractivos» (WF-24), el registro (WF-09) y la
+ * edición, diferidas y solo para el Gestor.
+ */
+const AtractivosGestorPage = lazy(() =>
+  import('../features/gestor/AtractivosGestorPage').then((m) => ({ default: m.AtractivosGestorPage })),
+)
+const RegistrarAtractivoPage = lazy(() =>
+  import('../features/gestor/RegistrarAtractivoPage').then((m) => ({ default: m.RegistrarAtractivoPage })),
+)
+const EditarAtractivoPage = lazy(() =>
+  import('../features/gestor/EditarAtractivoPage').then((m) => ({ default: m.EditarAtractivoPage })),
+)
 
 /** Una página diferida: estado de carga mientras llega y aviso con «Reintentar» si la descarga falla. */
 function Diferida({ children }: { children: ReactNode }) {
@@ -105,7 +122,8 @@ function Diferida({ children }: { children: ReactNode }) {
  * «Administrar cuentas» (WF-12), la gestión de preguntas frecuentes (WF-13) y la de avisos (WF-14), privadas y solo
  * para el Administrador; y «Mis servicios» (WF-18) y el registro de servicios (WF-08), privadas y solo para el
  * Prestador, como la edición del precio y de los datos comerciales (WF-20, WF-21), el perfil comercial (WF-22) y el
- * historial de reservas (WF-23). El inicio de sesión (WF-01) y el registro (WF-02, WF-03) usan el diseño de acceso. Los
+ * historial de reservas (WF-23); la ficha de un atractivo (WF-06 para atractivos) es pública, y el panel «Atractivos»
+ * (WF-24), su registro y su edición (WF-09), privados y solo para el Gestor. El inicio de sesión (WF-01) y el registro (WF-02, WF-03) usan el diseño de acceso. Los
  * favoritos del turista (DEC-93) se comparten entre pantallas, dentro de la sesión.
  */
 export function App() {
@@ -136,6 +154,14 @@ export function App() {
               element={
                 <Diferida>
                   <ReservaPage />
+                </Diferida>
+              }
+            />
+            <Route
+              path="/atractivos/:id"
+              element={
+                <Diferida>
+                  <DetalleAtractivoPage />
                 </Diferida>
               }
             />
@@ -279,6 +305,32 @@ export function App() {
                 element={
                   <Diferida>
                     <HistorialReservasPage />
+                  </Diferida>
+                }
+              />
+            </Route>
+            <Route element={<RutaProtegida rol="Gestor" />}>
+              <Route
+                path="/gestor/atractivos"
+                element={
+                  <Diferida>
+                    <AtractivosGestorPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/gestor/atractivos/nuevo"
+                element={
+                  <Diferida>
+                    <RegistrarAtractivoPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/gestor/atractivos/:id"
+                element={
+                  <Diferida>
+                    <EditarAtractivoPage />
                   </Diferida>
                 }
               />

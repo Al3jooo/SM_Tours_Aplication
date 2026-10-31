@@ -1,0 +1,71 @@
+' WF-09 — Registrar atractivo turístico, ampliación (CU «Registrar atractivo» y «Actualizar atractivo»; RF06, RF07,
+' RF24, RF27, RF33, RF58; DEC-219, DEC-221, DEC-223, DEC-226 a DEC-228, DEC-234).
+' Propuesto por arquitectura, pendiente de validación del equipo. Solo estructura: regiones, elementos y flujo. Parte de
+' la imagen WF-09-registrar-atractivo.png y agrega la descripción (RF06), el horario (RF58), el campo de la capacidad de
+' carga (la imagen solo dibuja su etiqueta), las tres condiciones de RF27 y el pin del mapa.
+' Diagramas: (1) alta con fotos; (2) edición. Solo para el Gestor; se llega desde el panel «Atractivos» (WF-24) o el
+' menú del avatar. Lo implementa la iteración E, sesión B1.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+{ Banner de avisos (común, ver WF-14) }
+==
+Panel del gestor › Atractivos › Registrar atractivo
+<b>Registrar atractivo turístico
+Completa la ficha, define la capacidad de carga y publica las normas ambientales.
+--
+<b>Datos del atractivo
+{ Nombre del atractivo * | "Sendero Cascada El Salto" | 24/120 }
+{ Categoría * | ^Elige una categoría^ (Naturaleza, Cultura) }
+{ Descripción * | "Sendero entre bosque húmedo…" | 28/1000 }
+{ Ubicación en el mapa * | (mapa con pin arrastrable; teselas de OSM y su atribución) }
+{ Latitud * | "11.150000" | Longitud * | "-74.110000" | [Usar el centro de Santa Marta] }
+--
+<b>Condiciones de accesibilidad
+{ [X] Movilidad reducida | [ ] Discapacidad visual | [ ] Discapacidad auditiva }
+--
+<b>Aforo, estado y horario
+{ Límite máximo de capacidad de carga * | "80" | personas }
+{ Estado operativo * | ^Abierto^ (Abierto, Cerrado temporalmente, En mantenimiento) }
+{ Horario de atención (opcional) | "Martes a domingo, 8:00 a 16:00" | 31/500 }
+--
+<b>Fotos del atractivo
+De 1 a 5 imágenes JPEG o PNG, de 5 MB como máximo cada una.
+{ [Agregar fotos] | 2 de 5 fotos. }
+{ (miniatura) cascada.jpg [Quitar la foto 1] | (miniatura) falsa.jpg · «No es una imagen JPEG ni PNG.» [Quitar la foto 2] }
+--
+<b>Normas y regulaciones ambientales
+{ Normas y regulaciones ambientales (opcional) | "Prohibido hacer fogatas…" | 13/1000 }
+--
+{ Confirmo que la información es veraz y está actualizada. | — (deshabilitado, sin RF: DEC-219) }
+Mensaje general (role=alert): 400 sin campo · 413 «Las fotos superan el tamaño…» · red · servicio caído
+{ [Registrar atractivo] | [Cancelar] }
+--
+<b>Consejos
+Calcula el aforo · Normas claras · Actualiza el estado
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+==
+Panel del gestor › Atractivos › Cascada El Salto
+<b>Editar «Cascada El Salto»
+{ (insignia) Abierto | [Cambiar estado] | Ver ficha pública }
+Aviso de 409 ATRACTIVO_MODIFICADO: «Lo que otro gestor cambió» con el valor actual de cada campo
+--
+Los mismos campos del alta, salvo el estado (se cambia con su diálogo, DEC-210)
+--
+<b>Fotos del atractivo
+{ (miniatura 1) | (miniatura 2) }
+{ Agregar o quitar fotos | — (deshabilitado: el contrato no lo permite, DEC-226) }
+--
+{ [Guardar cambios] | [Descartar cambios] | [Cancelar] }
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt

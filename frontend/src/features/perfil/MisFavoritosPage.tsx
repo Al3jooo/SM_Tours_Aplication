@@ -1,11 +1,10 @@
 import { useEffect, useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { BotonNoDisponible } from '../../shared/components/BotonNoDisponible'
 import { IconoCompletada, IconoInfo } from '../../shared/components/Iconos'
 import { ImagenOferta } from '../catalogo/componentes/ImagenOferta'
 import { etiquetaCategoria } from '../catalogo/componentes/etiquetas'
-import { rutaDetalle } from '../catalogo/detalle/navegacionDetalle'
+import { rutaDetalleOferta } from '../catalogo/detalle/navegacionDetalle'
 import { AvisoFavoritos } from '../favoritos/AvisoFavoritos'
 import { claveFavorito } from '../favoritos/FavoritosContext'
 import { LIMITE_FAVORITOS, type Favorito } from '../favoritos/favoritosApi'
@@ -15,8 +14,8 @@ import './perfil.css'
 /**
  * WF-17 «Mis favoritos» (RF54), dentro del perfil y solo para el Turista (DEC-92). Usa la lista compartida de la sesión
  * (DEC-93): lo que se quita aquí también se desmarca en los corazones de WF-05 y WF-06. Del más reciente al más antiguo,
- * con «n de 100» (DEC-86). «Ver detalle» solo en los servicios disponibles; en un atractivo queda deshabilitado hasta el
- * detalle de atractivo de la iteración E (DEC-87); lo no disponible no tiene enlace. «Quitar» no pide confirmación
+ * con «n de 100» (DEC-86). «Ver detalle» en los favoritos disponibles, servicio o atractivo (la ficha del atractivo es de
+ * la iteración E, DEC-224); lo no disponible no tiene enlace. «Quitar» no pide confirmación
  * (DEC-99) y el foco pasa al «Quitar» siguiente o, si no hay, al título.
  */
 export function MisFavoritosPage() {
@@ -114,14 +113,15 @@ export function MisFavoritosPage() {
                       {!favorito.disponible && <p className="tarjeta-favorito__ayuda">{t('favoritos.noDisponibleAyuda')}</p>}
                     </div>
                     <div className="tarjeta-favorito__acciones">
-                      {favorito.disponible &&
-                        (favorito.tipo === 'Servicio' ? (
-                          <Link className="boton-secundario" to={rutaDetalle(favorito.id)} aria-describedby={idTitulo}>
-                            {t('catalogo.tarjeta.verDetalle')}
-                          </Link>
-                        ) : (
-                          <BotonNoDisponible>{t('catalogo.tarjeta.verDetalle')}</BotonNoDisponible>
-                        ))}
+                      {favorito.disponible && (
+                        <Link
+                          className="boton-secundario"
+                          to={rutaDetalleOferta(favorito.tipo, favorito.id)}
+                          aria-describedby={idTitulo}
+                        >
+                          {t('catalogo.tarjeta.verDetalle')}
+                        </Link>
+                      )}
                       <button
                         ref={(elemento) => {
                           if (elemento) botones.current.set(clave, elemento)

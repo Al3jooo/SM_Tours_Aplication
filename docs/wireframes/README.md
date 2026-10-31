@@ -27,10 +27,10 @@
 | WF-03-registro-prestador.png | Registro de prestador | Registrarse | RF02 | No |
 | WF-04-inicio-busqueda.png | Inicio y búsqueda | Buscar oferta turística | RF16, RF40, RF04 | **Sí** (sin banner de avisos) |
 | WF-05-exploracion.png | Exploración: mapa y resultados | Buscar oferta, filtrar, ordenar, navegar el mapa | RF16, RF10, RF23, RF27, RF38, RF39, RF50, RF61 | **Sí** (núcleo del catálogo, incluye «Más filtros») |
-| WF-06-detalle.png | Detalle de lugar o servicio | Consultar detalle de oferta | RF37, RF39, RF51, RF54, RF57, RF58 | Sí (versión mínima: solo servicios y los datos que existen) |
+| WF-06-detalle.png | Detalle de lugar o servicio | Consultar detalle de oferta | RF37, RF39, RF51, RF54, RF57, RF58 | Sí (versión mínima: solo servicios y los datos que existen). La ficha de un atractivo tiene su propia variante (`WF-06-detalle-atractivo.puml`, iteración E) |
 | WF-07-asistente-ia.png | Asistente virtual IA | Interactuar con el asistente | RF04, RF35, RF36, RF59 | No |
 | WF-08-registrar-servicio.png (+ `WF-08-registrar-servicio.puml`, ampliación) | Registrar servicio comercial | Registrar servicio comercial | RF09, RF10, RF27, RF37, RF48, RF58 | Backend en la iteración C (sesión A1); **pantalla hecha en B1** (`/prestador/servicios/nuevo`), sin fotos (iteración E), «cobra por» ni impuestos. La ampliación en Salt está **propuesta por arquitectura, pendiente de validación del equipo** |
-| WF-09-registrar-atractivo.png | Registrar atractivo turístico | Registrar atractivo | RF06, RF07, RF24, RF27, RF33 | No |
+| WF-09-registrar-atractivo.png (+ `WF-09-registrar-atractivo.puml`, ampliación) | Registrar atractivo turístico | Registrar atractivo; Actualizar atractivo | RF06, RF07, RF24, RF27, RF33, RF58 | **Sí** (iteración E, sesión B1; `/gestor/atractivos/nuevo` y, en edición, `/gestor/atractivos/:id`), con la casilla de veracidad deshabilitada y sin editar las fotos de un atractivo registrado. La ampliación en Salt está **propuesta por arquitectura, pendiente de validación del equipo** |
 | WF-10-disponibilidad-reserva.png | Disponibilidad y reserva **(nuevo)** | Reservar servicio | RF11, RF20, RF37, RF44 | **Sí** (sin RNT, impuestos, pagos ni «Notificarme si se libera») |
 | — (WF-11, sin imagen) | Mis reservas **(pendiente de diseño)** | Reservar servicio | RF12, RF18, RF44, RF52 | Sí (diseño provisional) |
 | WF-12-administrar-cuentas.puml (+ `.png` y `.svg`) | Administrar cuentas **(nuevo)** | Administrar cuentas; Cambiar rol de cuenta | RF28, RF22, RF62, RF45 | **Sí** (sin la reactivación del prestador; RF45 implementado en B2). **Propuesto por arquitectura, pendiente de validación del equipo** |
@@ -38,13 +38,15 @@
 | WF-14-avisos.puml | Avisos generales: banner y gestión **(nuevo)** | Crear y publicar aviso general | RF40 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-15-terminos.puml | Términos y condiciones **(nuevo)** | Consultar términos y condiciones | RF46 | **Sí** (sesión B). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-16-perfil-turista.puml | Perfil del turista **(nuevo)** | Actualizar datos personales, Actualizar intereses turísticos | RF53 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
-| WF-17-mis-favoritos.puml | Mis favoritos **(nuevo)** | Guardar favoritos | RF54 | **Sí** (sesión B de B1; sin el detalle de atractivo). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-17-mis-favoritos.puml | Mis favoritos **(nuevo)** | Guardar favoritos | RF54 | **Sí** (sesión B de B1; el «Ver detalle» de un atractivo, desde la iteración E). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-18-mis-servicios.puml | Mis servicios **(nuevo)** | Registrar servicio comercial (flujo «Consultar mis servicios», DEC-129) | RF09 | Backend en la iteración C (A1); **pantalla hecha en B1** (`/prestador/servicios` y `/prestador/servicios/:id`). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-19-aprobar-servicios.puml | Aprobar servicios **(nuevo)** | Aprobar o rechazar servicio; Consultar listado pendiente; Justificar rechazo de servicio | RF21 | Backend en la iteración C (A1); pantalla hecha en B2 (DEC-174 a DEC-181). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-20-actualizar-precio.puml | Actualizar precio **(nuevo)** | Actualizar tarifas | RF32 | **Sí** (iteración D, sesión B; `/prestador/servicios/:id/precio`). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-21-datos-comerciales-servicio.puml | Editar datos comerciales del servicio **(nuevo)** | Actualizar datos comerciales (flujo B) | RF43 | **Sí** (iteración D, sesión B; `/prestador/servicios/:id/datos-comerciales`). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-22-perfil-comercial.puml | Mi perfil comercial **(nuevo)** | Actualizar datos comerciales (flujo A) | RF43 | **Sí** (iteración D, sesión B; `/prestador/perfil`). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-23-historial-reservas-prestador.puml | Historial de reservas del Prestador **(nuevo)** | Consultar historial | RF12 | **Sí** (iteración D, sesión B; `/prestador/reservas`). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-24-atractivos-gestor.puml | Atractivos, panel del gestor **(nuevo)** | Actualizar atractivo (flujo «Consultar atractivos»); Cambiar estado operativo | RF07, RF33 | **Sí** (iteración E, sesión B1; `/gestor/atractivos`), con los filtros deshabilitados. **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-06-detalle-atractivo.puml | Ficha pública de un atractivo **(nuevo)** | Consultar detalle de atractivo | RF06, RF07, RF24, RF27, RF33, RF58 | **Sí** (iteración E, sesión B1; `/atractivos/:id`). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-05-06-11-cambios-turista.puml | Cambios en WF-05, WF-06 y WF-11 **(nuevo)** | Consultar historial de búsquedas, Guardar favoritos, Compartir reserva completada | RF60, RF54, RF49 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
 
 ## WF-01 — Inicio de sesión
@@ -177,6 +179,30 @@ Migas: Panel del Prestador › Mis Servicios › Registrar Nuevo Servicio. Aviso
 
 Migas: Inicio y búsqueda › Panel del gestor › Registrar atractivo. Secciones: **Datos del atractivo** (nombre, categoría, latitud, longitud); **Condiciones de accesibilidad**; **Aforo y estado operativo** (límite de capacidad de carga — RF07; estado Abierto / Cerrado temporalmente / En mantenimiento — RF33); **Fotos** (JPEG/PNG); **Normas y regulaciones ambientales** (máximo 1000 caracteres — RF24); casilla de veracidad; **Registrar atractivo**; consejos «Calcula el aforo», «Normas claras», «Actualiza el estado».
 
+**Ampliación (`WF-09-registrar-atractivo.puml`; iteración E, sesión B1; propuesta por arquitectura, pendiente de validación del equipo).** CU «Registrar atractivo» y «Actualizar atractivo». Pantalla privada del Gestor.
+- **Agrega:** la **descripción** (1 a 1000, RF06), el campo de la **capacidad de carga** (la imagen solo dibuja su etiqueta; de 1 a 100 000), el **horario de atención** (hasta 500, RF58), el **pin del mapa** sincronizado con la latitud y la longitud (DEC-223) y contadores en puntos de código (DEC-227).
+- **Categoría:** `Naturaleza` o `Cultura` (DEC-214, DEC-234); la imagen dibuja «Sendero y naturaleza».
+- **Accesibilidad:** las tres condiciones de RF27; la casilla «Señalización visual/auditiva» de la imagen se divide en dos (DEC-221). Resuelve la diferencia 3 para WF-09.
+- **Fotos:** de 1 a 5, JPEG o PNG reconocidas por su firma, de 5 MB como máximo, con vista previa y «Quitar»; el error de cada una, junto a su miniatura (DEC-226).
+- **Casilla de veracidad:** deshabilitada, sin marca de obligatoria (DEC-219, DEC-228).
+- **Sin dirección:** RF06 admite «dirección o coordenadas según corresponda»; el registro usa las coordenadas.
+- **Modo edición:** los mismos campos, salvo el estado (botón «Cambiar estado», con el diálogo de WF-24) y las fotos, que se ven en solo lectura con «Agregar o quitar fotos» deshabilitado (el contrato no lo permite, DEC-226).
+
+## WF-24 — Atractivos, panel del gestor (nuevo)
+
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-24-atractivos-gestor.puml`), solo de estructura. Implementado en la iteración E, sesión B1 (DEC-222, DEC-225, DEC-233). Flujo «Consultar atractivos» del CU «Actualizar atractivo» y CU «Cambiar estado operativo» (RF07, RF33). Pantalla privada del Gestor, desde el menú del avatar («Atractivos») o desde «Panel del gestor» del pie.
+- **Todos** los atractivos (no solo los que registró el Gestor, DEC-206), del más reciente al más antiguo, en páginas de 10 con la página en la URL.
+- **Tabla** como WF-18 (por debajo de 40 rem cada fila es una tarjeta): foto, nombre, categoría, estado operativo (insignia), capacidad, fecha de registro y acciones «Editar», «Cambiar estado» y «Ver ficha pública».
+- **Filtros** de estado y de texto, deshabilitados: el contrato no los admite (DEC-222, pendiente).
+- **Diálogo «Cambiar estado»:** el estado actual no se puede elegir; con 409 `ATRACTIVO_MODIFICADO` se relee el atractivo y se avisa (DEC-225).
+
+## WF-06 para atractivos — Ficha pública de un atractivo (nuevo)
+
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-06-detalle-atractivo.puml`), solo de estructura. Implementado en la iteración E, sesión B1 (DEC-224). CU «Consultar detalle de atractivo». Pantalla pública (`/atractivos/:id`), sin token.
+- Las regiones de WF-06 que tiene un atractivo: volver a la búsqueda, nombre, categoría, **insignia del estado operativo** (RF33), accesibilidad (RF27), corazón de favoritos, galería, descripción, **capacidad de carga** (RF07), **normas ambientales** (RF24) y **horario de atención** (RF58), los dos con sus saltos de línea, y el mapa de solo lectura.
+- **Sin precio, contacto, RNT ni reserva:** un atractivo no se reserva.
+- **Deshabilitados:** calificación (RF17), «Compartir», alerta de afluencia (RF39) y destinos alternativos (RF08); sin normas o sin horario, su región.
+
 ## WF-10 — Disponibilidad y reserva (nuevo)
 
 Título «<Servicio> – Disponibilidad y reserva» con datos de verificación y RNT. **Buscar disponibilidad**: check-in, check-out, número de huéspedes y **Verificar disponibilidad en tiempo real** (RF11). Lista de unidades disponibles: imagen, tipo de alojamiento, disponibilidad, capacidad, etiquetas de servicios, estado de cupos, precio por noche y **Seleccionar habitación**; sin cupos, **Notificarme si se libera**. Panel **Resumen de reserva** (fechas, noches, huéspedes, precio × noches, impuestos, total), aviso de cancelación gratuita con 24 horas (RF44), **Confirmar reserva** (RF20) y «Información importante».
@@ -266,8 +292,7 @@ Cambios respecto del contenido propuesto, por lo que el modelo guarda (DEC-45 y 
 **WF-17 — Mis favoritos** (CU «Guardar favoritos», `docs/casos-de-uso/CU-guardar-favoritos.md`; RF54):
 - Contador «n de 100 favoritos» (DEC-86), del más reciente al más antiguo.
 - Cada favorito: imagen, nombre, categoría, insignia **No disponible** (servicio despublicado o de un prestador inactivo), **Ver detalle** y **Quitar**.
-  - «Ver detalle» solo en los servicios disponibles (WF-06).
-  - En los atractivos aparece deshabilitado: el detalle de atractivo llega en la iteración E (DEC-87).
+  - «Ver detalle» en los favoritos disponibles: la ficha del servicio (WF-06) o, desde la iteración E, la del atractivo (DEC-224).
 - Estado vacío con **Explorar la oferta**.
 
 **Cambios en pantallas existentes** (`WF-05-06-11-cambios-turista.puml`):
@@ -281,7 +306,7 @@ Cambios respecto del contenido propuesto, por lo que el modelo guarda (DEC-45 y 
 
 1. **WF-10 frente al modelo de datos (crítico):** la pantalla muestra varias unidades por servicio (p. ej. «Cabaña Campestre Familiar», «Cabaña Mirador del Mar»), cada una con su precio, capacidad, servicios y cupos. El modelo tenía un solo `tipoHabitacion` por servicio en `catalog_db` e `Inventario_Cupo` por servicio y fecha en `reservas_db`. **Resuelta a favor del wireframe** (D1 de «Reservar servicio», `docs/trazabilidad.md`): un alojamiento tiene una o más unidades, cada una con tipo, habitaciones, capacidad y precio por noche (`catalog_db`, migración M001); `inventario_cupo` de ms-booking lleva cupos por unidad y noche. Queda abierto: las etiquetas de servicios son del alojamiento, no de cada unidad. **Pendiente en WF-08:** el formulario pide un solo número de habitaciones y una capacidad; debe permitir agregar varias unidades.
 2. **Pagos en WF-10:** «Pago seguro con tarjeta, PSE o Nequi» no tiene requisito en el SRS ni componente en la arquitectura. «Notificarme si se libera» tampoco tiene requisito.
-3. **Vocabulario de accesibilidad:** RF27 y RF50 definen tres condiciones (movilidad reducida, visual, auditiva). WF-08 usa otras cuatro (rampas, silla de ruedas, braille, baños adaptados) y WF-09 otras dos. Hay que unificarlas en un solo vocabulario.
+3. **Vocabulario de accesibilidad:** RF27 y RF50 definen tres condiciones (movilidad reducida, visual, auditiva). WF-08 usa otras cuatro (rampas, silla de ruedas, braille, baños adaptados) y WF-09 otras dos. Hay que unificarlas en un solo vocabulario. **Resuelta:** WF-08 usa las tres de RF27 (DEC-131) y WF-09 también, con la casilla «Señalización visual/auditiva» dividida en dos (DEC-221, iteración E).
 4. **Vocabulario de servicios incluidos:** WF-08 ofrece WiFi, Desayuno, Piscina y Parqueadero; WF-10 muestra además Aire acondicionado y Baño privado. Debe existir una sola lista cerrada.
 5. **WF-08 frente a RF10 y al esquema `servicios`:** falta el campo obligatorio «tipo de habitación» (con las unidades de la diferencia 1, cada unidad lleva el suyo); «cobra por» e «incluye impuestos» no existen en el esquema; el RNT pertenece al prestador (`auth_db`), no a cada servicio.
 6. **«Aforo» frente a «afluencia»:** los wireframes usan «aforo» para el indicador de RF39; el prototipo usa «afluencia», como el SRS.

@@ -18,6 +18,7 @@ export function CampoServicio({
   multilinea = false,
   ayuda,
   sufijo,
+  maximo: maximoPropio,
   ...entrada
 }: {
   ruta: string
@@ -30,10 +31,15 @@ export function CampoServicio({
   ayuda?: string
   /** Texto fijo después del control (p. ej. «COP»). */
   sufijo?: ReactNode
+  /**
+   * Máximo del contador cuando no es el de WF-08 (p. ej. la descripción de un atractivo, 1000 y no 2000; DEC-227).
+   * Sin él, el de `LONGITUD_MAXIMA` por la ruta.
+   */
+  maximo?: number
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'value' | 'onChange'>) {
   const { t } = useTranslation()
   const id = idDeCampo(ruta)
-  const maximo = LONGITUD_MAXIMA[rutaSinIndices(ruta)]
+  const maximo = maximoPropio ?? LONGITUD_MAXIMA[rutaSinIndices(ruta)]
   const longitud = longitudTexto(valor)
   const descripcion =
     [ayuda && `${id}-ayuda`, error && `${id}-error`, maximo && `${id}-contador`].filter(Boolean).join(' ') || undefined

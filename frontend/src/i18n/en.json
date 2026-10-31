@@ -40,7 +40,9 @@
     "misServicios": "My services",
     "registrarServicio": "Register a service",
     "historialReservas": "Booking history",
-    "perfilComercial": "My business profile"
+    "perfilComercial": "My business profile",
+    "atractivos": "Attractions",
+    "registrarAtractivo": "Register attraction"
   },
   "login": {
     "titulo": "Sign in to Samaria360",
@@ -1060,7 +1062,8 @@
       "VALOR_MINIMO": "The value is lower than allowed.",
       "VALOR_MAXIMO": "The value is higher than allowed.",
       "CANTIDAD_MINIMA": "Add at least one.",
-      "CANTIDAD_MAXIMA": "You exceeded the allowed number."
+      "CANTIDAD_MAXIMA": "You exceeded the allowed number.",
+      "TAMANO_MAXIMO": "The file is larger than allowed."
     },
     "campos": {
       "nombreComercial": "Business name",
@@ -1298,6 +1301,195 @@
         "otro": "An unexpected error occurred while loading the history.",
         "sinPermiso": "Your account does not have permission to see this page."
       }
+    }
+  },
+  "detalleAtractivo": {
+    "cargando": "Loading the attraction…",
+    "errores": {
+      "noEncontrado": "This attraction is not available.",
+      "noDisponible": "The catalog is not responding right now.",
+      "red": "No connection. Check your network and try again.",
+      "otro": "The attraction could not be loaded."
+    },
+    "capacidad": "Carrying capacity",
+    "personas_one": "{{n}} person",
+    "personas_other": "{{n}} people",
+    "normas": "Environmental rules",
+    "ubicacion": "Location",
+    "mapa": "Map with the location of {{nombre}}"
+  },
+  "gestor": {
+    "migas": "Manager dashboard breadcrumb",
+    "ubicacion": {
+      "mapa": "Map to locate the attraction",
+      "pin": "Attraction location"
+    },
+    "campos": {
+      "nombre": "Attraction name",
+      "categoria": "Category",
+      "descripcion": "Description",
+      "capacidad": "Maximum carrying capacity",
+      "estado": "Operating status",
+      "horario": "Opening hours",
+      "normas": "Environmental rules and regulations"
+    },
+    "formulario": {
+      "secciones": {
+        "datos": "Attraction details",
+        "accesibilidad": "Accessibility",
+        "aforo": "Capacity, status and hours",
+        "normas": "Environmental rules and regulations"
+      },
+      "datosAyuda": "Basic information shown on the place's public page.",
+      "elegirCategoria": "Choose a category",
+      "aforoAyuda": "The carrying capacity is the maximum number of visitors the place admits at once.",
+      "personas": "people",
+      "estadoAyuda": "Change it the same day if it closes for rain or maintenance.",
+      "horarioAyuda": "Opening days and hours, as visitors will see them. You can use several lines.",
+      "normasAyuda": "The rules visitors must follow at the attraction. They are shown on its public page."
+    },
+    "errores": {
+      "capacidadMaxima": "Use at most {{maximo}} people."
+    },
+    "imagenes": {
+      "titulo": "Attraction photos",
+      "ayuda": "1 to 5 JPEG or PNG images, 5 MB each at most.",
+      "agregar": "Add photos",
+      "contador": "{{n}} of {{maximo}} photos.",
+      "excedidas_one": "{{count}} photo was not added: the maximum is 5.",
+      "excedidas_other": "{{count}} photos were not added: the maximum is 5.",
+      "vistaPrevia": "Preview of photo {{numero}} ({{nombre}})",
+      "quitar": "Remove photo {{numero}}",
+      "foto": "Photo {{numero}} of {{nombre}}",
+      "sinImagenes": "This attraction has no photos.",
+      "editar": "Add or remove photos",
+      "errores": {
+        "REQUERIDO": "Add at least one photo.",
+        "FORMATO": "It is not a JPEG or PNG image.",
+        "TAMANO_MAXIMO": "The photo is larger than 5 MB.",
+        "CANTIDAD_MAXIMA": "Add at most 5 photos."
+      }
+    },
+    "registro": {
+      "titulo": "Register tourist attraction",
+      "apoyo": "Fill in the attraction's page, set its carrying capacity and publish the environmental rules visitors will see before traveling.",
+      "veracidad": "I confirm the information is true and up to date.",
+      "enviar": "Register attraction",
+      "enviando": "Registering…",
+      "cancelar": "Cancel",
+      "errores": {
+        "DATOS_INVALIDOS": "Check the data: some errors do not belong to a field on this screen.",
+        "CARGA_DEMASIADO_GRANDE": "The photos exceed the size the server accepts. Remove some or use lighter files.",
+        "ACCESO_DENEGADO": "Your account cannot register attractions.",
+        "SERVICIO_NO_DISPONIBLE": "The catalog is not responding right now. Your data is still here: try again.",
+        "ERROR_RED": "No connection. Your data is still here: try again.",
+        "GENERICO": "The attraction could not be registered. Your data is still here: try again."
+      }
+    },
+    "consejos": {
+      "titulo": "Tips",
+      "aforo": "Estimate the capacity.",
+      "aforoTexto": "Base it on the width of the trail and the average walking time.",
+      "normas": "Clear rules.",
+      "normasTexto": "Cite the current environmental resolution and the seasonal restrictions.",
+      "estado": "Keep the status updated.",
+      "estadoTexto": "Keep the operating status current so visitors are not surprised."
+    },
+    "panel": {
+      "titulo": "Attractions",
+      "registrar": "Register attraction",
+      "apoyo": "All public attractions on the platform, newest first.",
+      "filtros": "Filters",
+      "filtroEstado": "Status",
+      "todos": "All",
+      "filtroTexto": "Search by name",
+      "filtrosPendientes": "Filters will be available later.",
+      "contador_one": "{{count}} attraction",
+      "contador_other": "{{count}} attractions",
+      "vacio": "There are no attractions yet.",
+      "cargando": "Loading the attractions…",
+      "errores": {
+        "sinPermiso": "Your account cannot see the attractions.",
+        "noEncontrado": "The attraction was not found.",
+        "noDisponible": "The catalog is not responding right now.",
+        "red": "No connection. Check your network and try again.",
+        "otro": "The attractions could not be loaded."
+      },
+      "tabla": "Registered attractions",
+      "columnas": {
+        "portada": "Photo",
+        "nombre": "Name",
+        "categoria": "Category",
+        "estado": "Status",
+        "capacidad": "Capacity",
+        "registrado": "Registered",
+        "acciones": "Actions"
+      },
+      "editar": "Edit",
+      "editarDe": "Edit {{nombre}}",
+      "cambiarEstado": "Change status",
+      "cambiarEstadoDe": "Change the status of {{nombre}}",
+      "verFicha": "View public page",
+      "verFichaDe": "View the public page of {{nombre}}",
+      "anuncios": {
+        "registrado": "Attraction registered: it is already visible in the search.",
+        "guardado": "Changes saved.",
+        "noEncontrado": "The attraction no longer exists.",
+        "estadoCambiado": "{{nombre}} is now “{{estado}}”."
+      }
+    },
+    "edicion": {
+      "titulo": "Edit attraction",
+      "tituloDe": "Edit “{{nombre}}”",
+      "cargando": "Loading the attraction…",
+      "noEncontrado": "The attraction was not found.",
+      "volver": "Back to Attractions",
+      "valorActual": "Current value: {{valor}}",
+      "cambiosDeOtro": "What another manager changed",
+      "rutas": {
+        "nombre": "Name",
+        "categoria": "Category",
+        "descripcion": "Description",
+        "latitud": "Latitude",
+        "longitud": "Longitude",
+        "limiteCapacidadCarga": "Carrying capacity",
+        "normasAmbientales": "Environmental rules",
+        "horarioAtencion": "Opening hours",
+        "condicionesAccesibilidad": "Accessibility"
+      },
+      "errores": {
+        "ATRACTIVO_MODIFICADO": "Another manager changed this attraction. Check the current values and save again.",
+        "ATRACTIVO_MODIFICADO_SIN_CAMBIOS": "The attraction changed (for example, its status). Your changes are still here: save again.",
+        "RELECTURA": "The attraction could not be read again.",
+        "DATOS_INVALIDOS": "Check the data: some errors do not belong to a field on this screen.",
+        "ACCESO_DENEGADO": "Your account cannot edit attractions.",
+        "SERVICIO_NO_DISPONIBLE": "The catalog is not responding right now. Your changes are still here: try again.",
+        "ERROR_RED": "No connection. Your changes are still here: try again.",
+        "GENERICO": "The changes could not be saved. Try again."
+      },
+      "recargar": "Reload",
+      "guardando": "Saving…",
+      "guardar": "Save changes",
+      "descartar": "Discard changes"
+    },
+    "estado": {
+      "titulo": "Change the status of {{nombre}}",
+      "actual": "Current status: {{estado}}.",
+      "nuevo": "New status",
+      "esElActual": "(current)",
+      "ayuda": "The status is shown on the public page and on the map right away.",
+      "avisos": {
+        "MODIFICADO": "Another manager changed the attraction; it is now “{{estado}}”. Confirm again if you want the chosen status.",
+        "MISMO_ESTADO": "Another manager already set it to “{{estado}}”. There is nothing to change.",
+        "DATOS_INVALIDOS": "Choose a status other than the current one.",
+        "SERVICIO_NO_DISPONIBLE": "The catalog is not responding right now. Try again.",
+        "ERROR_RED": "No connection. Try again.",
+        "GENERICO": "The status could not be changed. Try again."
+      },
+      "cerrar": "Close",
+      "cancelar": "Cancel",
+      "enviando": "Saving…",
+      "confirmar": "Change status"
     }
   }
 }

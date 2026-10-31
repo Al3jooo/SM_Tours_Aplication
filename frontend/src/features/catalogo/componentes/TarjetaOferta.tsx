@@ -2,21 +2,21 @@ import { useId, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 import { ICONOS_ACCESIBILIDAD } from '../../../shared/components/Iconos'
-import { BotonProximamente } from '../../../shared/components/Proximamente'
 import { BotonFavorito } from '../../favoritos/BotonFavorito'
 import type { EstadoResumen } from '../../reservas/reservasApi'
 import type { ResultadoOferta } from '../catalogoApi'
-import { rutaDetalle } from '../detalle/navegacionDetalle'
+import { rutaDetalleOferta } from '../detalle/navegacionDetalle'
 import { formatearDistancia, formatearPrecio } from '../formato'
 import { etiquetaCategoria } from './etiquetas'
 import { ImagenOferta } from './ImagenOferta'
+import { InsigniaEstadoOperativo } from './InsigniaEstadoOperativo'
 
 /**
  * Tarjeta de un servicio o atractivo: lista de WF-05 ('lista') y destacados de WF-04 ('destacado').
  * Calificación (RF17) y afluencia (RF39) dependen de datos que aún no existen: se muestran como «—». La disponibilidad
  * de los servicios (RF11) sale del resumen de ms-booking para los próximos 7 días; mientras carga, si falla o en las
- * categorías que no se reservan, también «—». «Ver detalle» lleva a WF-06 en los servicios; en los atractivos sigue
- * pendiente. En la lista, el corazón «Guardar en favoritos» (RF54, DEC-93) sirve para servicios y atractivos (DEC-87);
+ * categorías que no se reservan, también «—». «Ver detalle» lleva a WF-06: la ficha del servicio o, desde la
+ * iteración E, la del atractivo (DEC-224). En la lista, el corazón «Guardar en favoritos» (RF54, DEC-93) sirve para servicios y atractivos (DEC-87);
  * los destacados de WF-04 no lo llevan.
  *
  * En la lista, `onResaltar` avisa cuando el puntero o el foco entran o salen (para resaltar su marcador en el mapa);
@@ -71,10 +71,7 @@ export function TarjetaOferta({
 
         {resultado.estadoOperativo && (
           // Decisión 5: los atractivos cerrados o en mantenimiento aparecen con su estado visible (RF33).
-          <p className={`insignia-estado insignia-estado--${resultado.estadoOperativo}`}>
-            <span className="solo-lector">{t('catalogo.tarjeta.estado')}: </span>
-            {t(`catalogo.estados.${resultado.estadoOperativo}`)}
-          </p>
+          <InsigniaEstadoOperativo estado={resultado.estadoOperativo} />
         )}
 
         {variante === 'lista' && resultado.descripcionCorta && (
@@ -126,18 +123,14 @@ export function TarjetaOferta({
 
         {/* WF-04 y WF-05 (v2): solo «Ver detalle»; la reserva se hace desde el detalle (WF-06 → WF-10). */}
         <div className="tarjeta-oferta__acciones">
-          {resultado.tipo === 'Servicio' ? (
-            <Link
-              className="enlace"
-              to={rutaDetalle(resultado.id)}
-              state={{ volverA: ubicacion.pathname + ubicacion.search }}
-              aria-describedby={idTitulo}
-            >
-              {t('catalogo.tarjeta.verDetalle')}
-            </Link>
-          ) : (
-            <BotonProximamente className="enlace">{t('catalogo.tarjeta.verDetalle')}</BotonProximamente>
-          )}
+          <Link
+            className="enlace"
+            to={rutaDetalleOferta(resultado.tipo, resultado.id)}
+            state={{ volverA: ubicacion.pathname + ubicacion.search }}
+            aria-describedby={idTitulo}
+          >
+            {t('catalogo.tarjeta.verDetalle')}
+          </Link>
           {variante === 'lista' && (
             <BotonFavorito
               className="tarjeta-oferta__favorito"

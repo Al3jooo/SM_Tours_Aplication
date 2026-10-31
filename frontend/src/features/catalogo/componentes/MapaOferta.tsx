@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { TRAZO_CORAZON } from '../../../shared/components/Iconos'
 import { ATRIBUCION_OSM, SVG_PIN, URL_TESELAS, ZOOM_INICIAL, ZOOM_MAXIMO } from '../../../shared/mapa/mapaBase'
 import type { ResultadoOferta, Ubicacion } from '../catalogoApi'
-import { rutaDetalle } from '../detalle/navegacionDetalle'
+import { rutaDetalleOferta } from '../detalle/navegacionDetalle'
 import { CENTRO_SANTA_MARTA } from '../geo'
 import { imagenDeCategoria } from './etiquetas'
 
@@ -109,7 +109,8 @@ function botonFavoritoPopup(
 }
 
 /**
- * Ventana emergente de un resultado (RF23): miniatura, nombre y, en los servicios, «Ver detalle»; con la sesión de un
+ * Ventana emergente de un resultado (RF23): miniatura, nombre y «Ver detalle» (la ficha del servicio o del atractivo,
+ * DEC-224); con la sesión de un
  * turista o sin sesión, también el corazón (DEC-94). Se arma con nodos y textContent, nunca con HTML que lleve datos de
  * la API. El enlace es un <a href> real (abre en otra pestaña con las teclas de siempre); un clic normal navega dentro
  * de la app con `onVerDetalle`.
@@ -117,7 +118,7 @@ function botonFavoritoPopup(
 function contenidoPopup(
   resultado: ResultadoOferta,
   t: TFunction,
-  onVerDetalle: (id: string) => void,
+  onVerDetalle: (ruta: string) => void,
   favorito: () => FavoritoPopup | undefined,
 ): HTMLElement {
   const contenedor = document.createElement('div')
@@ -140,18 +141,16 @@ function contenidoPopup(
   nombre.textContent = resultado.nombre
   contenedor.append(miniatura, nombre)
 
-  if (resultado.tipo === 'Servicio') {
-    const enlace = document.createElement('a')
-    enlace.className = 'popup-oferta__enlace'
-    enlace.href = rutaDetalle(resultado.id)
-    enlace.textContent = t('catalogo.tarjeta.verDetalle')
-    enlace.addEventListener('click', (evento) => {
-      if (evento.button !== 0 || evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.altKey) return
-      evento.preventDefault()
-      onVerDetalle(resultado.id)
-    })
-    contenedor.append(enlace)
-  }
+  const enlace = document.createElement('a')
+  enlace.className = 'popup-oferta__enlace'
+  enlace.href = rutaDetalleOferta(resultado.tipo, resultado.id)
+  enlace.textContent = t('catalogo.tarjeta.verDetalle')
+  enlace.addEventListener('click', (evento) => {
+    if (evento.button !== 0 || evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.altKey) return
+    evento.preventDefault()
+    onVerDetalle(enlace.getAttribute('href') ?? '')
+  })
+  contenedor.append(enlace)
   const corazon = botonFavoritoPopup(resultado, t, favorito)
   if (corazon) contenedor.append(corazon)
   return contenedor
@@ -202,8 +201,8 @@ interface PropiedadesMapa {
   visible: boolean
   resaltada: string | null
   onSeleccionar: (clave: string) => void
-  /** «Ver detalle» del popup de un servicio. */
-  onVerDetalle?: (idServicio: string) => void
+  /** «Ver detalle» del popup: recibe la ruta de la ficha (servicio o atractivo). */
+  onVerDetalle?: (ruta: string) => void
   /** Corazón del popup (DEC-94); sin él (otro rol o sesión validándose), no se muestra. */
   favorito?: FavoritoPopup
 }

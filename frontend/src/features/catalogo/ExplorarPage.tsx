@@ -15,7 +15,6 @@ import { Paginacion } from '../../shared/components/Paginacion'
 import { TarjetaOferta } from './componentes/TarjetaOferta'
 import { UltimasBusquedas, type EstadoRepetir } from './componentes/UltimasBusquedas'
 import { escribirCriterios, leerCriterios, sinMasFiltrosDescartados } from './criteriosUrl'
-import { rutaDetalle } from './detalle/navegacionDetalle'
 import { cuerpoHistorial } from './historialApi'
 import { useBusquedaOferta } from './useBusquedaOferta'
 import { useEsEscritorio } from './useEsEscritorio'
@@ -150,8 +149,7 @@ export function ExplorarPage() {
   const disponibilidad = useDisponibilidadResumen(pagina ? pagina.elementos : null)
 
   // «Ver detalle» del popup del mapa (RF23): como el de la tarjeta, recuerda la búsqueda para volver a ella.
-  const verDetalle = (idServicio: string) =>
-    irA(rutaDetalle(idServicio), { state: { volverA: ubicacionRuta.pathname + ubicacionRuta.search } })
+  const verDetalle = (ruta: string) => irA(ruta, { state: { volverA: ubicacionRuta.pathname + ubicacionRuta.search } })
 
   const seleccionarDesdeMapa = (clave: string) => {
     setResaltada(clave)

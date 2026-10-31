@@ -1,0 +1,93 @@
+' Componentes del frontend del Gestor y de la ficha pública de un atractivo, iteración E, sesión B1 (RF06, RF07, RF24,
+' RF27, RF33, RF58; DEC-222 a DEC-234). Vista de componentes (UML) de la SPA: páginas diferidas detrás de RutaProtegida
+' rol="Gestor", la ficha pública sin token, hooks y clientes de API, hasta ms-catalog a través del API Gateway (ADR-005:
+' el gateway reenvía el token y el multipart sin validarlos). features importa de features (DEC-176); shared no importa
+' de features. Las imágenes se piden con <img src> a /api/v1/catalogo/imagenes/{id} (ADR-009), sin pasar por httpClient.
+
+@startuml
+skinparam componentStyle uml2
+left to right direction
+
+package "frontend (SPA, React)" {
+  package "app" {
+    [App\n(rutas diferidas)] as App
+    [RutaProtegida\nrol="Gestor"] as Ruta
+  }
+  package "shared" {
+    [MenuUsuario\n(sección Gestor)] as Menu
+    [PiePagina\n(«Panel del gestor»)] as Pie
+    [httpClient\n(+ formulario, DEC-230)] as Http
+    [Paginacion] as Pag
+  }
+  package "features/gestor" {
+    [AtractivosGestorPage\n(WF-24)] as Lista
+    [RegistrarAtractivoPage\n(WF-09)] as Alta
+    [EditarAtractivoPage\n(WF-09 edición)] as Edi
+    [FormularioAtractivo] as Form
+    [SelectorImagenes\n(firma, 5 MB, 1..5)] as Img
+    [DialogoEstadoAtractivo\n(RF33, 409)] as Dlg
+    [useEdicionAtractivo\n(409, valor actual)] as Hook
+    [borradorAtractivo /\nimagenesAtractivo] as Reglas
+    [atractivosGestorApi] as GApi
+  }
+  package "features/catalogo" {
+    [DetalleAtractivoPage\n(WF-06 atractivo)] as Ficha
+    [atractivoApi\n(publica: true)] as PApi
+    [InsigniaEstadoOperativo\n(DEC-232)] as Ins
+    [TarjetaOferta / MapaOferta\n(«Ver detalle»)] as Tar
+  }
+  package "features/perfil" {
+    [MisFavoritosPage\n(WF-17)] as Fav
+  }
+  package "features/prestador" {
+    [CampoServicio\n(+ maximo)] as Campo
+    [SelectorUbicacion\n(+ tipo)] as Ubi
+  }
+  package "features/servicios" {
+    [MapaSoloLectura\n(+ tipo, etiqueta)] as Mapa
+  }
+  package "features/admin" {
+    [DialogoAdmin] as DA
+  }
+}
+
+node "api-gateway" as GW
+node "ms-catalog" as Cat
+
+App --> Ruta
+Ruta --> Lista
+Ruta --> Alta
+Ruta --> Edi
+App --> Ficha
+Menu ..> Lista : «Atractivos»
+Menu ..> Alta : «Registrar atractivo»
+Pie ..> Lista : «Panel del gestor»
+Tar ..> Ficha : «Ver detalle»
+Fav ..> Ficha : «Ver detalle»
+Alta --> Form
+Alta --> Img
+Edi --> Form
+Edi --> Hook
+Form --> Campo
+Form --> Ubi
+Form --> Reglas
+Img --> Reglas
+Lista --> Dlg
+Edi --> Dlg
+Dlg --> DA
+Lista --> Pag
+Lista --> Ins
+Edi --> Ins
+Ficha --> Ins
+Tar --> Ins
+Ficha --> Mapa
+Alta --> GApi
+Lista --> GApi
+Hook --> GApi
+Dlg --> GApi
+GApi --> Http
+Ficha --> PApi
+PApi --> Http
+Http --> GW : /api/v1/catalogo/gestor/atractivos/**\n/api/v1/catalogo/atractivos/{id}
+GW --> Cat
+@enduml

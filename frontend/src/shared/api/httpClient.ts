@@ -41,6 +41,11 @@ interface OpcionesSolicitud {
   cuerpo?: unknown
   /** JSON ya armado, que se envía tal cual (p. ej. con un número decimal exacto que JSON.stringify no conserva). */
   cuerpoTexto?: string
+  /**
+   * Cuerpo multipart (registro de atractivos, DEC-216, DEC-230): se envía tal cual y sin Content-Type, que lo pone el
+   * navegador con su boundary.
+   */
+  formulario?: FormData
   /** Cabeceras adicionales (p. ej. Idempotency-Key). */
   cabeceras?: Record<string, string>
   /**
@@ -57,10 +62,11 @@ interface OpcionesSolicitud {
 export async function solicitar<T>(ruta: string, opciones: OpcionesSolicitud = {}): Promise<T> {
   const token = opciones.publica ? null : leerToken()
   const cabeceras: Record<string, string> = { ...opciones.cabeceras, Accept: 'application/json' }
-  const cuerpo = opciones.cuerpoTexto ?? (opciones.cuerpo === undefined ? undefined : JSON.stringify(opciones.cuerpo))
-  if (cuerpo !== undefined) {
+  const json = opciones.cuerpoTexto ?? (opciones.cuerpo === undefined ? undefined : JSON.stringify(opciones.cuerpo))
+  if (json !== undefined) {
     cabeceras['Content-Type'] = 'application/json'
   }
+  const cuerpo: BodyInit | undefined = opciones.formulario ?? json
   if (token) {
     cabeceras.Authorization = `Bearer ${token}`
   }

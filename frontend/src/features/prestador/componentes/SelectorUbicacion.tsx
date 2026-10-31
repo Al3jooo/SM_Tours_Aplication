@@ -15,8 +15,8 @@ const ZOOM_PIN = 16
 
 const redondear = (valor: number) => valor.toFixed(DECIMALES)
 
-function iconoPin(): L.DivIcon {
-  return L.divIcon({ className: 'marcador marcador--servicio', html: SVG_PIN, iconSize: [28, 36], iconAnchor: [14, 35] })
+function iconoPin(tipo: 'servicio' | 'atractivo'): L.DivIcon {
+  return L.divIcon({ className: `marcador marcador--${tipo}`, html: SVG_PIN, iconSize: [28, 36], iconAnchor: [14, 35] })
 }
 
 export interface Coordenadas {
@@ -35,10 +35,13 @@ export function SelectorUbicacion({
   valor,
   errores,
   onCambiar,
+  tipo = 'servicio',
 }: {
   valor: Coordenadas
   errores: ErroresServicio
   onCambiar: (coordenadas: Coordenadas) => void
+  /** WF-09 (DEC-223) lo reutiliza para un atractivo: el pin y los nombres accesibles del mapa son los suyos. */
+  tipo?: 'servicio' | 'atractivo'
 }) {
   const { t } = useTranslation()
   const id = useId()
@@ -46,13 +49,14 @@ export function SelectorUbicacion({
   const mapa = useRef<L.Map | null>(null)
   const capa = useRef<L.LayerGroup | null>(null)
   const alCambiar = useRef(onCambiar)
-  const nombrePin = useRef(t('prestador.ubicacion.pin'))
+  const textos = tipo === 'atractivo' ? 'gestor.ubicacion' : 'prestador.ubicacion'
+  const nombrePin = useRef(t(`${textos}.pin`))
   // Un cambio que viene del mapa (clic o arrastre) no vuelve a centrarlo; uno de los campos, sí.
   const desdeMapa = useRef(false)
 
   useEffect(() => {
     alCambiar.current = onCambiar
-    nombrePin.current = t('prestador.ubicacion.pin')
+    nombrePin.current = t(`${textos}.pin`)
   })
 
   const latitud = aNumero(valor.latitud)
@@ -100,7 +104,7 @@ export function SelectorUbicacion({
     capaPin.clearLayers()
     if (!valida || latitud === null || longitud === null) return
     const marcador = L.marker([latitud, longitud], {
-      icon: iconoPin(),
+      icon: iconoPin(tipo),
       title: nombrePin.current,
       keyboard: true,
       draggable: true,
@@ -138,7 +142,7 @@ export function SelectorUbicacion({
           ref={contenedor}
           className="mapa-oferta__lienzo"
           role="region"
-          aria-label={t('prestador.ubicacion.mapa')}
+          aria-label={t(`${textos}.mapa`)}
           tabIndex={0}
         />
       </div>
