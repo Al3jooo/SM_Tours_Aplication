@@ -37,11 +37,16 @@ const OPCIONES_POR_ROL: Record<string, { ruta: string; texto: string }[]> = {
     { ruta: '/admin/preguntas-frecuentes', texto: 'encabezado.administrarPreguntas' },
     { ruta: '/admin/avisos', texto: 'encabezado.administrarAvisos' },
   ],
+  // DEC-233 (cierra N4 para el Gestor): el panel «Atractivos» (WF-24) y el registro de un atractivo (WF-09).
+  Gestor: [
+    { ruta: '/gestor/atractivos', texto: 'encabezado.atractivos' },
+    { ruta: '/gestor/atractivos/nuevo', texto: 'encabezado.registrarAtractivo' },
+  ],
 }
 
 /**
  * Avatar con iniciales y menú: las pantallas del rol (perfil, favoritos y reservas del turista, WF-16, WF-17 y WF-11;
- * la gestión del Administrador, WF-12 a WF-14) y «Cerrar sesión» (RF55). Accesible con teclado: Enter abre y lleva el foco a la primera opción,
+ * la gestión del Administrador, WF-12 a WF-14; los atractivos del Gestor, WF-24 y WF-09) y «Cerrar sesión» (RF55). Accesible con teclado: Enter abre y lleva el foco a la primera opción,
  * Escape cierra y devuelve el foco al avatar.
  */
 export function MenuUsuario({ usuario, onCerrarSesion }: { usuario: UsuarioEncabezado; onCerrarSesion: () => void }) {

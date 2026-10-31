@@ -268,13 +268,13 @@ describe('Exploración WF-05: mapa', () => {
     expect(miniatura).toHaveAttribute('src', '/imagenes/catalogo/categorias/alojamiento.svg')
   })
 
-  it('un atractivo no tiene «Ver detalle» en la ventana emergente', async () => {
+  it('un atractivo tiene «Ver detalle» hacia su ficha en la ventana emergente (DEC-224)', async () => {
     conResultados()
     await cargarExplorar()
 
     const popup = within(marcador('Cascada El Salto').abrirPopup())
     expect(popup.getByRole('img', { name: 'Foto de Cascada El Salto' })).toHaveAttribute('src', CASCADA_CERRADA.imagen)
-    expect(popup.queryByRole('link')).not.toBeInTheDocument()
+    expect(popup.getByRole('link', { name: 'Ver detalle' })).toHaveAttribute('href', `/atractivos/${CASCADA_CERRADA.id}`)
   })
 
   it('«Ver detalle» de la ventana emergente navega al detalle y recuerda la búsqueda', async () => {

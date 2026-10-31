@@ -93,7 +93,7 @@ describe('Disponibilidad de las tarjetas (RF11): resumen de ms-booking para los 
     expect(consultasResumen(solicitudes)).toHaveLength(1)
   })
 
-  it('«Ver detalle» es un enlace en los servicios y sigue «Próximamente» en los atractivos', async () => {
+  it('«Ver detalle» es un enlace a la ficha de su tipo: servicio o atractivo (DEC-224)', async () => {
     simularFetch({
       [OFERTA]: () => respuestaJson(200, paginaOferta([HOTEL, CASCADA_CERRADA])),
       [RESUMEN]: () => respuestaJson(200, { 's-hotel': 'CON_CUPOS' }),
@@ -103,8 +103,7 @@ describe('Disponibilidad de las tarjetas (RF11): resumen de ms-booking para los 
     const hotel = await screen.findByRole('article', { name: 'Hotel Casa Tayrona' })
     expect(within(hotel).getByRole('link', { name: 'Ver detalle' })).toHaveAttribute('href', '/servicios/s-hotel')
     const cascada = screen.getByRole('article', { name: 'Cascada El Salto' })
-    expect(within(cascada).queryByRole('link', { name: 'Ver detalle' })).not.toBeInTheDocument()
-    expect(within(cascada).getByRole('button', { name: /Ver detalle/ })).toHaveAttribute('aria-disabled', 'true')
+    expect(within(cascada).getByRole('link', { name: 'Ver detalle' })).toHaveAttribute('href', '/atractivos/a-cascada')
   })
 })
 

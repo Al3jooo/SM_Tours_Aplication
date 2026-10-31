@@ -40,8 +40,13 @@ describe('Pantallas de la plataforma (WF-04 a WF-10)', () => {
     ])
     expect(within(columna('Prestadores')).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
       'Registrar servicio (Próximamente)',
-      'Panel del gestor (Próximamente)',
+      'Panel del gestor',
     ])
+    // DEC-233: «Panel del gestor» lleva al panel «Atractivos» (WF-24).
+    expect(within(columna('Prestadores')).getByRole('link', { name: 'Panel del gestor' })).toHaveAttribute(
+      'href',
+      '/gestor/atractivos',
+    )
     // RF46 y RF26 (DEC-76): los tres enlaces ya tienen destino.
     const legal = within(columna('Legal y Soporte'))
     expect(legal.getAllByRole('listitem').map((li) => li.textContent)).toEqual([

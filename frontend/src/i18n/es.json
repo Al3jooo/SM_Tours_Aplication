@@ -40,7 +40,9 @@
     "misServicios": "Mis servicios",
     "registrarServicio": "Registrar servicio",
     "historialReservas": "Historial de reservas",
-    "perfilComercial": "Mi perfil comercial"
+    "perfilComercial": "Mi perfil comercial",
+    "atractivos": "Atractivos",
+    "registrarAtractivo": "Registrar atractivo"
   },
   "login": {
     "titulo": "Iniciar sesión en Samaria360",
@@ -1060,7 +1062,8 @@
       "VALOR_MINIMO": "El valor es menor que el permitido.",
       "VALOR_MAXIMO": "El valor es mayor que el permitido.",
       "CANTIDAD_MINIMA": "Agrega al menos uno.",
-      "CANTIDAD_MAXIMA": "Superaste la cantidad permitida."
+      "CANTIDAD_MAXIMA": "Superaste la cantidad permitida.",
+      "TAMANO_MAXIMO": "El archivo supera el tamaño permitido."
     },
     "campos": {
       "nombreComercial": "Nombre comercial",
@@ -1298,6 +1301,195 @@
         "otro": "Ocurrió un error inesperado al cargar el historial.",
         "sinPermiso": "Tu cuenta no tiene permiso para ver esta página."
       }
+    }
+  },
+  "detalleAtractivo": {
+    "cargando": "Cargando el atractivo…",
+    "errores": {
+      "noEncontrado": "Este atractivo no está disponible.",
+      "noDisponible": "El catálogo no responde en este momento.",
+      "red": "No hay conexión. Revisa tu red e inténtalo de nuevo.",
+      "otro": "No se pudo cargar el atractivo."
+    },
+    "capacidad": "Capacidad de carga",
+    "personas_one": "{{n}} persona",
+    "personas_other": "{{n}} personas",
+    "normas": "Normas ambientales",
+    "ubicacion": "Ubicación",
+    "mapa": "Mapa con la ubicación de {{nombre}}"
+  },
+  "gestor": {
+    "migas": "Ruta de navegación del panel del gestor",
+    "ubicacion": {
+      "mapa": "Mapa para ubicar el atractivo",
+      "pin": "Ubicación del atractivo"
+    },
+    "campos": {
+      "nombre": "Nombre del atractivo",
+      "categoria": "Categoría",
+      "descripcion": "Descripción",
+      "capacidad": "Límite máximo de capacidad de carga",
+      "estado": "Estado operativo",
+      "horario": "Horario de atención",
+      "normas": "Normas y regulaciones ambientales"
+    },
+    "formulario": {
+      "secciones": {
+        "datos": "Datos del atractivo",
+        "accesibilidad": "Condiciones de accesibilidad",
+        "aforo": "Aforo, estado y horario",
+        "normas": "Normas y regulaciones ambientales"
+      },
+      "datosAyuda": "Información básica que aparece en la ficha pública del lugar.",
+      "elegirCategoria": "Elige una categoría",
+      "aforoAyuda": "La capacidad de carga es el número máximo de visitantes que el lugar admite a la vez.",
+      "personas": "personas",
+      "estadoAyuda": "Cámbialo el mismo día si hay cierres por lluvia o mantenimiento.",
+      "horarioAyuda": "Días y horas de atención, como los verá el visitante. Puedes usar varias líneas.",
+      "normasAyuda": "Las reglas que el visitante debe cumplir dentro del atractivo. Se muestran en su ficha pública."
+    },
+    "errores": {
+      "capacidadMaxima": "Usa como máximo {{maximo}} personas."
+    },
+    "imagenes": {
+      "titulo": "Fotos del atractivo",
+      "ayuda": "De 1 a 5 imágenes JPEG o PNG, de 5 MB como máximo cada una.",
+      "agregar": "Agregar fotos",
+      "contador": "{{n}} de {{maximo}} fotos.",
+      "excedidas_one": "{{count}} foto no se agregó: el máximo es 5.",
+      "excedidas_other": "{{count}} fotos no se agregaron: el máximo es 5.",
+      "vistaPrevia": "Vista previa de la foto {{numero}} ({{nombre}})",
+      "quitar": "Quitar la foto {{numero}}",
+      "foto": "Foto {{numero}} de {{nombre}}",
+      "sinImagenes": "Este atractivo no tiene fotos.",
+      "editar": "Agregar o quitar fotos",
+      "errores": {
+        "REQUERIDO": "Agrega al menos una foto.",
+        "FORMATO": "No es una imagen JPEG ni PNG.",
+        "TAMANO_MAXIMO": "La foto supera los 5 MB.",
+        "CANTIDAD_MAXIMA": "Agrega como máximo 5 fotos."
+      }
+    },
+    "registro": {
+      "titulo": "Registrar atractivo turístico",
+      "apoyo": "Completa la ficha del atractivo, define su capacidad de carga y publica las normas ambientales que verán los visitantes antes de viajar.",
+      "veracidad": "Confirmo que la información es veraz y está actualizada.",
+      "enviar": "Registrar atractivo",
+      "enviando": "Registrando…",
+      "cancelar": "Cancelar",
+      "errores": {
+        "DATOS_INVALIDOS": "Revisa los datos: hay errores que no corresponden a un campo de esta pantalla.",
+        "CARGA_DEMASIADO_GRANDE": "Las fotos superan el tamaño que admite el servidor. Quita alguna o usa archivos más livianos.",
+        "ACCESO_DENEGADO": "Tu cuenta no puede registrar atractivos.",
+        "SERVICIO_NO_DISPONIBLE": "El catálogo no responde en este momento. Tus datos siguen aquí: inténtalo de nuevo.",
+        "ERROR_RED": "No hay conexión. Tus datos siguen aquí: inténtalo de nuevo.",
+        "GENERICO": "No se pudo registrar el atractivo. Tus datos siguen aquí: inténtalo de nuevo."
+      }
+    },
+    "consejos": {
+      "titulo": "Consejos",
+      "aforo": "Calcula el aforo.",
+      "aforoTexto": "Toma como base el ancho del sendero y el tiempo medio de recorrido.",
+      "normas": "Normas claras.",
+      "normasTexto": "Cita la resolución ambiental vigente y las restricciones de temporada.",
+      "estado": "Actualiza el estado.",
+      "estadoTexto": "Mantén el estado operativo al día para que el visitante no se lleve sorpresas."
+    },
+    "panel": {
+      "titulo": "Atractivos",
+      "registrar": "Registrar atractivo",
+      "apoyo": "Todos los atractivos públicos de la plataforma, del más reciente al más antiguo.",
+      "filtros": "Filtros",
+      "filtroEstado": "Estado",
+      "todos": "Todos",
+      "filtroTexto": "Buscar por nombre",
+      "filtrosPendientes": "Los filtros estarán disponibles más adelante.",
+      "contador_one": "{{count}} atractivo",
+      "contador_other": "{{count}} atractivos",
+      "vacio": "Todavía no hay atractivos registrados.",
+      "cargando": "Cargando los atractivos…",
+      "errores": {
+        "sinPermiso": "Tu cuenta no puede ver los atractivos.",
+        "noEncontrado": "No se encontró el atractivo.",
+        "noDisponible": "El catálogo no responde en este momento.",
+        "red": "No hay conexión. Revisa tu red e inténtalo de nuevo.",
+        "otro": "No se pudieron cargar los atractivos."
+      },
+      "tabla": "Atractivos registrados",
+      "columnas": {
+        "portada": "Foto",
+        "nombre": "Nombre",
+        "categoria": "Categoría",
+        "estado": "Estado",
+        "capacidad": "Capacidad",
+        "registrado": "Registrado",
+        "acciones": "Acciones"
+      },
+      "editar": "Editar",
+      "editarDe": "Editar {{nombre}}",
+      "cambiarEstado": "Cambiar estado",
+      "cambiarEstadoDe": "Cambiar el estado de {{nombre}}",
+      "verFicha": "Ver ficha pública",
+      "verFichaDe": "Ver la ficha pública de {{nombre}}",
+      "anuncios": {
+        "registrado": "Atractivo registrado: ya es visible en la búsqueda.",
+        "guardado": "Cambios guardados.",
+        "noEncontrado": "El atractivo ya no existe.",
+        "estadoCambiado": "{{nombre}} ahora está «{{estado}}»."
+      }
+    },
+    "edicion": {
+      "titulo": "Editar atractivo",
+      "tituloDe": "Editar «{{nombre}}»",
+      "cargando": "Cargando el atractivo…",
+      "noEncontrado": "No se encontró el atractivo.",
+      "volver": "Volver a Atractivos",
+      "valorActual": "Valor actual: {{valor}}",
+      "cambiosDeOtro": "Lo que otro gestor cambió",
+      "rutas": {
+        "nombre": "Nombre",
+        "categoria": "Categoría",
+        "descripcion": "Descripción",
+        "latitud": "Latitud",
+        "longitud": "Longitud",
+        "limiteCapacidadCarga": "Capacidad de carga",
+        "normasAmbientales": "Normas ambientales",
+        "horarioAtencion": "Horario de atención",
+        "condicionesAccesibilidad": "Accesibilidad"
+      },
+      "errores": {
+        "ATRACTIVO_MODIFICADO": "Otro gestor cambió este atractivo. Revisa los valores actuales y vuelve a guardar.",
+        "ATRACTIVO_MODIFICADO_SIN_CAMBIOS": "El atractivo cambió (por ejemplo, su estado). Tus cambios siguen aquí: vuelve a guardar.",
+        "RELECTURA": "No se pudo volver a leer el atractivo.",
+        "DATOS_INVALIDOS": "Revisa los datos: hay errores que no corresponden a un campo de esta pantalla.",
+        "ACCESO_DENEGADO": "Tu cuenta no puede editar atractivos.",
+        "SERVICIO_NO_DISPONIBLE": "El catálogo no responde en este momento. Tus cambios siguen aquí: inténtalo de nuevo.",
+        "ERROR_RED": "No hay conexión. Tus cambios siguen aquí: inténtalo de nuevo.",
+        "GENERICO": "No se pudieron guardar los cambios. Inténtalo de nuevo."
+      },
+      "recargar": "Recargar",
+      "guardando": "Guardando…",
+      "guardar": "Guardar cambios",
+      "descartar": "Descartar cambios"
+    },
+    "estado": {
+      "titulo": "Cambiar el estado de {{nombre}}",
+      "actual": "Estado actual: {{estado}}.",
+      "nuevo": "Estado nuevo",
+      "esElActual": "(actual)",
+      "ayuda": "El estado se ve en la ficha pública y en el mapa de inmediato.",
+      "avisos": {
+        "MODIFICADO": "Otro gestor cambió el atractivo; ahora está «{{estado}}». Confirma de nuevo si quieres el estado elegido.",
+        "MISMO_ESTADO": "Otro gestor ya lo dejó «{{estado}}». No hay nada que cambiar.",
+        "DATOS_INVALIDOS": "Elige un estado distinto del actual.",
+        "SERVICIO_NO_DISPONIBLE": "El catálogo no responde en este momento. Inténtalo de nuevo.",
+        "ERROR_RED": "No hay conexión. Inténtalo de nuevo.",
+        "GENERICO": "No se pudo cambiar el estado. Inténtalo de nuevo."
+      },
+      "cerrar": "Cerrar",
+      "cancelar": "Cancelar",
+      "enviando": "Guardando…",
+      "confirmar": "Cambiar estado"
     }
   }
 }

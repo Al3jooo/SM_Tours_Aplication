@@ -7,6 +7,8 @@ export interface SolicitudSimulada {
   cuerpo: unknown
   /** El cuerpo tal como salió (p. ej. para ver un decimal exacto que JSON.parse convierte en número). */
   cuerpoTexto: string | undefined
+  /** El cuerpo multipart (registro de atractivos, DEC-230), tal como salió. */
+  formulario?: FormData
 }
 
 type Manejador = (solicitud: SolicitudSimulada) => Response | Promise<Response>
@@ -92,6 +94,7 @@ export function simularFetch(rutas: Record<string, Manejador>) {
       cabeceras: { ...(init?.headers as Record<string, string> | undefined) },
       cuerpo: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined,
       cuerpoTexto: typeof init?.body === 'string' ? init.body : undefined,
+      formulario: init?.body instanceof FormData ? init.body : undefined,
     }
     solicitudes.push(solicitud)
     // Primero la URL exacta; si no, la ruta sin la consulta (el manejador recibe la URL completa).
@@ -723,4 +726,56 @@ export function reservaPrestador(extra: Record<string, unknown> = {}) {
 /** Página de `GET /api/v1/reservas/prestador` (20 por página, `pagina` desde 0). */
 export function paginaReservasPrestador(elementos: unknown[], pagina = 0, totalElementos = elementos.length) {
   return { elementos, pagina, tamano: 20, totalElementos, totalPaginas: Math.ceil(totalElementos / 20) }
+}
+
+// ------------------------------------------------------------------ ms-catalog, atractivos (iteración E, B1)
+
+export const ID_ATRACTIVO = '6b1000000000000000000001'
+
+/** Forma de gestión (`GET /api/v1/catalogo/gestor/atractivos/{id}`, DEC-207). */
+export function atractivoGestion(cambios: Record<string, unknown> = {}) {
+  return {
+    id: ID_ATRACTIVO,
+    nombre: 'Cascada El Salto',
+    categoria: 'Naturaleza',
+    descripcion: 'Sendero entre bosque húmedo hasta una caída de agua.',
+    coordenadas: { longitud: -74.11, latitud: 11.15 },
+    imagenes: ['/api/v1/catalogo/imagenes/6b2000000000000000000001'],
+    limiteCapacidadCarga: 80,
+    estadoOperativo: 'Abierto',
+    normasAmbientales: 'Prohibido hacer fogatas.',
+    horarioAtencion: 'Martes a domingo\n8:00 a 16:00',
+    condicionesAccesibilidad: ['MovilidadReducida'],
+    gestorId: '00000000-0000-4000-8000-000000000003',
+    fechaRegistro: '2026-10-30T15:00:00Z',
+    fechaActualizacion: null,
+    version: 2,
+    ...cambios,
+  }
+}
+
+/** Fila del panel «Atractivos» (WF-24). */
+export function elementoAtractivo(cambios: Record<string, unknown> = {}) {
+  return {
+    id: ID_ATRACTIVO,
+    nombre: 'Cascada El Salto',
+    categoria: 'Naturaleza',
+    estadoOperativo: 'Abierto',
+    limiteCapacidadCarga: 80,
+    imagen: '/api/v1/catalogo/imagenes/6b2000000000000000000001',
+    fechaRegistro: '2026-10-30T15:00:00Z',
+    version: 2,
+    ...cambios,
+  }
+}
+
+export function paginaAtractivos(elementos: unknown[], pagina = 0, totalElementos = elementos.length) {
+  return { elementos, pagina, tamano: 10, totalElementos, totalPaginas: Math.ceil(totalElementos / 10) }
+}
+
+/** Ficha pública (`GET /api/v1/catalogo/atractivos/{id}`, DEC-217): sin el Gestor ni la versión. */
+export function atractivoPublico(cambios: Record<string, unknown> = {}) {
+  const { gestorId: _gestor, version: _version, fechaRegistro: _registro, fechaActualizacion: _edicion, ...ficha } =
+    atractivoGestion()
+  return { ...ficha, ...cambios }
 }

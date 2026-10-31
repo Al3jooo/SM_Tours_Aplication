@@ -73,8 +73,8 @@ export function ErrorDetalleServicio({ error, onReintentar }: { error: ErrorDeta
   )
 }
 
-/** Valor deshabilitado: «—» a la vista y «No disponible» para lectores de pantalla. */
-function NoDisponible() {
+/** Valor deshabilitado: «—» a la vista y «No disponible» para lectores de pantalla. También en la ficha del atractivo. */
+export function NoDisponible() {
   const { t } = useTranslation()
   return (
     <span className="deshabilitado">
@@ -85,7 +85,7 @@ function NoDisponible() {
 }
 
 /** Región de WF-06 visible pero deshabilitada (role="group", que admite aria-disabled), con «—» como contenido. */
-function RegionDeshabilitada({ id, titulo }: { id: string; titulo: string }) {
+export function RegionDeshabilitada({ id, titulo }: { id: string; titulo: string }) {
   return (
     <section role="group" aria-labelledby={id} aria-disabled="true" className="detalle__region-deshabilitada">
       <h2 id={id}>{titulo}</h2>

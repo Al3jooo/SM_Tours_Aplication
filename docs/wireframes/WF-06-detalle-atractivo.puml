@@ -1,0 +1,42 @@
+' WF-06 para atractivos — Ficha pública de un atractivo (CU «Consultar detalle de atractivo»; RF06, RF07, RF24, RF27,
+' RF33, RF58; DEC-87, DEC-217, DEC-224).
+' Propuesto por arquitectura, pendiente de validación del equipo. Solo estructura: regiones, elementos y flujo. Parte de
+' la imagen WF-06-detalle.png y deja fuera lo que un atractivo no tiene (precio, contacto, RNT y reserva).
+' Pública, sin token; se llega con «Ver detalle» de la tarjeta (WF-05), del mapa y de «Mis favoritos» (WF-17).
+' Lo implementa la iteración E, sesión B1, en /atractivos/:id.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+{ Banner de avisos (común, ver WF-14) }
+==
+← Volver a la búsqueda
+{ <b>Cascada El Salto | (corazón) Guardar en favoritos | Compartir — (deshabilitado) }
+Atractivo · Naturaleza · Calificación — (deshabilitada, RF17)
+{ (insignia) Cerrado temporalmente }
+{ (ícono) Movilidad reducida | (ícono) Discapacidad visual }
+--
+{ (foto grande) | (miniatura) (miniatura) (miniatura) (miniatura) }
+Alerta de afluencia — (deshabilitada, RF39)
+--
+<b>Descripción
+Sendero entre bosque húmedo hasta una caída de agua.
+{ Capacidad de carga | 80 personas }
+--
+<b>Normas ambientales
+Prohibido hacer fogatas.
+(con los saltos de línea del Gestor; sin normas, la región queda deshabilitada)
+--
+<b>Horarios de atención
+Martes a domingo
+8:00 a 16:00
+(sin horario, la región queda deshabilitada)
+--
+<b>Ubicación
+(mapa de solo lectura con el pin del atractivo)
+--
+Destinos alternativos con menor afluencia — (deshabilitado, RF08)
+==
+{ Pie: Explorar | Municipio | Prestadores | Legal y Soporte }
+}
+@endsalt

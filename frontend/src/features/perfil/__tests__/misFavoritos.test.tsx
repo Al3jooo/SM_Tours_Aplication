@@ -31,7 +31,7 @@ const nombres = () => screen.getAllByRole('article').map((articulo) => within(ar
 const LISTA = () => respuestaJson(200, listaElementos([FAVORITO_HOTEL, FAVORITO_CASCADA, FAVORITO_TOUR_NO_DISPONIBLE]))
 
 describe('WF-17 «Mis favoritos» (RF54)', () => {
-  it('lista con el contador, la insignia «No disponible» y «Ver detalle» solo en los servicios disponibles', async () => {
+  it('lista con el contador, la insignia «No disponible» y «Ver detalle» en los favoritos disponibles', async () => {
     const { solicitudes } = comoTurista({ [`GET ${FAVORITOS}`]: LISTA })
     renderApp('/perfil/favoritos')
 
@@ -47,11 +47,10 @@ describe('WF-17 «Mis favoritos» (RF54)', () => {
     expect(within(hotel).getByText('Disponible')).toBeInTheDocument()
     expect(within(hotel).getByRole('link', { name: 'Ver detalle' })).toHaveAttribute('href', '/servicios/s-hotel')
 
-    // Atractivo: «Ver detalle» deshabilitado hasta el detalle de atractivo (iteración E, DEC-87).
+    // Atractivo: «Ver detalle» lleva a su ficha (iteración E, B1; DEC-87, DEC-224).
     const cascada = tarjeta('Cascada El Salto')
     expect(within(cascada).getByText('Atractivo · Naturaleza')).toBeInTheDocument()
-    expect(within(cascada).queryByRole('link')).not.toBeInTheDocument()
-    expect(within(cascada).getByRole('button', { name: /^Ver detalle/ })).toHaveAttribute('aria-disabled', 'true')
+    expect(within(cascada).getByRole('link', { name: 'Ver detalle' })).toHaveAttribute('href', '/atractivos/a-cascada')
 
     const tour = tarjeta('Tour Sierra Nevada')
     expect(within(tour).getByText('No disponible')).toBeInTheDocument()

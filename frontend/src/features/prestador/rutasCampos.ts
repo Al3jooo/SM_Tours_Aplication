@@ -16,6 +16,8 @@ export const MOTIVOS_SERVICIO = [
   'VALOR_MAXIMO',
   'CANTIDAD_MINIMA',
   'CANTIDAD_MAXIMA',
+  // Una imagen de más de 5 MB en el registro de atractivos (DEC-209, DEC-226).
+  'TAMANO_MAXIMO',
 ] as const
 export type MotivoServicio = (typeof MOTIVOS_SERVICIO)[number]
 

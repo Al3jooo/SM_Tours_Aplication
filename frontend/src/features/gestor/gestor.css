@@ -1,0 +1,136 @@
+/*
+ * Pantallas del Gestor (WF-09 y WF-24, iteración E). Reutilizan el diseño del Prestador (prestador.css: formulario,
+ * secciones, tabla que pasa a tarjetas por debajo de 40 rem); aquí solo lo propio, con los tokens de app/estilos.css.
+ */
+
+.gestor__filtros {
+  align-items: end;
+}
+
+.gestor__filtros .campo__ayuda {
+  grid-column: 1 / -1;
+}
+
+.gestor__anuncio {
+  margin: 0 0 var(--espacio-2);
+  font-weight: 600;
+  color: var(--color-mar-900);
+}
+
+.gestor__estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-4);
+}
+
+.gestor__estado .insignia-estado {
+  margin: 0;
+}
+
+.gestor__actuales {
+  margin: 0 0 var(--espacio-4);
+  padding: var(--espacio-3) var(--espacio-4) var(--espacio-3) var(--espacio-6);
+  border-left: 4px solid var(--color-sol-400);
+  border-radius: var(--radio-sm);
+  background: var(--color-superficie);
+}
+
+/* Portada de cada fila: miniatura 3:2 con el respaldo de la categoría si la foto no carga. */
+.gestor__portada {
+  width: 6rem;
+}
+
+.gestor__portada .imagen-oferta {
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border-radius: var(--radio-sm);
+}
+
+.gestor__portada .imagen-oferta__foto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Fotos del atractivo (WF-09): vista previa, nombre, error y «Quitar». */
+.gestor-imagenes {
+  display: grid;
+  gap: var(--espacio-3);
+}
+
+.gestor-imagenes__agregar {
+  justify-self: start;
+  cursor: pointer;
+}
+
+.gestor-imagenes__agregar:focus-within {
+  outline: var(--foco);
+  outline-offset: 2px;
+}
+
+.gestor-imagenes__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gestor-imagenes__item {
+  display: grid;
+  gap: var(--espacio-2);
+  padding: var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+}
+
+.gestor-imagenes__item--error {
+  border-color: var(--color-error);
+}
+
+.gestor-imagenes__item img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--radio-sm);
+}
+
+.gestor-imagenes__nombre {
+  overflow-wrap: anywhere;
+  font-size: var(--texto-sm);
+  color: var(--color-tinta-suave);
+}
+
+.gestor__consejos {
+  margin-top: var(--espacio-6);
+  padding: var(--espacio-4);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+}
+
+.gestor__consejos h2 {
+  margin-top: 0;
+  font-size: var(--texto-lg);
+}
+
+.gestor__consejos ul {
+  display: grid;
+  gap: var(--espacio-2);
+  margin: 0;
+  padding-left: var(--espacio-4);
+}
+
+@media (max-width: 39.99rem) {
+  .gestor__portada {
+    width: auto;
+  }
+
+  .gestor__portada .imagen-oferta {
+    max-width: 12rem;
+  }
+}

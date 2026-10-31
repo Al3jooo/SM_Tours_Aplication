@@ -13,6 +13,16 @@ export function rutaDetalle(idServicio: string): string {
   return `/servicios/${encodeURIComponent(idServicio)}`
 }
 
+/** Ficha pública de un atractivo (DEC-224): ruta propia, porque su contrato es otro recurso (DEC-217). */
+export function rutaDetalleAtractivo(idAtractivo: string): string {
+  return `/atractivos/${encodeURIComponent(idAtractivo)}`
+}
+
+/** «Ver detalle» de un resultado de la búsqueda o de un favorito: la ficha de su tipo. */
+export function rutaDetalleOferta(tipo: 'Servicio' | 'Atractivo', id: string): string {
+  return tipo === 'Servicio' ? rutaDetalle(id) : rutaDetalleAtractivo(id)
+}
+
 export function rutaReserva(idServicio: string): string {
   return `${rutaDetalle(idServicio)}/reservar`
 }

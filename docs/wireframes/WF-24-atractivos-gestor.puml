@@ -1,0 +1,43 @@
+' WF-24 — Atractivos, panel del gestor (flujo «Consultar atractivos» del CU «Actualizar atractivo» y CU «Cambiar estado
+' operativo»; RF07, RF33; DEC-206, DEC-222, DEC-225, DEC-233).
+' Propuesto por arquitectura, pendiente de validación del equipo. Solo estructura: regiones, elementos y flujo.
+' Diagramas: (1) lista; (2) diálogo «Cambiar estado» con el aviso del 409. Solo para el Gestor; se llega desde el menú
+' del avatar («Atractivos») o desde «Panel del gestor» del pie. Lo implementa la iteración E, sesión B1.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼) }
+{ Banner de avisos (común, ver WF-14) }
+==
+Panel del gestor › Atractivos
+{ <b>Atractivos | [Registrar atractivo] }
+Todos los atractivos públicos de la plataforma, del más reciente al más antiguo.
+{ Estado | ^Todos^ (deshabilitado) | Buscar por nombre | "        " (deshabilitado) }
+Los filtros estarán disponibles más adelante (el contrato no los admite, DEC-222).
+Región de estado (aria-live): «Atractivo registrado» · «Cambios guardados» · «X ahora está «Y»» · total
+--
+{#
+<b>Foto | <b>Nombre | <b>Categoría | <b>Estado | <b>Capacidad | <b>Registrado | <b>Acciones
+(miniatura) | Cascada El Salto | Naturaleza | Abierto | 80 personas | 30/10/2026 | Editar · [Cambiar estado] · Ver ficha pública
+(miniatura) | Mirador de Taganga | Naturaleza | En mantenimiento | 100 personas | 29/10/2026 | Editar · [Cambiar estado] · Ver ficha pública
+}
+{ [<] Página 1 de 2 [>] }
+Por debajo de 40 rem cada fila se ve como una tarjeta
+==
+{ Pie: Explorar | Municipio | Prestadores (Panel del gestor) | Legal y Soporte }
+}
+@endsalt
+
+@startsalt
+{+
+<b>Cambiar el estado de Cascada El Salto
+Estado actual: Abierto.
+{ Estado nuevo }
+{ ( ) Abierto (actual, deshabilitado) }
+{ (X) Cerrado temporalmente }
+{ ( ) En mantenimiento }
+El estado se ve en la ficha pública y en el mapa de inmediato.
+Aviso (409): «Otro gestor cambió el atractivo; ahora está «…». Confirma de nuevo…» · o «… ya lo dejó «…». No hay nada que cambiar.»
+{ [Cancelar] | [Cambiar estado] }
+}
+@endsalt

@@ -22,7 +22,11 @@ const COLUMNAS: { titulo: string; enlaces: EnlacePie[] }[] = [
     ],
   },
   { titulo: 'pie.municipio', enlaces: [{ texto: 'pie.noticias' }] },
-  { titulo: 'pie.prestadores', enlaces: [{ texto: 'pie.registrarServicio' }, { texto: 'pie.panelGestor' }] },
+  {
+    titulo: 'pie.prestadores',
+    // «Panel del gestor» lleva al panel «Atractivos» (WF-24, DEC-233); un rol que no es Gestor ve «Sin permiso».
+    enlaces: [{ texto: 'pie.registrarServicio' }, { texto: 'pie.panelGestor', destino: '/gestor/atractivos' }],
+  },
   {
     titulo: 'pie.legal',
     // RF46 y RF26 (DEC-76): términos (WF-15), su sección 4 y las preguntas frecuentes (WF-13).
