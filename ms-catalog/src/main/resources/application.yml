@@ -1,5 +1,9 @@
 server:
   port: 8082
+  tomcat:
+    # Por encima de max-request-size: Tomcat lee y descarta el resto de una carga rechazada, así el cliente recibe el
+    # 413 en vez de una conexión cortada (ADR-009).
+    max-swallow-size: 32MB
 
 spring:
   application:
@@ -9,6 +13,13 @@ spring:
     import: optional:file:../.env[.properties]
   profiles:
     default: dev
+  servlet:
+    multipart:
+      # Registro de atractivos (RF06, DEC-209, ADR-009): de 1 a 5 imágenes de 5 MB más los datos. El tope por parte
+      # queda por encima de 5 MB para que una imagen de más llegue al dominio y reciba su motivo por campo
+      # (TAMANO_MAXIMO); lo que supere estos topes es un 413 CARGA_DEMASIADO_GRANDE.
+      max-file-size: 6MB
+      max-request-size: 30MB
   data:
     mongodb:
       # El usuario raíz de docker-compose se crea en la base admin: authSource=admin.

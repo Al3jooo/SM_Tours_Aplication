@@ -1,10 +1,13 @@
 package co.edu.unimagdalena.samaria360.catalog.infrastructure.adapter.in.web.error;
 
+import co.edu.unimagdalena.samaria360.catalog.domain.exception.AtractivoModificadoException;
+import co.edu.unimagdalena.samaria360.catalog.domain.exception.AtractivoNoEncontradoException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.AvisoNoEncontradoException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.AvisoYaInactivoException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.ContenidoInvalidoException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.CriteriosBusquedaInvalidosException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.EstadoServicioCambiadoException;
+import co.edu.unimagdalena.samaria360.catalog.domain.exception.ImagenNoEncontradaException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.LimiteFavoritosException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.LimitePreguntasException;
 import co.edu.unimagdalena.samaria360.catalog.domain.exception.OfertaNoDisponibleException;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.LinkedHashMap;
@@ -125,6 +129,25 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
         return problema;
     }
 
+    @ExceptionHandler(AtractivoNoEncontradoException.class)
+    ProblemDetail atractivoNoEncontrado(AtractivoNoEncontradoException ex) {
+        return Problemas.crear(HttpStatus.NOT_FOUND, CodigoError.ATRACTIVO_NO_ENCONTRADO, ex.getMessage());
+    }
+
+    /** Otra edición o un cambio de estado del Gestor cambiaron el atractivo (DEC-207). */
+    @ExceptionHandler(AtractivoModificadoException.class)
+    ProblemDetail atractivoModificado(AtractivoModificadoException ex) {
+        ProblemDetail problema = Problemas.crear(HttpStatus.CONFLICT, CodigoError.ATRACTIVO_MODIFICADO,
+                ex.getMessage());
+        problema.setProperty("versionActual", ex.getVersionActual());
+        return problema;
+    }
+
+    @ExceptionHandler(ImagenNoEncontradaException.class)
+    ProblemDetail imagenNoEncontrada(ImagenNoEncontradaException ex) {
+        return Problemas.crear(HttpStatus.NOT_FOUND, CodigoError.IMAGEN_NO_ENCONTRADA, ex.getMessage());
+    }
+
     /** Las de Spring Security las resuelven su entry point y su access denied handler, no este advice. */
     @ExceptionHandler({AccessDeniedException.class, AuthenticationException.class})
     void relanzarExcepcionDeSeguridad(RuntimeException ex) {
@@ -159,6 +182,19 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
         ProblemDetail problema = Problemas.crear(status, CodigoError.DATOS_INVALIDOS,
                 "El cuerpo de la solicitud no es un JSON válido");
         return handleExceptionInternal(ex, problema, headers, status, request);
+    }
+
+    /**
+     * Multipart por encima de {@code spring.servlet.multipart} (ADR-009): 413 con un código propio. Una imagen de más de
+     * 5 MB que cabe en esos topes llega al dominio y recibe su motivo por campo (DEC-209).
+     */
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex,
+                                                                          HttpHeaders headers, HttpStatusCode status,
+                                                                          WebRequest request) {
+        ProblemDetail problema = Problemas.crear(HttpStatus.PAYLOAD_TOO_LARGE, CodigoError.CARGA_DEMASIADO_GRANDE,
+                "La carga supera el tamaño máximo permitido");
+        return handleExceptionInternal(ex, problema, headers, HttpStatus.PAYLOAD_TOO_LARGE, request);
     }
 
     /** Agrega un código genérico a los errores estándar de Spring MVC (404, 405…). */

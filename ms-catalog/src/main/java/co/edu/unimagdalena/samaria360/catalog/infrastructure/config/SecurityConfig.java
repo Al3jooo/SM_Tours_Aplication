@@ -26,8 +26,9 @@ import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * API sin estado con token Bearer emitido por ms-auth. La búsqueda, sus opciones de filtro, el detalle de un servicio,
- * las preguntas frecuentes y los avisos activos son públicos (WF-04, WF-05, WF-06, WF-13, WF-14);
- * {@code /api/v1/catalogo/admin/**} es solo del Administrador (RNF06). El JWT se valida con el JWKS de ms-auth.
+ * las preguntas frecuentes, los avisos activos, el detalle de un atractivo y sus imágenes son públicos (WF-04, WF-05,
+ * WF-06, WF-13, WF-14); {@code /api/v1/catalogo/admin/**} es solo del Administrador y
+ * {@code /api/v1/catalogo/gestor/**}, solo del Gestor (RNF06). El JWT se valida con el JWKS de ms-auth.
  * <p>
  * Dos cadenas (ADR-008): {@code /internal/**} solo para el JWT de servicio de ms-auth ({@code rol = SERVICIO},
  * {@code aud = ms-catalog}); todo lo demás, para tokens de usuario cuyo claim {@code ver} no sea menor que la versión de
@@ -94,6 +95,9 @@ public class SecurityConfig {
                     acceso.requestMatchers(HttpMethod.GET, "/api/v1/catalogo/oferta", "/api/v1/catalogo/filtros",
                             "/api/v1/catalogo/servicios/*", "/api/v1/catalogo/faq",
                             "/api/v1/catalogo/avisos").permitAll();
+                    // Detalle de atractivo (DEC-217) e imágenes de GridFS (DEC-209): públicos, como la ficha.
+                    acceso.requestMatchers(HttpMethod.GET, "/api/v1/catalogo/atractivos/*",
+                            "/api/v1/catalogo/imagenes/*").permitAll();
                     // Preguntas frecuentes y avisos (RF26, RF40; DEC-65): con ver vigente, por la misma cadena.
                     acceso.requestMatchers("/api/v1/catalogo/admin/**").hasRole("Administrador");
                     // Favoritos e historial de búsquedas (RF54, RF60; DEC-80, DEC-56): solo el Turista, con ver vigente.
@@ -102,6 +106,9 @@ public class SecurityConfig {
                     // Registrar servicio y «Mis servicios» (RF09, DEC-129): solo el Prestador, con ver vigente. La
                     // cuenta Activa con RNT (DEC-125) la exige el caso de uso con la proyección cuentas.
                     acceso.requestMatchers("/api/v1/catalogo/prestador/**").hasRole("Prestador");
+                    // Gestión de atractivos (RF06, RF07, RF24, RF27, RF33, RF58; DEC-206, DEC-220): solo el Gestor,
+                    // con ver vigente. Un Gestor sin fila en cuentas ya recibió 401 SESION_INVALIDADA (DEC-110).
+                    acceso.requestMatchers("/api/v1/catalogo/gestor/**").hasRole("Gestor");
                     acceso.requestMatchers("/actuator/health", "/actuator/health/**").permitAll();
                     if (dev) {
                         acceso.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();

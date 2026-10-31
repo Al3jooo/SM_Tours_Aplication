@@ -2,6 +2,7 @@ package co.edu.unimagdalena.samaria360.catalog.domain.model;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -37,6 +38,24 @@ class AtractivoPublicoTest {
         assertThatThrownBy(() -> new AtractivoPublico(null, null, "Cascada", QUEBRADA_VALENCIA, null, null, null, 10,
                 null, null, null))
                 .isInstanceOf(NullPointerException.class);
+    }
+
+    /** Iteración E (DEC-207, DEC-208): un documento anterior a M012 se rehidrata sin horario, fechas ni versión. */
+    @Test
+    void sinLosCamposDeLaGestionEsLaVersionCeroSinHorarioNiFechas() {
+        AtractivoPublico semilla = atractivo("Cascada", 10, EstadoOperativo.Abierto);
+        AtractivoPublico gestionado = new AtractivoPublico("0000000000000000000000aa", GESTOR, "Cascada",
+                QUEBRADA_VALENCIA, null, "Naturaleza", null, 10, null, null, null, "Lunes a viernes",
+                Instant.parse("2026-10-01T10:00:00Z"), null, 3);
+
+        assertThat(semilla.getVersion()).isZero();
+        assertThat(semilla.getHorarioAtencion()).isEmpty();
+        assertThat(semilla.getFechaRegistro()).isEmpty();
+        assertThat(gestionado.getHorarioAtencion()).contains("Lunes a viernes");
+        assertThat(gestionado.getVersion()).isEqualTo(3);
+        assertThat(gestionado.getImagenes()).isEmpty();
+        assertThatThrownBy(() -> new AtractivoPublico(null, GESTOR, "Cascada", QUEBRADA_VALENCIA, null, null, null,
+                10, null, null, null, null, null, null, -1)).isInstanceOf(IllegalArgumentException.class);
     }
 
     private static AtractivoPublico atractivo(String nombre, int limite, EstadoOperativo estado) {
