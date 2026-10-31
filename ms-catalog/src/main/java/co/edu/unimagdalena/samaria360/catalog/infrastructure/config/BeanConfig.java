@@ -1,6 +1,19 @@
 package co.edu.unimagdalena.samaria360.catalog.infrastructure.config;
 
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.ActualizarAtractivoUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ActualizarCuentaUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarAtractivoUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarAtractivosGestorUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarImagenUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.RegistrarAtractivoUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.out.AlmacenImagenesPort;
+import co.edu.unimagdalena.samaria360.catalog.application.port.out.AtractivoRepositoryPort;
+import co.edu.unimagdalena.samaria360.catalog.application.port.out.GestionAtractivosPort;
+import co.edu.unimagdalena.samaria360.catalog.application.service.ActualizarAtractivoService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarAtractivoService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarAtractivosGestorService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarImagenService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.RegistrarAtractivoService;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ActualizarServicioUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.AdministrarServiciosUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarMisServiciosUseCase;
@@ -114,6 +127,32 @@ public class BeanConfig {
     @Bean
     public ActualizarServicioUseCase actualizarServicioUseCase(GestionServiciosPort servicios) {
         return new ActualizarServicioService(servicios);
+    }
+
+    @Bean
+    public RegistrarAtractivoUseCase registrarAtractivoUseCase(GestionAtractivosPort atractivos,
+                                                               AlmacenImagenesPort imagenes, RelojPort reloj) {
+        return new RegistrarAtractivoService(atractivos, imagenes, reloj);
+    }
+
+    @Bean
+    public ActualizarAtractivoUseCase actualizarAtractivoUseCase(GestionAtractivosPort atractivos, RelojPort reloj) {
+        return new ActualizarAtractivoService(atractivos, reloj);
+    }
+
+    @Bean
+    public ConsultarAtractivosGestorUseCase consultarAtractivosGestorUseCase(GestionAtractivosPort atractivos) {
+        return new ConsultarAtractivosGestorService(atractivos);
+    }
+
+    @Bean
+    public ConsultarAtractivoUseCase consultarAtractivoUseCase(AtractivoRepositoryPort atractivos) {
+        return new ConsultarAtractivoService(atractivos);
+    }
+
+    @Bean
+    public ConsultarImagenUseCase consultarImagenUseCase(AlmacenImagenesPort imagenes) {
+        return new ConsultarImagenService(imagenes);
     }
 
     @Bean

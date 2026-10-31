@@ -21,5 +21,7 @@ public enum MotivoInvalido {
     /** Lista vacía donde se exige al menos un elemento (p. ej. las unidades de un alojamiento). */
     CANTIDAD_MINIMA,
     /** Lista con más elementos que el tope (p. ej. más de 20 unidades o de 12 salidas). */
-    CANTIDAD_MAXIMA
+    CANTIDAD_MAXIMA,
+    /** Archivo más grande que el tope (una imagen de más de 5 MB, DEC-209). */
+    TAMANO_MAXIMO
 }

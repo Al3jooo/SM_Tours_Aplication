@@ -57,3 +57,11 @@ Las demás colecciones del Entregable 2 (`eventos`, `itinerarios_sugeridos`, `ba
   - índices `admin_estado_fecha` (cola del Administrador, del más antiguo al más reciente) y `prestador_fecha` («Mis servicios»).
   - Falta llevarlo al Documento Entregable 2.
 - **Colección `cuentas` v2 (M008; DEC-146):** suma `rnt` (string de 1 a 50), opcional: solo lo tienen las cuentas de rol Prestador, y falta en las que todavía no recibieron un evento posterior a V17 de ms-auth.
+- **Esquema v2 de `atractivos` (M012; iteración E «Atractivos y agenda», sesión A1; RF06, RF07, RF24, RF27, RF33, RF58; DEC-207, DEC-208, DEC-214):**
+  - `version` (int ≥ 0) y `fechaRegistro` (date) **obligatorias**: M012 las rellena en los atractivos existentes (0 y la fecha del `_id`) antes de instalar el validador;
+  - **ampliaciones:** `horarioAtencion` (1 a 500, RF58; cierra HC4) y `fechaActualizacion` (date), opcionales;
+  - más estricto que el v1: `gestorId` con forma de UUID; `nombre` de 1 a 120; `descripcion` y `normasAmbientales` de 1 a 1000; `categoria` con `enum` `Naturaleza` o `Cultura` (**decisión del equipo, no del SRS**, DEC-214; en el v1 era texto libre); `limiteCapacidadCarga` de 1 a 100 000; `imagenes` hasta 5; `condicionesAccesibilidad` con el `enum` de RF27 y `uniqueItems`;
+  - `descripcion`, `categoria`, `estadoOperativo` e `imagenes` siguen opcionales en el validador y son obligatorios en el dominio para los registros nuevos (como DEC-148);
+  - M012 **no normaliza datos**: un atractivo que no cumple el v2 la detiene con la lista de `_id`;
+  - `imagenes[]` guarda rutas públicas: `/api/v1/catalogo/imagenes/{id}` (GridFS, bucket `imagenes`, [ADR-009](../adr/ADR-009-imagenes-gridfs.md)) o, en la semilla, `/imagenes/catalogo/*.webp`.
+  - Falta llevarlo al Documento Entregable 2 (punto 12 de «Pendientes para el SAD (modelo NoSQL)» en `docs/trazabilidad.md`).

@@ -36,6 +36,17 @@ public enum CodigoError {
      * versión (DEC-186). Lleva {@code versionActual}.
      */
     SERVICIO_MODIFICADO,
+    /** No existe un atractivo con ese id, o el id no es un ObjectId (DEC-217). */
+    ATRACTIVO_NO_ENCONTRADO,
+    /**
+     * El atractivo cambió después de que el Gestor lo leyó: otra edición o un cambio de estado subieron su versión
+     * (DEC-207). Lleva {@code versionActual}.
+     */
+    ATRACTIVO_MODIFICADO,
+    /** No existe una imagen con ese id, o el id no es un ObjectId (DEC-209). */
+    IMAGEN_NO_ENCONTRADA,
+    /** La petición multipart supera los topes del servidor (30 MB en total, 6 MB por parte; ADR-009). Es un 413. */
+    CARGA_DEMASIADO_GRANDE,
     ACCESO_DENEGADO,
     SOLICITUD_INVALIDA,
     ERROR_INTERNO

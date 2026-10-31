@@ -6,7 +6,8 @@ Este documento nace con la iteración «Contenido público» (RF26, RF47, RF40; 
 - las **preguntas frecuentes** (CU [«Gestionar FAQs»](../../casos-de-uso/CU-gestionar-faqs.md));
 - los **avisos generales** (CU [«Crear y publicar aviso general»](../../casos-de-uso/CU-crear-publicar-aviso-general.md));
 - los **favoritos** (CU [«Guardar favoritos»](../../casos-de-uso/CU-guardar-favoritos.md)) y el **historial de búsquedas** (CU [«Consultar historial de búsquedas»](../../casos-de-uso/CU-consultar-historial-busquedas.md)), de la iteración B1 «Turista» (RF54, RF60; DEC-80, DEC-56);
-- el **registro de servicios**, «Mis servicios» y la **aprobación** (CU [«Registrar servicio comercial»](../../casos-de-uso/CU-registrar-servicio.md) y [«Aprobar o rechazar servicio»](../../casos-de-uso/CU-aprobar-rechazar-servicio.md)), de la iteración C (RF09, RF10, RF37, RF21; DEC-124 a DEC-151), con los campos nuevos del detalle público y el RNT de la proyección `cuentas`.
+- el **registro de servicios**, «Mis servicios» y la **aprobación** (CU [«Registrar servicio comercial»](../../casos-de-uso/CU-registrar-servicio.md) y [«Aprobar o rechazar servicio»](../../casos-de-uso/CU-aprobar-rechazar-servicio.md)), de la iteración C (RF09, RF10, RF37, RF21; DEC-124 a DEC-151), con los campos nuevos del detalle público y el RNT de la proyección `cuentas`;
+- la **gestión de atractivos** del Gestor, su **ficha pública** y las **imágenes** en GridFS (CU [«Registrar atractivo»](../../casos-de-uso/CU-registrar-atractivo.md), [«Actualizar atractivo»](../../casos-de-uso/CU-actualizar-atractivo.md), [«Cambiar estado operativo»](../../casos-de-uso/CU-cambiar-estado-atractivo.md) y [«Consultar detalle de atractivo»](../../casos-de-uso/CU-consultar-detalle-atractivo.md)), de la iteración E, sesión A1 (RF06, RF07, RF24, RF27, RF33, RF58; DEC-206 a DEC-221; [ADR-009](../adr/ADR-009-imagenes-gridfs.md)).
 
 La búsqueda, los filtros, el detalle de un servicio y el endpoint interno de la proyección `cuentas` están descritos en `docs/trazabilidad.md` («Endpoints de ms-catalog») y en [`ms-auth.md`](ms-auth.md) («Endpoint interno de los consumidores»). Las decisiones están en `docs/trazabilidad.md` («Contenido público — decisiones» y «Turista (B1) — decisiones»).
 
@@ -16,17 +17,19 @@ La búsqueda, los filtros, el detalle de un servicio y el endpoint interno de la
   - `/api/v1/catalogo/admin/**` exige el rol **Administrador** (RNF06, DEC-65).
   - `/api/v1/catalogo/favoritos/**` y `/api/v1/catalogo/historial` exigen el rol **Turista** (RNF06, DEC-80, DEC-56); el turista es siempre el del claim `sub`.
   - `/api/v1/catalogo/prestador/**` exige el rol **Prestador** (RNF06, DEC-125); el prestador es siempre el del claim `sub`.
+  - `/api/v1/catalogo/gestor/**` exige el rol **Gestor** (RNF06, DEC-220). Un Gestor sin fila en la proyección `cuentas` recibe antes 401 `SESION_INVALIDADA` (DEC-110).
+  - `GET /atractivos/{id}` y `GET /imagenes/{id}` son públicos (DEC-217, DEC-209).
   - `GET /faq` y `GET /avisos` son públicos y se llaman **sin token** (DEC-47).
   - Si a una ruta pública le llega un Bearer, también se valida ([ADR-008](../adr/ADR-008-sincronizacion-estado-cuentas.md)):
     - vencido, mal firmado o de servicio → 401 `NO_AUTENTICADO`;
     - con `ver` menor que la versión de la proyección `cuentas` → 401 `SESION_INVALIDADA`.
-- **Errores:** ProblemDetail (RFC 9457) con `codigo` estable, como ms-auth y ms-booking. `DATOS_INVALIDOS` lleva `campos`: un código por campo con el nombre JSON, nunca textos (`REQUERIDO`, `FORMATO`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`; el registro de servicios suma `DUPLICADO`, `VALOR_MINIMO`, `VALOR_MAXIMO`, `CANTIDAD_MINIMA` y `CANTIDAD_MAXIMA`, DEC-151). Un cuerpo que no es JSON (o que falta) también es `DATOS_INVALIDOS`, sin `campos`.
+- **Errores:** ProblemDetail (RFC 9457) con `codigo` estable, como ms-auth y ms-booking. `DATOS_INVALIDOS` lleva `campos`: un código por campo con el nombre JSON, nunca textos (`REQUERIDO`, `FORMATO`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`; el registro de servicios suma `DUPLICADO`, `VALOR_MINIMO`, `VALOR_MAXIMO`, `CANTIDAD_MINIMA` y `CANTIDAD_MAXIMA`, DEC-151; el de atractivos, `TAMANO_MAXIMO` para una imagen de más de 5 MB, DEC-209). Un cuerpo que no es JSON (o que falta) también es `DATOS_INVALIDOS`, sin `campos`.
 - **Textos:** se guardan **sin los espacios de los extremos** (`strip()`).
   - Los límites se cuentan después de recortar y en **puntos de código**: un emoji cuenta uno, como `maxLength` en MongoDB (DEC-61).
   - El contenido va en el idioma en que lo escribe el Administrador, sin campos por idioma (DEC-69).
 - **Fechas:** instantes ISO 8601 en UTC, con milisegundos si los hay (`2026-10-22T15:30:00.123Z`).
 - **Ids:** ObjectId en hexadecimal (24 caracteres en minúscula). Un id que no tiene esa forma responde **404**, igual que uno inexistente.
-- **Página** (el listado de avisos del Administrador, «Mis servicios» y la cola de servicios): de 10, con `pagina` desde 0, como ms-auth (DEC-41): `{elementos, pagina, tamano: 10, totalElementos, totalPaginas}`.
+- **Página** (el listado de avisos del Administrador, «Mis servicios», la cola de servicios y el panel «Atractivos» del Gestor): de 10, con `pagina` desde 0, como ms-auth (DEC-41): `{elementos, pagina, tamano: 10, totalElementos, totalPaginas}`.
 
 ## Preguntas frecuentes (RF26, RF47)
 
@@ -339,24 +342,92 @@ CU [«Aprobar o rechazar servicio»](../../casos-de-uso/CU-aprobar-rechazar-serv
 
 `PUT /internal/v1/cuentas/{id}` (solo el relevo de ms-auth, con su JWT de servicio) acepta `rnt` además de `{rol, estadoCuenta, version}`. Se guarda solo si `rol = Prestador` (en otro rol se ignora); un evento sin `rnt` lo quita de la fila. Más de 50 caracteres → **400** con `campos.rnt = LONGITUD_MAXIMA`. El resto del contrato está en [`ms-auth.md`](ms-auth.md) («Endpoint interno de los consumidores»).
 
+## Atractivos (Gestor; RF06, RF07, RF24, RF27, RF33, RF58)
+
+Solo el rol Gestor. **Cualquier Gestor gestiona cualquier atractivo** (DEC-206): `gestorId` dice quién lo registró, no quién lo puede editar. Sin borrado ni desactivación. Cada escritura compara la `version` que el Gestor leyó y la sube (DEC-207).
+
+**Campos** (los mismos en el registro y en la edición; recortados con `strip()` y contados en puntos de código):
+
+| Campo | Regla | RF |
+|---|---|---|
+| `nombre` | Obligatorio, 1 a 120 | RF06 |
+| `categoria` | Obligatoria: `Naturaleza` o `Cultura` (**decisión del equipo, no del SRS**, DEC-214) | RF06 |
+| `descripcion` | Obligatoria, 1 a 1000 | RF06 |
+| `coordenadas` | Obligatorias: `{longitud, latitud}`, en rango global (RF06: «dirección o coordenadas según corresponda»; WF-09 pide latitud y longitud) | RF06 |
+| `limiteCapacidadCarga` | Obligatorio, entero de 1 a 100 000 (DEC-212) | RF07 |
+| `estadoOperativo` | Obligatorio **al registrar**: `Abierto`, `Cerrado_temporalmente` o `En_mantenimiento`. En la edición se ignora (DEC-210) | RF33 |
+| `normasAmbientales` | Opcional, hasta 1000 (WF-09); vacío es «sin normas» | RF24 |
+| `horarioAtencion` | Opcional, hasta 500 (DEC-208); vacío es «sin horario» | RF58 |
+| `condicionesAccesibilidad` | Opcional: `MovilidadReducida`, `Visual`, `Auditiva`, sin repetir (DEC-221) | RF27 |
+
+Lo que fija el servidor se ignora si llega: `gestorId` (el `sub`), `version`, `fechaRegistro`, `fechaActualizacion` e `imagenes`.
+
+**Atractivo de gestión** (respuesta de todos los endpoints de esta sección salvo el listado): `{id, nombre, categoria, descripcion, coordenadas: {longitud, latitud}, imagenes, limiteCapacidadCarga, estadoOperativo, normasAmbientales, horarioAtencion, condicionesAccesibilidad, gestorId, fechaRegistro, fechaActualizacion, version}`. Los opcionales sin valor van en `null`; las condiciones, en el orden de RF27.
+
+### Registrar (DEC-216)
+
+`POST /api/v1/catalogo/gestor/atractivos`, **`multipart/form-data`**:
+- parte `datos` (`Content-Type: application/json`): los campos de la tabla;
+- de 1 a 5 partes `imagenes`: JPEG o PNG, reconocidos por su firma, de 5 MB (5 × 1024 × 1024 bytes) como máximo cada una ([ADR-009](../adr/ADR-009-imagenes-gridfs.md)).
+
+Respuestas:
+- **201** con `Location: /api/v1/catalogo/gestor/atractivos/{id}` y el atractivo, con `version: 0`. Queda publicado de inmediato (DEC-87): aparece en la búsqueda, el mapa y su ficha.
+- **400 `DATOS_INVALIDOS`** con `campos`: los de la tabla con su nombre JSON (`coordenadas.longitud`, `condicionesAccesibilidad[1]`), `imagenes` (`REQUERIDO` sin imágenes, `CANTIDAD_MAXIMA` con más de 5) e `imagenes[i]` (`REQUERIDO` si está vacía, `TAMANO_MAXIMO`, `FORMATO`). Sin la parte `datos`, cada obligatorio es `REQUERIDO`; una parte `datos` que no es JSON, `DATOS_INVALIDOS` sin `campos`. No se guarda nada.
+- **413 `CARGA_DEMASIADO_GRANDE`:** una parte de más de 6 MB o una petición de más de 30 MB (nginx corta también en 30 MB).
+- **415:** un cuerpo que no es `multipart/form-data`.
+- **500 `ERROR_INTERNO`:** falló el guardado; las imágenes ya guardadas se borran (compensación, ADR-009).
+
+### Panel «Atractivos» (WF-24)
+
+`GET /api/v1/catalogo/gestor/atractivos?pagina=0`: **todos** los atractivos, del más reciente al más antiguo (`fechaRegistro`, desempate por id), de 10 en 10. Cada elemento: `{id, nombre, categoria, estadoOperativo, limiteCapacidadCarga, imagen (la primera o null), fechaRegistro, version}`. `pagina` negativa o que no es un número → 400 con `campos.pagina = FORMATO`.
+
+`GET /api/v1/catalogo/gestor/atractivos/{id}`: el atractivo de gestión. **404 `ATRACTIVO_NO_ENCONTRADO`** si no existe o el id no es un ObjectId.
+
+### Editar (RF07, RF24, RF27, RF58)
+
+`PUT /api/v1/catalogo/gestor/atractivos/{id}`, JSON: los campos de la tabla (todos; reemplazan los actuales) más `version` (obligatoria, entero ≥ 0). No cambia las imágenes (DEC-209), el estado (DEC-210), `gestorId` ni `fechaRegistro`.
+- **200** con el atractivo, `fechaActualizacion` y la `version` nueva.
+- **400 `DATOS_INVALIDOS`**, **404 `ATRACTIVO_NO_ENCONTRADO`** (se evalúa antes que los datos) y **409 `ATRACTIVO_MODIFICADO`** con `versionActual` si la `version` ya no es la del atractivo.
+
+### Cambiar el estado operativo (RF33, DEC-210)
+
+`POST /api/v1/catalogo/gestor/atractivos/{id}/estado`, JSON `{estadoNuevo, version}`. De cualquier estado a cualquier otro; el mismo estado es `campos.estadoNuevo = NO_PERMITIDO`.
+- **200** con el atractivo y la `version` nueva. **400**, **404** y **409 `ATRACTIVO_MODIFICADO`** como en la edición.
+
+## Detalle público de un atractivo (DEC-217)
+
+`GET /api/v1/catalogo/atractivos/{id}`, sin token. Visible mientras exista, en cualquier estado operativo (DEC-87).
+- **200** `{id, nombre, categoria, descripcion, coordenadas: {longitud, latitud}, imagenes, limiteCapacidadCarga, estadoOperativo, normasAmbientales, horarioAtencion, condicionesAccesibilidad}`. No expone `gestorId`, `version` ni las fechas. Los atractivos de la semilla traen sus rutas `/imagenes/catalogo/*.webp`; los registrados, `/api/v1/catalogo/imagenes/{id}`.
+- **404 `ATRACTIVO_NO_ENCONTRADO`** si no existe o el id no es un ObjectId.
+
+## Imágenes (DEC-209, ADR-009)
+
+`GET /api/v1/catalogo/imagenes/{id}`, sin token.
+- **200** con el contenido, `Content-Type: image/jpeg` o `image/png` (el formato detectado al registrarla) y `Cache-Control: max-age=31536000, public, immutable`.
+- **404 `IMAGEN_NO_ENCONTRADA`** si no existe, el id no es un ObjectId o el archivo no lo guardó el registro de atractivos.
+
 ## Códigos de error
 
 | Código | HTTP | Cuándo |
 |---|---|---|
 | `DATOS_INVALIDOS` | 400 | `campos` como se indica arriba. Un cuerpo que no es JSON, sin `campos` |
 | `CRITERIOS_INVALIDOS` | 400 | `POST /historial` con criterios que `GET /oferta` también rechaza (DEC-88) |
-| `NO_AUTENTICADO` | 401 | Sin token en `/admin/**`, `/favoritos/**` o `/historial`, o con un token vencido, inválido o de servicio (`rol = SERVICIO`) |
+| `NO_AUTENTICADO` | 401 | Sin token en `/admin/**`, `/favoritos/**`, `/historial`, `/prestador/**` o `/gestor/**`, o con un token vencido, inválido o de servicio (`rol = SERVICIO`) |
 | `SESION_INVALIDADA` | 401 | `ver` menor que la versión de la proyección `cuentas`, o un token de Gestor o Administrador cuya cuenta no tiene fila en ella (DEC-110; L3 cerrado con RF45) |
-| `ACCESO_DENEGADO` | 403 | `/admin/**` con un rol que no es Administrador (Turista, Prestador o Gestor); `/favoritos/**` o `/historial` con un rol que no es Turista; `/prestador/**` con un rol que no es Prestador |
+| `ACCESO_DENEGADO` | 403 | `/admin/**` con un rol que no es Administrador (Turista, Prestador o Gestor); `/favoritos/**` o `/historial` con un rol que no es Turista; `/prestador/**` con un rol que no es Prestador; `/gestor/**` con un rol que no es Gestor (Turista, Prestador o Administrador) |
 | `PRESTADOR_NO_HABILITADO` | 403 | `POST /prestador/servicios` de un prestador sin fila en `cuentas`, no `Activo` o sin RNT (DEC-139) |
 | `OFERTA_NO_DISPONIBLE` | 404 | `PUT /favoritos/{tipo}/{id}` con un id inválido, inexistente o no visible |
 | `FAQ_NO_ENCONTRADA` | 404 | Pregunta inexistente o id que no es un ObjectId |
 | `AVISO_NO_ENCONTRADO` | 404 | Aviso inexistente o id que no es un ObjectId |
 | `SERVICIO_NO_ENCONTRADO` | 404 | Servicio inexistente, id que no es un ObjectId o, en «Mis servicios», de otro prestador |
+| `ATRACTIVO_NO_ENCONTRADO` | 404 | Atractivo inexistente o id que no es un ObjectId (detalle público y endpoints del Gestor) |
+| `IMAGEN_NO_ENCONTRADA` | 404 | Imagen inexistente, id que no es un ObjectId o archivo que no es de un atractivo |
 | `LIMITE_FAQ` | 409 | Ya hay 200 preguntas frecuentes |
 | `LIMITE_FAVORITOS` | 409 | El turista ya tiene 100 favoritos |
 | `ESTADO_CAMBIADO` | 409 | El aviso ya estaba despublicado (`estadoActual: "Inactivo"`), el servicio ya no estaba Pendiente (`estadoActual`: `Publicado` o `Rechazado`) o el Prestador quiso editar un servicio Rechazado |
 | `SERVICIO_MODIFICADO` | 409 | La `version` enviada al editar el precio o los datos comerciales ya no es la del servicio; lleva `versionActual` (DEC-186) |
+| `ATRACTIVO_MODIFICADO` | 409 | La `version` enviada al editar un atractivo o cambiar su estado ya no es la del atractivo; lleva `versionActual` (DEC-207) |
+| `CARGA_DEMASIADO_GRANDE` | 413 | Registro de un atractivo con una parte de más de 6 MB o una petición de más de 30 MB (ADR-009) |
 | `ERROR_INTERNO` | 500 | Cualquier otro error |
 
 ## Colecciones
@@ -387,3 +458,7 @@ Sin semilla propia: el turista de la demostración crea sus favoritos y su histo
 Índices nuevos de `servicios`:
 - `admin_estado_fecha`: `{estadoPublicacion: 1, fechaRegistro: 1, _id: 1}`;
 - `prestador_fecha`: `{prestadorId: 1, fechaRegistro: -1, _id: -1}`.
+
+`atractivos` en su esquema v2 (M012; [`modelo-nosql/atractivos.schema.json`](../modelo-nosql/atractivos.schema.json), DEC-207): suma `horarioAtencion` (RF58, cierra HC4), `version` y `fechaRegistro` (obligatorias; M012 las rellena: 0 y la fecha del `_id`), `fechaActualizacion`, `categoria` como enum (`Naturaleza`, `Cultura`; DEC-214), el `enum` de accesibilidad de RF27, límites de longitud, capacidad de 1 a 100 000 e `imagenes` de 5 como máximo. `descripcion`, `categoria`, `estadoOperativo` e `imagenes` (de 1 a 5) son opcionales en el validador y obligatorios en el dominio para los registros nuevos, como DEC-148. M012 no normaliza datos: si un atractivo no cumple el v2, se detiene con la lista de `_id`. Sin índices nuevos.
+
+Bucket GridFS `imagenes` (`imagenes.files` e `imagenes.chunks`; ADR-009): el formato detectado va en `metadata.formato` (`JPEG` o `PNG`). Sin validador: lo escribe solo `ImagenGridFsAdapter`.

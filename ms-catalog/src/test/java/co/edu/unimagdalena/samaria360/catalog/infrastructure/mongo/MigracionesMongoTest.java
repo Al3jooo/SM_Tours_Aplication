@@ -51,6 +51,8 @@ class MigracionesMongoTest {
     private static final Path ESQUEMAS = Path.of("../docs/sad/modelo-nosql");
     private static final Path VALIDADOR_M011_SERVICIOS =
             MongoDePrueba.MIGRACIONES.resolve("esquema/M011__servicios.v4.schema.json");
+    private static final Path VALIDADOR_M012_ATRACTIVOS =
+            MongoDePrueba.MIGRACIONES.resolve("esquema/M012__atractivos.v2.schema.json");
     private static final Path VALIDADOR_M008_CUENTAS =
             MongoDePrueba.MIGRACIONES.resolve("esquema/M008__cuentas.v2.schema.json");
     private static final Path VALIDADOR_M005_FAQ = MongoDePrueba.MIGRACIONES.resolve("esquema/M005__faq.v1.schema.json");
@@ -63,7 +65,8 @@ class MigracionesMongoTest {
     private static final List<String> MIGRACIONES = List.of("M001__unidades-alojamiento",
             "M002__semilla-suite-casa-tayrona", "M003__cuentas", "M004__indice-servicios-prestador",
             "M005__faq-avisos", "M006__semilla-faq-avisos", "M007__favoritos-historial", "M008__registro-servicios",
-            "M009__semilla-direccion-rnt", "M010__coordenadas-rodadero", "M011__servicios-version");
+            "M009__semilla-direccion-rnt", "M010__coordenadas-rodadero", "M011__servicios-version",
+            "M012__atractivos-gestion");
     /** Fuera del plano básico: un punto de código, dos unidades UTF-16. */
     private static final String EMOJI = "🌴";
     private static final int VALIDACION_DOCUMENTO_FALLIDA = 121;
@@ -78,6 +81,8 @@ class MigracionesMongoTest {
     static final MongoDBContainer ERRORES = MongoDePrueba.contenedor();
     @Container
     static final MongoDBContainer SIN_PRECIO = MongoDePrueba.contenedor();
+    @Container
+    static final MongoDBContainer ATRACTIVO_INVALIDO = MongoDePrueba.contenedor();
 
     private static MongoClient clienteNuevo;
     private static MongoClient clienteExistente;
@@ -661,6 +666,113 @@ class MigracionesMongoTest {
         }
     }
 
+    // ------------------------------------------------------------------ atractivos (M012, iteración E)
+
+    /** Mientras no exista una migración posterior que cambie atractivos, la copia de M012 (v2) es la última versión. */
+    @Test
+    void laCopiaDelValidadorDeAtractivosDeM012EsLaUltimaVersion() throws IOException {
+        assertThat(Document.parse(Files.readString(VALIDADOR_M012_ATRACTIVOS)))
+                .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("atractivos.schema.json"))));
+    }
+
+    /** M012 (DEC-207): version 0 como int32 y fechaRegistro tomada del _id, sin tocar los demás datos. */
+    @Test
+    void m012RellenaLaVersionYLaFechaDeRegistroEnVolumenNuevoYExistente() {
+        for (MongoDatabase base : List.of(nuevo, existente)) {
+            List<Document> atractivos = base.getCollection("atractivos").find().into(new ArrayList<>());
+            assertThat(atractivos).hasSize(7);
+            for (Document atractivo : atractivos) {
+                assertThat(atractivo.get("version")).as(atractivo.getString("nombre")).isEqualTo(0);
+                assertThat(atractivo.getDate("fechaRegistro"))
+                        .isEqualTo(atractivo.getObjectId("_id").getDate());
+                assertThat(atractivo.containsKey("horarioAtencion")).as("no se inventa").isFalse();
+            }
+        }
+    }
+
+    @Test
+    void elValidadorV2DeAtractivosAceptaUnoValidoYRechazaLoQueNoCumple() {
+        MongoCollection<Document> atractivos = nuevo.getCollection("atractivos");
+        Document valido = atractivoV2(d -> {
+        });
+        atractivos.insertOne(valido);
+        atractivos.deleteOne(Filters.eq("_id", valido.getObjectId("_id")));
+
+        for (Consumer<Document> cambio : List.<Consumer<Document>>of(
+                d -> d.remove("version"),
+                d -> d.put("version", -1),
+                d -> d.remove("fechaRegistro"),
+                d -> d.put("gestorId", "gestor"),
+                d -> d.put("categoria", "Aventura"),
+                d -> d.put("estadoOperativo", "Cerrado"),
+                d -> d.put("limiteCapacidadCarga", 0),
+                d -> d.put("limiteCapacidadCarga", 100_001),
+                d -> d.put("nombre", "x".repeat(121)),
+                d -> d.put("descripcion", ""),
+                d -> d.put("normasAmbientales", "n".repeat(1001)),
+                d -> d.put("horarioAtencion", "h".repeat(501)),
+                d -> d.put("condicionesAccesibilidad", List.of("Braille")),
+                d -> d.put("condicionesAccesibilidad", List.of("Visual", "Visual")),
+                d -> d.put("imagenes", List.of("1", "2", "3", "4", "5", "6")))) {
+            assertRechazado(atractivos, atractivoV2(cambio));
+        }
+    }
+
+    /** DEC-207: M012 no normaliza; un atractivo fuera del v2 la detiene con su _id y el validador no cambia. */
+    @Test
+    void unAtractivoFueraDelV2DetieneM012ConSuIdYSinNormalizarlo() throws Exception {
+        volumenV1(ATRACTIVO_INVALIDO);
+        try (MongoClient cliente = MongoClients.create(ATRACTIVO_INVALIDO.getConnectionString())) {
+            MongoDatabase base = cliente.getDatabase("catalog_db");
+            MongoCollection<Document> atractivos = base.getCollection("atractivos");
+            Document fueraDeLista = new Document("gestorId", "00000000-0000-4000-8000-000000000003")
+                    .append("nombre", "Parque de aventura")
+                    .append("coordenadas", new Document("type", "Point").append("coordinates", List.of(-74.2, 11.2)))
+                    .append("categoria", "Aventura")
+                    .append("limiteCapacidadCarga", 50);
+            atractivos.insertOne(fueraDeLista);
+            Document validadorV1 = opciones(base, "atractivos");
+
+            ExecResult abortada = MongoDePrueba.migrar(ATRACTIVO_INVALIDO, false);
+
+            assertThat(abortada.getExitCode()).isNotZero();
+            assertThat(abortada.getStdout() + abortada.getStderr()).contains(
+                    "M012: atractivos que no cumplen el validador v2", fueraDeLista.getObjectId("_id").toHexString());
+            assertThat(idsMigraciones(base)).contains("M011__servicios-version")
+                    .doesNotContain("M012__atractivos-gestion");
+            assertThat(opciones(base, "atractivos")).isEqualTo(validadorV1);
+            assertThat(atractivos.find(Filters.eq("_id", fueraDeLista.getObjectId("_id"))).first()
+                    .getString("categoria")).isEqualTo("Aventura");
+
+            atractivos.updateOne(Filters.eq("_id", fueraDeLista.getObjectId("_id")),
+                    new Document("$set", new Document("categoria", "Cultura")));
+            MongoDePrueba.exigirExito("aplicar.js", MongoDePrueba.migrar(ATRACTIVO_INVALIDO, false));
+
+            assertThat(idsMigraciones(base)).contains("M012__atractivos-gestion");
+            assertThat(atractivos.countDocuments(Filters.eq("version", 0))).isEqualTo(8);
+        }
+    }
+
+    private static Document atractivoV2(Consumer<Document> cambio) {
+        Document atractivo = new Document("_id", new ObjectId())
+                .append("gestorId", "00000000-0000-4000-8000-000000000003")
+                .append("nombre", "Atractivo " + EMOJI.repeat(110))
+                .append("coordenadas", new Document("type", "Point").append("coordinates", List.of(-74.2, 11.2)))
+                .append("descripcion", "Descripción")
+                .append("categoria", "Cultura")
+                .append("imagenes", List.of("/api/v1/catalogo/imagenes/" + new ObjectId().toHexString()))
+                .append("limiteCapacidadCarga", 100_000)
+                .append("estadoOperativo", "Abierto")
+                .append("normasAmbientales", EMOJI.repeat(1000))
+                .append("horarioAtencion", EMOJI.repeat(500))
+                .append("condicionesAccesibilidad", List.of("MovilidadReducida", "Visual", "Auditiva"))
+                .append("fechaRegistro", new java.util.Date())
+                .append("fechaActualizacion", new java.util.Date())
+                .append("version", 3);
+        cambio.accept(atractivo);
+        return atractivo;
+    }
+
     // ------------------------------------------------------------------ conversión
 
     @Test
@@ -707,7 +819,8 @@ class MigracionesMongoTest {
         MongoDePrueba.exigirExito("aplicar.js", segunda);
         assertThat(segunda.getStdout()).contains("ya aplicada: M001", "ya aplicada: M002", "ya aplicada: M003",
                 "ya aplicada: M004", "ya aplicada: M005", "ya aplicada: M006", "ya aplicada: M007",
-                "ya aplicada: M008", "ya aplicada: M009", "ya aplicada: M010", "ya aplicada: M011");
+                "ya aplicada: M008", "ya aplicada: M009", "ya aplicada: M010", "ya aplicada: M011",
+                "ya aplicada: M012");
         assertThat(documentos(existente, "servicios")).isEqualTo(antes);
         assertThat(idsMigraciones(existente)).containsExactlyElementsOf(MIGRACIONES);
     }
@@ -759,7 +872,7 @@ class MigracionesMongoTest {
 
         assertThat(idsMigraciones(errores)).containsExactly("M001__unidades-alojamiento", "M003__cuentas",
                 "M004__indice-servicios-prestador", "M005__faq-avisos", "M007__favoritos-historial",
-                "M008__registro-servicios", "M011__servicios-version");
+                "M008__registro-servicios", "M011__servicios-version", "M012__atractivos-gestion");
         assertThat(errores.getCollection("faq").countDocuments()).isZero();
         assertThat(unidadesDe(errores, "Hotel Casa Tayrona")).hasSize(1);
     }
