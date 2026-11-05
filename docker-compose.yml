@@ -1,9 +1,9 @@
-# Samaria360 - Prototipo arquitectónico ejecutable (fase de Elaboración, RUP)
+# Samaria360 - Prototipo arquitectónico ejecutable (fase de Construcción, RUP)
 # Sistema completo en un comando:  docker compose up -d --build   →  http://localhost:${FRONTEND_PORT:-8000}
 #
 # Entrada: el navegador habla solo con frontend (nginx), que pasa /api/ a api-gateway (ADR-005). En el host se
 # publican el frontend y el gateway; ms-auth, ms-catalog y ms-booking solo se alcanzan dentro de la red de Docker;
-# PostgreSQL y MongoDB solo en 127.0.0.1 (DBeaver, Compass). ms-chatbot está fuera del alcance de esta iteración.
+# PostgreSQL y MongoDB solo en 127.0.0.1 (DBeaver, Compass). El asistente (chatbot) está fuera del alcance del prototipo.
 #
 # Requisitos: .env (copia de .env.example) y las llaves del JWT en infra/keys/ (ver README.md, «Arranque en un comando»).
 
@@ -208,8 +208,10 @@ services:
       BOOKING_URI: http://ms-booking:8083
       # Con nginx el navegador usa un solo origen; CORS queda para el frontend en desarrollo (Vite).
       CORS_ORIGENES: http://localhost:${FRONTEND_PORT:-8000},http://localhost:5173
+    # Solo en 127.0.0.1, como las bases: el navegador entra por el frontend (nginx); el 8080 queda para depurar y
+    # para Vite en desarrollo, que lo alcanza en localhost.
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     # Solo espera a que arranquen, no a que estén sanos: el gateway debe funcionar aunque un servicio esté caído
     # (circuit breaker y fallback 503, ADR-005).
     depends_on:
@@ -229,7 +231,7 @@ services:
     container_name: samaria360-frontend
     <<: *reinicio
     ports:
-      - "${FRONTEND_PORT:-8000}:80"
+      - "${FRONTEND_PORT:-8000}:8080" # nginx sin root escucha en 8080 dentro del contenedor (frontend/Dockerfile)
     # Espera al gateway sano: así el primer /api/ no encuentra el puerto cerrado. Si aun así nginx no logra hablar
     # con él (p. ej. tras reiniciar Docker, donde restart no respeta depends_on), responde un 503 con el ProblemDetail
     # SERVICIO_NO_DISPONIBLE (frontend/nginx/default.conf).
@@ -237,7 +239,7 @@ services:
       api-gateway:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
       interval: 10s
       timeout: 3s
       retries: 5
