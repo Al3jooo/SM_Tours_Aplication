@@ -48,6 +48,7 @@ rectangle "Gestionar atractivos" {
   usecase "Cargar imágenes\n(RF06)" as CI
   usecase "Actualizar atractivo\n(RF07, RF24, RF27, RF58)" as AA
   usecase "Cambiar estado operativo\n(RF33)" as CE
+  usecase "Registrar evento en agenda\n(RF25)" as RE
 }
 rectangle "Buscar oferta turística" {
   usecase "Consultar detalle de atractivo" as CD
@@ -55,13 +56,14 @@ rectangle "Buscar oferta turística" {
 G --> RA
 G --> AA
 G --> CE
+G --> RE
 T --> CD
 RA ..> CI : <<include>>
 note right of RA : Queda publicado al registrarse\n(DEC-87): sin aprobación
 @enduml
 ```
 
-ms-catalog no es un actor: es un componente interno.
+ms-catalog no es un actor: es un componente interno. «Registrar evento en agenda» (figura 5 del Entregable 2) tiene su propio CU: [CU-registrar-evento-agenda.md](CU-registrar-evento-agenda.md) (sesión A2).
 
 ## CU «Registrar atractivo»
 

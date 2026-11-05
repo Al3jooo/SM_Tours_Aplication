@@ -62,11 +62,13 @@ class MigracionesMongoTest {
             MongoDePrueba.MIGRACIONES.resolve("esquema/M007__favoritos.v1.schema.json");
     private static final Path VALIDADOR_M007_HISTORIAL =
             MongoDePrueba.MIGRACIONES.resolve("esquema/M007__historial_busqueda.v1.schema.json");
+    private static final Path VALIDADOR_M013_EVENTOS =
+            MongoDePrueba.MIGRACIONES.resolve("esquema/M013__eventos.v1.schema.json");
     private static final List<String> MIGRACIONES = List.of("M001__unidades-alojamiento",
             "M002__semilla-suite-casa-tayrona", "M003__cuentas", "M004__indice-servicios-prestador",
             "M005__faq-avisos", "M006__semilla-faq-avisos", "M007__favoritos-historial", "M008__registro-servicios",
             "M009__semilla-direccion-rnt", "M010__coordenadas-rodadero", "M011__servicios-version",
-            "M012__atractivos-gestion");
+            "M012__atractivos-gestion", "M013__eventos");
     /** Fuera del plano básico: un punto de código, dos unidades UTF-16. */
     private static final String EMOJI = "🌴";
     private static final int VALIDACION_DOCUMENTO_FALLIDA = 121;
@@ -126,7 +128,8 @@ class MigracionesMongoTest {
     // ------------------------------------------------------------------ validador v2
 
     @ParameterizedTest
-    @ValueSource(strings = {"servicios", "atractivos", "cuentas", "faq", "avisos", "favoritos", "historial_busqueda"})
+    @ValueSource(strings = {"servicios", "atractivos", "cuentas", "faq", "avisos", "favoritos", "historial_busqueda",
+            "eventos"})
     void despuesDeLasMigracionesElValidadorEsElDeDocs(String coleccion) throws IOException {
         Document esperado = Document.parse(Files.readString(ESQUEMAS.resolve(coleccion + ".schema.json")));
 
@@ -753,6 +756,75 @@ class MigracionesMongoTest {
         }
     }
 
+    // ------------------------------------------------------------------ eventos (M013, iteración E, sesión A2)
+
+    /** Mientras no exista una migración posterior que cambie eventos, la copia de M013 (v1) es la última versión. */
+    @Test
+    void laCopiaDelValidadorDeEventosDeM013EsLaUltimaVersion() throws IOException {
+        assertThat(Document.parse(Files.readString(VALIDADOR_M013_EVENTOS)))
+                .isEqualTo(Document.parse(Files.readString(ESQUEMAS.resolve("eventos.schema.json"))));
+    }
+
+    @Test
+    void m013CreaEventosConSusIndicesIgualEnVolumenNuevoYExistente() {
+        for (MongoDatabase base : List.of(nuevo, existente)) {
+            assertThat(base.getCollection("eventos").countDocuments()).as("sin semilla").isZero();
+            assertThat(indicesConUnicidad(base, "eventos")).contains(
+                    new Document("name", "eventos_agenda").append("key", new Document("fechaInicio", 1)
+                            .append("_id", 1).append("fechaFin", 1)).append("unique", false),
+                    new Document("name", "eventos_registro").append("key", new Document("fechaRegistro", -1)
+                            .append("_id", -1)).append("unique", false));
+        }
+        assertThat(opciones(existente, "eventos")).isEqualTo(opciones(nuevo, "eventos"));
+        assertThat(indicesConUnicidad(existente, "eventos")).isEqualTo(indicesConUnicidad(nuevo, "eventos"));
+    }
+
+    /** DEC-235 a DEC-237: obligatorios, límites (en puntos de código), sin campos extra y fechaInicio <= fechaFin. */
+    @Test
+    void elValidadorDeEventosAceptaUnoValidoYRechazaLoQueNoCumple() {
+        MongoCollection<Document> eventos = nuevo.getCollection("eventos");
+        for (Document valido : List.of(evento(d -> {
+        }), evento(d -> d.put("fechaFin", d.get("fechaInicio"))))) {
+            eventos.insertOne(valido);
+            eventos.deleteOne(Filters.eq("_id", valido.getObjectId("_id")));
+        }
+
+        for (Consumer<Document> cambio : List.<Consumer<Document>>of(
+                d -> d.remove("gestorId"),
+                d -> d.put("gestorId", "gestor"),
+                d -> d.remove("nombre"),
+                d -> d.put("nombre", "x".repeat(121)),
+                d -> d.put("nombre", " con espacio"),
+                d -> d.remove("fechaInicio"),
+                d -> d.put("fechaInicio", "2026-12-01"),
+                d -> d.remove("fechaFin"),
+                d -> d.put("fechaFin", new java.util.Date(d.getDate("fechaInicio").getTime() - 86_400_000L)),
+                d -> d.remove("ubicacion"),
+                d -> d.put("ubicacion", "u".repeat(201)),
+                d -> d.remove("descripcion"),
+                d -> d.put("descripcion", ""),
+                d -> d.put("descripcion", "d".repeat(1001)),
+                d -> d.remove("fechaRegistro"),
+                d -> d.put("version", 0))) {
+            assertRechazado(eventos, evento(cambio));
+        }
+    }
+
+    /** Un evento válido con los máximos: 120, 200 y 1000 puntos de código (con emojis de dos unidades UTF-16). */
+    private static Document evento(Consumer<Document> cambio) {
+        java.util.Date inicio = java.util.Date.from(java.time.Instant.parse("2026-12-01T05:00:00Z"));
+        Document evento = new Document("_id", new ObjectId())
+                .append("gestorId", "00000000-0000-4000-8000-000000000003")
+                .append("nombre", EMOJI.repeat(120))
+                .append("fechaInicio", inicio)
+                .append("fechaFin", java.util.Date.from(java.time.Instant.parse("2026-12-03T05:00:00Z")))
+                .append("ubicacion", EMOJI.repeat(200))
+                .append("descripcion", EMOJI.repeat(1000))
+                .append("fechaRegistro", new java.util.Date());
+        cambio.accept(evento);
+        return evento;
+    }
+
     private static Document atractivoV2(Consumer<Document> cambio) {
         Document atractivo = new Document("_id", new ObjectId())
                 .append("gestorId", "00000000-0000-4000-8000-000000000003")
@@ -820,7 +892,7 @@ class MigracionesMongoTest {
         assertThat(segunda.getStdout()).contains("ya aplicada: M001", "ya aplicada: M002", "ya aplicada: M003",
                 "ya aplicada: M004", "ya aplicada: M005", "ya aplicada: M006", "ya aplicada: M007",
                 "ya aplicada: M008", "ya aplicada: M009", "ya aplicada: M010", "ya aplicada: M011",
-                "ya aplicada: M012");
+                "ya aplicada: M012", "ya aplicada: M013");
         assertThat(documentos(existente, "servicios")).isEqualTo(antes);
         assertThat(idsMigraciones(existente)).containsExactlyElementsOf(MIGRACIONES);
     }
@@ -872,7 +944,8 @@ class MigracionesMongoTest {
 
         assertThat(idsMigraciones(errores)).containsExactly("M001__unidades-alojamiento", "M003__cuentas",
                 "M004__indice-servicios-prestador", "M005__faq-avisos", "M007__favoritos-historial",
-                "M008__registro-servicios", "M011__servicios-version", "M012__atractivos-gestion");
+                "M008__registro-servicios", "M011__servicios-version", "M012__atractivos-gestion",
+                "M013__eventos");
         assertThat(errores.getCollection("faq").countDocuments()).isZero();
         assertThat(unidadesDe(errores, "Hotel Casa Tayrona")).hasSize(1);
     }

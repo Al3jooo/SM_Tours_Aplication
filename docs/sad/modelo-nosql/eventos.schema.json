@@ -1,0 +1,49 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "required": ["gestorId", "nombre", "fechaInicio", "fechaFin", "ubicacion", "descripcion", "fechaRegistro"],
+    "additionalProperties": false,
+    "properties": {
+      "_id": { "bsonType": "objectId" },
+      "gestorId": {
+        "bsonType": "string",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "description": "id_usuario del Gestor que registró el evento (RF25) — referencia a Auth Service, sin FK física"
+      },
+      "nombre": {
+        "bsonType": "string",
+        "minLength": 1,
+        "maxLength": 120,
+        "pattern": "^\\S([\\s\\S]*\\S)?\\z",
+        "description": "RF25 (DEC-236)"
+      },
+      "fechaInicio": {
+        "bsonType": "date",
+        "description": "Día de inicio, a las 00:00 de America/Bogota (DEC-215)"
+      },
+      "fechaFin": {
+        "bsonType": "date",
+        "description": "Último día del evento, incluido, a las 00:00 de America/Bogota (DEC-215). No anterior a fechaInicio (DEC-237)"
+      },
+      "ubicacion": {
+        "bsonType": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "pattern": "^\\S([\\s\\S]*\\S)?\\z",
+        "description": "RF25. Obligatoria (DEC-235)"
+      },
+      "descripcion": {
+        "bsonType": "string",
+        "minLength": 1,
+        "maxLength": 1000,
+        "pattern": "^\\S([\\s\\S]*\\S)?\\z",
+        "description": "RF25. Obligatoria (DEC-235); mismo máximo que en atractivos (DEC-236)"
+      },
+      "fechaRegistro": {
+        "bsonType": "date",
+        "description": "Instante del registro (RelojPort); orden del panel del Gestor (DEC-238)"
+      }
+    }
+  },
+  "$expr": { "$lte": ["$fechaInicio", "$fechaFin"] }
+}

@@ -7,7 +7,8 @@ Este documento nace con la iteración «Contenido público» (RF26, RF47, RF40; 
 - los **avisos generales** (CU [«Crear y publicar aviso general»](../../casos-de-uso/CU-crear-publicar-aviso-general.md));
 - los **favoritos** (CU [«Guardar favoritos»](../../casos-de-uso/CU-guardar-favoritos.md)) y el **historial de búsquedas** (CU [«Consultar historial de búsquedas»](../../casos-de-uso/CU-consultar-historial-busquedas.md)), de la iteración B1 «Turista» (RF54, RF60; DEC-80, DEC-56);
 - el **registro de servicios**, «Mis servicios» y la **aprobación** (CU [«Registrar servicio comercial»](../../casos-de-uso/CU-registrar-servicio.md) y [«Aprobar o rechazar servicio»](../../casos-de-uso/CU-aprobar-rechazar-servicio.md)), de la iteración C (RF09, RF10, RF37, RF21; DEC-124 a DEC-151), con los campos nuevos del detalle público y el RNT de la proyección `cuentas`;
-- la **gestión de atractivos** del Gestor, su **ficha pública** y las **imágenes** en GridFS (CU [«Registrar atractivo»](../../casos-de-uso/CU-registrar-atractivo.md), [«Actualizar atractivo»](../../casos-de-uso/CU-actualizar-atractivo.md), [«Cambiar estado operativo»](../../casos-de-uso/CU-cambiar-estado-atractivo.md) y [«Consultar detalle de atractivo»](../../casos-de-uso/CU-consultar-detalle-atractivo.md)), de la iteración E, sesión A1 (RF06, RF07, RF24, RF27, RF33, RF58; DEC-206 a DEC-221; [ADR-009](../adr/ADR-009-imagenes-gridfs.md)).
+- la **gestión de atractivos** del Gestor, su **ficha pública** y las **imágenes** en GridFS (CU [«Registrar atractivo»](../../casos-de-uso/CU-registrar-atractivo.md), [«Actualizar atractivo»](../../casos-de-uso/CU-actualizar-atractivo.md), [«Cambiar estado operativo»](../../casos-de-uso/CU-cambiar-estado-atractivo.md) y [«Consultar detalle de atractivo»](../../casos-de-uso/CU-consultar-detalle-atractivo.md)), de la iteración E, sesión A1 (RF06, RF07, RF24, RF27, RF33, RF58; DEC-206 a DEC-221; [ADR-009](../adr/ADR-009-imagenes-gridfs.md));
+- la **agenda de eventos**: el registro y el panel del Gestor y la agenda pública (CU [«Registrar evento en agenda»](../../casos-de-uso/CU-registrar-evento-agenda.md) y [«Consultar agenda de eventos»](../../casos-de-uso/CU-consultar-agenda-eventos.md)), de la iteración E, sesión A2 (RF25; DEC-215, DEC-235 a DEC-242).
 
 La búsqueda, los filtros, el detalle de un servicio y el endpoint interno de la proyección `cuentas` están descritos en `docs/trazabilidad.md` («Endpoints de ms-catalog») y en [`ms-auth.md`](ms-auth.md) («Endpoint interno de los consumidores»). Las decisiones están en `docs/trazabilidad.md` («Contenido público — decisiones» y «Turista (B1) — decisiones»).
 
@@ -19,6 +20,7 @@ La búsqueda, los filtros, el detalle de un servicio y el endpoint interno de la
   - `/api/v1/catalogo/prestador/**` exige el rol **Prestador** (RNF06, DEC-125); el prestador es siempre el del claim `sub`.
   - `/api/v1/catalogo/gestor/**` exige el rol **Gestor** (RNF06, DEC-220). Un Gestor sin fila en la proyección `cuentas` recibe antes 401 `SESION_INVALIDADA` (DEC-110).
   - `GET /atractivos/{id}` y `GET /imagenes/{id}` son públicos (DEC-217, DEC-209).
+  - `GET /eventos` (la agenda) es público y se llama **sin token** (DEC-239).
   - `GET /faq` y `GET /avisos` son públicos y se llaman **sin token** (DEC-47).
   - Si a una ruta pública le llega un Bearer, también se valida ([ADR-008](../adr/ADR-008-sincronizacion-estado-cuentas.md)):
     - vencido, mal firmado o de servicio → 401 `NO_AUTENTICADO`;
@@ -27,9 +29,9 @@ La búsqueda, los filtros, el detalle de un servicio y el endpoint interno de la
 - **Textos:** se guardan **sin los espacios de los extremos** (`strip()`).
   - Los límites se cuentan después de recortar y en **puntos de código**: un emoji cuenta uno, como `maxLength` en MongoDB (DEC-61).
   - El contenido va en el idioma en que lo escribe el Administrador, sin campos por idioma (DEC-69).
-- **Fechas:** instantes ISO 8601 en UTC, con milisegundos si los hay (`2026-10-22T15:30:00.123Z`).
+- **Fechas:** instantes ISO 8601 en UTC, con milisegundos si los hay (`2026-10-22T15:30:00.123Z`). Excepción: las fechas de día de los eventos (`fechaInicio`, `fechaFin`) van como `yyyy-MM-dd`, en America/Bogota (DEC-215).
 - **Ids:** ObjectId en hexadecimal (24 caracteres en minúscula). Un id que no tiene esa forma responde **404**, igual que uno inexistente.
-- **Página** (el listado de avisos del Administrador, «Mis servicios», la cola de servicios y el panel «Atractivos» del Gestor): de 10, con `pagina` desde 0, como ms-auth (DEC-41): `{elementos, pagina, tamano: 10, totalElementos, totalPaginas}`.
+- **Página** (el listado de avisos del Administrador, «Mis servicios», la cola de servicios, el panel «Atractivos» del Gestor, su panel de eventos y la agenda pública): de 10, con `pagina` desde 0, como ms-auth (DEC-41): `{elementos, pagina, tamano: 10, totalElementos, totalPaginas}`.
 
 ## Preguntas frecuentes (RF26, RF47)
 
@@ -406,6 +408,40 @@ Respuestas:
 - **200** con el contenido, `Content-Type: image/jpeg` o `image/png` (el formato detectado al registrarla) y `Cache-Control: max-age=31536000, public, immutable`.
 - **404 `IMAGEN_NO_ENCONTRADA`** si no existe, el id no es un ObjectId o el archivo no lo guardó el registro de atractivos.
 
+## Agenda de eventos (Gestor; RF25)
+
+Solo el rol Gestor (DEC-220). CU [«Registrar evento en agenda»](../../casos-de-uso/CU-registrar-evento-agenda.md). Sin edición ni borrado (DEC-215); sin `version` (DEC-241).
+
+**Campos** (recortados con `strip()` y contados en puntos de código):
+
+| Campo | Regla | Decisión |
+|---|---|---|
+| `nombre` | Obligatorio, 1 a 120 | DEC-235, DEC-236 |
+| `fechaInicio` | Obligatoria, día `yyyy-MM-dd` (año de cuatro cifras); otra forma o un día que no existe es `FORMATO` | DEC-236 |
+| `fechaFin` | Obligatoria, como `fechaInicio`. Anterior a `fechaInicio` → `NO_PERMITIDO` (DEC-237). Anterior a hoy en America/Bogota → `NO_PERMITIDO` (DEC-242, **decisión del equipo, no del SRS**). Igual a `fechaInicio` es un evento de un día | DEC-237, DEC-242 |
+| `ubicacion` | Obligatoria, 1 a 200 | DEC-215, DEC-235 |
+| `descripcion` | Obligatoria, 1 a 1000 | DEC-235, DEC-236 |
+
+Lo que fija el servidor se ignora si llega: `gestorId` (el `sub`) y `fechaRegistro` (`RelojPort`).
+
+**Evento de gestión** (respuesta de esta sección): `{id, nombre, fechaInicio, fechaFin, ubicacion, descripcion, gestorId, fechaRegistro}`. Las fechas de día van como `yyyy-MM-dd`; `fechaRegistro`, como instante.
+
+### Registrar
+
+`POST /api/v1/catalogo/gestor/eventos`, JSON con los campos de la tabla.
+- **201** con `Location: /api/v1/catalogo/gestor/eventos/{id}` (como `POST /admin/avisos`; no hay `GET` por id) y el evento. Queda publicado de inmediato en la agenda (RF25: «publicándolos automáticamente»).
+- **400 `DATOS_INVALIDOS`** con `campos` (`REQUERIDO`, `FORMATO`, `LONGITUD_MAXIMA`, `NO_PERMITIDO`). Un cuerpo que no es JSON, sin `campos`. No se guarda nada.
+
+### Panel de eventos del Gestor (DEC-238)
+
+`GET /api/v1/catalogo/gestor/eventos?pagina=0`: **todos** los eventos, también los vencidos, del más reciente al más antiguo (`fechaRegistro`, desempate por id), de 10 en 10. Cada elemento es el evento de gestión. `pagina` negativa o que no es un número → 400 con `campos.pagina = FORMATO`.
+
+## Agenda de eventos (pública; RF25, DEC-239)
+
+`GET /api/v1/catalogo/eventos?pagina=0`, sin token. CU [«Consultar agenda de eventos»](../../casos-de-uso/CU-consultar-agenda-eventos.md).
+- **200** con la página: los eventos con `fechaFin` igual o posterior a hoy en America/Bogota (`RelojPort`), por `fechaInicio` ascendente (desempate por id), de 10 en 10 (DEC-215). Cada elemento: `{id, nombre, fechaInicio, fechaFin, ubicacion, descripcion}`; no expone `gestorId` ni `fechaRegistro`. Un evento que termina hoy sale de la agenda a las 00:00 de Bogotá del día siguiente.
+- **400** con `campos.pagina = FORMATO`; **401** si llega un Bearer inválido (como en toda ruta pública).
+
 ## Códigos de error
 
 | Código | HTTP | Cuándo |
@@ -414,7 +450,7 @@ Respuestas:
 | `CRITERIOS_INVALIDOS` | 400 | `POST /historial` con criterios que `GET /oferta` también rechaza (DEC-88) |
 | `NO_AUTENTICADO` | 401 | Sin token en `/admin/**`, `/favoritos/**`, `/historial`, `/prestador/**` o `/gestor/**`, o con un token vencido, inválido o de servicio (`rol = SERVICIO`) |
 | `SESION_INVALIDADA` | 401 | `ver` menor que la versión de la proyección `cuentas`, o un token de Gestor o Administrador cuya cuenta no tiene fila en ella (DEC-110; L3 cerrado con RF45) |
-| `ACCESO_DENEGADO` | 403 | `/admin/**` con un rol que no es Administrador (Turista, Prestador o Gestor); `/favoritos/**` o `/historial` con un rol que no es Turista; `/prestador/**` con un rol que no es Prestador; `/gestor/**` con un rol que no es Gestor (Turista, Prestador o Administrador) |
+| `ACCESO_DENEGADO` | 403 | `/admin/**` con un rol que no es Administrador (Turista, Prestador o Gestor); `/favoritos/**` o `/historial` con un rol que no es Turista; `/prestador/**` con un rol que no es Prestador; `/gestor/**` (atractivos y eventos) con un rol que no es Gestor (Turista, Prestador o Administrador) |
 | `PRESTADOR_NO_HABILITADO` | 403 | `POST /prestador/servicios` de un prestador sin fila en `cuentas`, no `Activo` o sin RNT (DEC-139) |
 | `OFERTA_NO_DISPONIBLE` | 404 | `PUT /favoritos/{tipo}/{id}` con un id inválido, inexistente o no visible |
 | `FAQ_NO_ENCONTRADA` | 404 | Pregunta inexistente o id que no es un ObjectId |
@@ -432,12 +468,14 @@ Respuestas:
 
 ## Colecciones
 
-`faq` y `avisos` en `catalog_db` (DEC-57). Los validadores están en [`modelo-nosql/faq.schema.json`](../modelo-nosql/faq.schema.json) y [`modelo-nosql/avisos.schema.json`](../modelo-nosql/avisos.schema.json); la migración M005 lleva su propia copia.
+`faq` y `avisos` en `catalog_db` (DEC-57); `eventos` (RF25, M013), con su validador en [`modelo-nosql/eventos.schema.json`](../modelo-nosql/eventos.schema.json). Los validadores están en [`modelo-nosql/faq.schema.json`](../modelo-nosql/faq.schema.json) y [`modelo-nosql/avisos.schema.json`](../modelo-nosql/avisos.schema.json); la migración M005 lleva su propia copia.
 
 Índices:
 - `faq_titulo`: `{titulo: 1, _id: 1}` con colación `es`, nivel 1;
 - `avisos_activos`: `{activo: 1, fechaPublicacion: -1, _id: -1}`;
-- `avisos_fecha`: `{fechaPublicacion: -1, _id: -1}`.
+- `avisos_fecha`: `{fechaPublicacion: -1, _id: -1}`;
+- `eventos_agenda`: `{fechaInicio: 1, _id: 1, fechaFin: 1}` (la agenda pública: el orden y después el rango);
+- `eventos_registro`: `{fechaRegistro: -1, _id: -1}` (el panel del Gestor).
 
 La semilla de demostración (M006, solo con `MONGO_SEMILLA=true`) trae 5 preguntas y 1 aviso activo.
 
