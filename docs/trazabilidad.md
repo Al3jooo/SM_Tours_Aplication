@@ -1422,6 +1422,52 @@ Sesión del 2026-11-05 sobre `main` en `7595bdc` (merge del PR #32): `docker com
 
 **Datos de prueba en el volumen local:** atractivo `6aecb3b0b4962254d113323d` («Prueba recorrido O36»), creado por el Gestor de la semilla en el recorrido con una imagen en GridFS (`6aecb3b0b4962254d113323e`); `limiteCapacidadCarga` de 50 a 60 (versión 1); estado de Abierto a Cerrado temporalmente (versión 2) y, en la verificación de la corrección, de vuelta a Abierto (versión 3). No hay borrado de atractivos (DEC-206): queda en el volumen.
 
+## Atractivos y agenda, frontend — decisiones (iteración E, sesión B2; RF25)
+
+Pantallas de la agenda de eventos sobre el backend de A2 (PR #32). Un solo PR desde `feature/eventos-agenda-frontend`. CU de referencia: [Registrar evento en agenda](casos-de-uso/CU-registrar-evento-agenda.md) y [Consultar agenda de eventos](casos-de-uso/CU-consultar-agenda-eventos.md); solo cambia su línea «Pantallas». Wireframes nuevos, propuestos por arquitectura y pendientes de validación: [WF-25](wireframes/WF-25-eventos-gestor.puml) (panel y registro del Gestor) y [WF-26](wireframes/WF-26-agenda-eventos.puml) (agenda pública). Sin cambios en el backend.
+
+**Decisiones que no se reabren:** DEC-215, DEC-235 a DEC-242, DEC-47 (públicos sin `Authorization`), DEC-176 (capas), DEC-233 (menú y pie del Gestor) y DEC-243 (CSP). Riesgo de A2: el frontend **no recalcula «hoy»**.
+
+**Decisiones de la sesión B2 (DEC-245 a DEC-251; propuestas por arquitectura y aprobadas por el usuario el 2026-11-05, con las condiciones C1 a C4):**
+
+| # | Tema | Decisión | Dónde |
+|---|---|---|---|
+| DEC-245 | Rutas y alta (D1) | `/agenda` (pública), `/gestor/eventos` y `/gestor/eventos/nuevo` (Gestor). El alta es una **página propia**, no un diálogo. **Justificación:** el patrón de WF-24 y WF-09; el CU dice que el Gestor «abre "Registrar evento" desde su panel» y el menú necesita una ruta; cinco campos y una descripción de 1000 no caben bien en un diálogo a 360 px | `App.tsx`, `RegistrarEventoPage.tsx` |
+| DEC-246 | Enlace público (D2) | «Agenda de eventos» en la columna «Municipio» del pie, junto a «Noticias» (pendiente). El encabezado (navegación v2) y el inicio (WF-04) no cambian. **Mejora de diseño** (elemento común, README de wireframes). **Justificación:** los eventos son contenido del municipio; no altera la navegación común ni agrega una petición al inicio; es visible para todos (RF25) | `PiePagina.tsx` |
+| DEC-247 | Presentación (D3) | **Agenda:** tarjetas en el orden del servidor, con el bloque del día y el mes de inicio, nombre, fechas, lugar y la descripción con sus saltos de línea (`pre-line`, como DEC-227); sin insignias de «Hoy» o «En curso». **Panel:** tabla como WF-24 con nombre, fechas, ubicación y registro; sin acciones (DEC-215), sin el Gestor (uuid sin nombre, como DEC-144) ni marca de «vencido». **Justificación:** las marcas exigirían calcular «hoy» en el cliente | `AgendaPage.tsx`, `agenda.css`, `EventosGestorPage.tsx` |
+| DEC-248 | Validación en el cliente (D4) | Los límites del servidor (1 a 120, 200 y 1000, con `trim` y en puntos de código), `FORMATO` (`esFechaIso`) y fin anterior al inicio → `NO_PERMITIDO` (comparación de texto `yyyy-MM-dd`, sin zona). **«No anterior a hoy» lo decide solo el servidor:** sin validación local ni `min` en los `input`. Un 400 `fechaFin = NO_PERMITIDO` con el fin no anterior al inicio en el borrador solo puede ser DEC-242: se muestra «La fecha de fin ya pasó (hoy en Santa Marta)». **Justificación:** una sola fuente de «hoy» (`RelojPort`, Bogotá); el reloj o la zona del navegador fallarían cerca de la medianoche | `borradorEvento.ts` |
+| DEC-249 | Estados (D5) | Agenda vacía: «No hay eventos próximos» con «Explorar la oferta turística» (FA1); página fuera de rango: a la última (FA2); `pagina` inválida: se lee como 1, sin 400 (FA3); 503 o red: aviso con «Reintentar». Panel: lo mismo y «Sin permiso» ante un 403. Alta: 400 por campo con foco en el primero (lo que no tiene control, mensaje general); 403, 503 y red, mensaje general con foco; un solo envío a la vez; nada borra lo escrito; el 201 vuelve al panel con «Evento registrado: ya está publicado en la agenda» | `AgendaPage.tsx`, `EventosGestorPage.tsx`, `RegistrarEventoPage.tsx` |
+| DEC-250 | Capas y fechas de día | La agenda pública en `features/agenda/`; el Gestor en `features/gestor/`. **Imports entre features aceptados (C4):** `gestor → agenda/fechasEvento` y `agenda/agendaApi`, y los ya existentes hacia `prestador` (`CampoServicio`, `rutasCampos`, `useMisServicios`), `admin` (`textoAcotado`, `PaginaCuentas`), `reservas` (`fechasBogota`) y `catalogo` (`formato`). Nada en `shared/`, que no depende de `features/` (DEC-176). Las fechas de día se formatean **solo** con `formatearFecha` (UTC) y `Intl.DateTimeFormat.formatRange` en UTC; nunca con `formatearDia` (O42) | `fechasEvento.ts` |
+| DEC-251 | Acceso del Gestor | Menú: «Eventos» y «Registrar evento», después de los atractivos. «Panel del gestor» del pie sigue en `/gestor/atractivos` (DEC-233); WF-24 no cambia | `MenuUsuario.tsx` |
+
+**Estado de los RF de la sesión:**
+
+| RF | Estado | Pruebas / pendiente |
+|---|---|---|
+| RF25 (agenda de eventos) | **Implementado** | Backend de A2 y, en el frontend, `agenda.test.tsx`, `fechasEvento.test.ts`, `borradorEvento.test.ts`, `registrarEvento.test.tsx`, `eventosGestor.test.tsx`, `rutasGestor.test.tsx`, `piePagina.test.tsx` y `elementosComunes.test.tsx`; recorrido visual abajo |
+
+Avance: de **39 a 40 de 64**. La iteración E está cerrada.
+
+**Hallazgos y observaciones de la sesión B2:** sin Hallazgos Críticos (RF25 tiene dos CU; el modelo es de ms-catalog y no cruza bases; cada decisión está justificada).
+
+| # | Hallazgo | Estado |
+|---|---|---|
+| O40 | El merge del PR #33 se rehízo con force-push; `4c7b9db` (con `6bc1c09`) quedó huérfano; `main` = `eb0e82d` (con `2ad232b`); árbol idéntico (`git diff` vacío). Riesgo de proceso: recomendada protección de rama en `main` sin force-push | **Confirmado por el usuario** el 2026-11-05. No bloquea |
+| O41 | `Location` del 201 apunta a `GET /gestor/eventos/{id}`, que no existe (ya documentado en el contrato). El frontend no lo usa | Registrado |
+| O42 | `formatearDia` (para instantes) mostraría «2026-11-20» como el 19 en Bogotá: lo lee como 00:00 UTC | Evitado con DEC-250; `fechasEvento.test.ts` lo prueba en dos zonas |
+| O43 | Sin `maximo`, `CampoServicio` toma `LONGITUD_MAXIMA['descripcion'] = 2000` de WF-08 | Evitado: el alta pasa 120, 200 y 1000 explícitos (`MAXIMO_EVENTO`) |
+| O44 | Los dos CU decían «sin wireframe todavía» | **Resuelto:** línea «Pantallas» actualizada con permiso |
+| O45 | Prueba existente modificada fuera de los 21 archivos del plan: `elementosComunes.test.tsx` (la columna «Municipio» del pie suma «Agenda de eventos» y su `href`) | Aceptado a posteriori: el archivo no estaba en el plan aprobado; el permiso se pidió durante el Paso 3, después de que la prueba fallara |
+
+**Verificación de la sesión B2:**
+- `npm test`: de **764 pruebas en 75 archivos a 808 en 80**, sin fallos. `npm run build` (`tsc -b` y `vite build`): sin errores.
+- `docker compose up -d --build --no-deps frontend` (N26); el resto de los contenedores ya estaba arriba.
+- **Recorrido visual** (2026-11-05): Chromium visible manejado con Playwright desde el scratchpad, fuera del repositorio; el usuario inició sesión en la ventana (O18). Pantallas: agenda sin sesión desde el pie (vacía y con el evento), panel del Gestor (vacío y con el anuncio) y alta (vacía, errores por campo, fin anterior al inicio y fin ayer), a 1366 y 360 px, en ES y EN. Sin desbordes horizontales. Consola: solo el 400 esperado del caso «fin ayer». API: un 400 `DATOS_INVALIDOS` con `campos.fechaFin = NO_PERMITIDO` (fin ayer, no guardó nada) y un 201. El caso «fin anterior al inicio» no envió ningún POST.
+
+**Datos de prueba en el volumen local (C3):** evento `6aecd33cb4962254d1133241` («Prueba recorrido B2»), `fechaInicio = fechaFin = 2026-11-05` (hoy en Bogotá), creado por el Gestor de la semilla (`00000000-0000-4000-8000-000000000003`) el 2026-11-05T19:04:28.948Z. No hay borrado de eventos (DEC-215): queda en el volumen y sale de la agenda a las 00:00 de Bogotá del 2026-11-06.
+
+**Fuera de alcance de la sesión B2:** editar, borrar o despublicar eventos (DEC-215); filtros de la agenda y ficha propia de un evento (CU); un bloque «Próximos eventos» en el inicio (pendiente opcional de DEC-246); notificaciones de eventos (ms-notificaciones).
+
 ## Buscar oferta turística — decisiones de búsqueda (RF16, RF23, RF33, RF38, RF50, RF61)
 
 Decididas por el equipo; se aplican en el caso de uso de ms-catalog (`domain/service/PoliticaBusqueda` y el adaptador MongoDB; arquitectura en [`ADR-004`](sad/adr/ADR-004-busqueda-combinada.md)).

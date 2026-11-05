@@ -12,7 +12,7 @@
 **Pantallas de la plataforma (WF-04 a WF-10):**
 - **Encabezado:** logo «Samaria360»; navegación **Búsqueda, Servicios, Asistente IA**; selector **ES / EN** (RF03, RNF08); con sesión, avatar circular con las iniciales (p. ej. «MG»). Sin sesión, el prototipo muestra además el enlace «Inicio de sesión» (los wireframes solo dibujan el estado con sesión).
 - **Banner de avisos del municipio (RF40, DEC-67):** debajo del encabezado, en todas las pantallas con el encabezado de la plataforma. Muestra todos los avisos activos, del más reciente al más antiguo, con su tipo. Se cierra y no vuelve en la sesión del navegador; sin avisos activos, no aparece. WF-04 lo dibuja solo en el inicio, pero RF40 lo pide «en la parte superior de la interfaz para todos los usuarios»: por eso es común («Mejora de diseño»). Estructura en WF-14.
-- **Pie de página:** logo; columnas **Explorar** (Alojamiento, Gastronomía, Tours, Alquiler de equipos), **Municipio** (Noticias), **Prestadores** (Registrar servicio, Panel del gestor), **Legal y Soporte** (Términos y condiciones, Políticas de privacidad, Preguntas frecuentes — RF46, RF26). Texto inferior: «© 2026 Alcaldía de Santa Marta · Samaria360». «Términos y condiciones» lleva a WF-15, «Políticas de privacidad» a su sección 4 y «Preguntas frecuentes» a WF-13.
+- **Pie de página:** logo; columnas **Explorar** (Alojamiento, Gastronomía, Tours, Alquiler de equipos), **Municipio** (Noticias, Agenda de eventos), **Prestadores** (Registrar servicio, Panel del gestor), **Legal y Soporte** (Términos y condiciones, Políticas de privacidad, Preguntas frecuentes — RF46, RF26). Texto inferior: «© 2026 Alcaldía de Santa Marta · Samaria360». «Términos y condiciones» lleva a WF-15, «Políticas de privacidad» a su sección 4 y «Preguntas frecuentes» a WF-13. «Agenda de eventos» (RF25) lleva a WF-26: no está en la v2 y se agregó en la iteración E, sesión B2 («Mejora de diseño», DEC-246).
 
 **Pantallas de acceso (WF-01 a WF-03):**
 - **Encabezado reducido:** solo logo y selector ES / EN.
@@ -46,6 +46,8 @@
 | WF-22-perfil-comercial.puml | Mi perfil comercial **(nuevo)** | Actualizar datos comerciales (flujo A) | RF43 | **Sí** (iteración D, sesión B; `/prestador/perfil`). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-23-historial-reservas-prestador.puml | Historial de reservas del Prestador **(nuevo)** | Consultar historial | RF12 | **Sí** (iteración D, sesión B; `/prestador/reservas`). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-24-atractivos-gestor.puml | Atractivos, panel del gestor **(nuevo)** | Actualizar atractivo (flujo «Consultar atractivos»); Cambiar estado operativo | RF07, RF33 | **Sí** (iteración E, sesión B1; `/gestor/atractivos`), con los filtros deshabilitados. **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-25-eventos-gestor.puml | Eventos, panel del gestor, y Registrar evento **(nuevo)** | Registrar evento en agenda (con el flujo «Consultar eventos registrados») | RF25 | **Sí** (iteración E, sesión B2; `/gestor/eventos` y `/gestor/eventos/nuevo`). **Propuesto por arquitectura, pendiente de validación del equipo** |
+| WF-26-agenda-eventos.puml | Agenda de eventos **(nuevo)** | Consultar agenda de eventos | RF25 | **Sí** (iteración E, sesión B2; `/agenda`, pública). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-06-detalle-atractivo.puml | Ficha pública de un atractivo **(nuevo)** | Consultar detalle de atractivo | RF06, RF07, RF24, RF27, RF33, RF58 | **Sí** (iteración E, sesión B1; `/atractivos/:id`). **Propuesto por arquitectura, pendiente de validación del equipo** |
 | WF-05-06-11-cambios-turista.puml | Cambios en WF-05, WF-06 y WF-11 **(nuevo)** | Consultar historial de búsquedas, Guardar favoritos, Compartir reserva completada | RF60, RF54, RF49 | **Sí** (sesión B de B1). **Propuesto por arquitectura, pendiente de validación del equipo** |
 
@@ -195,6 +197,19 @@ Migas: Inicio y búsqueda › Panel del gestor › Registrar atractivo. Seccione
 - **Tabla** como WF-18 (por debajo de 40 rem cada fila es una tarjeta): foto, nombre, categoría, estado operativo (insignia), capacidad, fecha de registro y acciones «Editar», «Cambiar estado» y «Ver ficha pública».
 - **Filtros** de estado y de texto, deshabilitados: el contrato no los admite (DEC-222, pendiente).
 - **Diálogo «Cambiar estado»:** el estado actual no se puede elegir; con 409 `ATRACTIVO_MODIFICADO` se relee el atractivo y se avisa (DEC-225).
+
+## WF-25 — Eventos, panel del gestor, y Registrar evento (nuevo)
+
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-25-eventos-gestor.puml`), solo de estructura. Implementado en la iteración E, sesión B2 (DEC-245, DEC-247 a DEC-249, DEC-251). CU «Registrar evento en agenda», con el flujo «Consultar eventos registrados» (RF25). Pantallas privadas del Gestor, desde el menú del avatar («Eventos» y «Registrar evento»).
+- **Panel** (`/gestor/eventos`): **todos** los eventos, también los que ya terminaron, del más reciente al más antiguo (DEC-238), en páginas de 10 con la página en la URL. Tabla como WF-24 (por debajo de 40 rem, tarjetas): nombre, fechas (un día o el rango), ubicación y fecha de registro. **Sin acciones:** no hay edición ni borrado (DEC-215). Sin el Gestor (un uuid sin nombre) ni marca de «vencido», que exigiría calcular «hoy» en el cliente.
+- **Registro** (`/gestor/eventos/nuevo`, página propia como WF-09): nombre (0/120), fecha de inicio y fecha de fin (selector de fecha), ubicación (0/200) y descripción (0/1000), con error por campo. El cliente valida los límites y que el fin no sea anterior al inicio; «no anterior a hoy» lo decide el servidor (DEC-242, DEC-248). Nota: se publica de inmediato y no se puede editar ni borrar. El 201 vuelve al panel con el anuncio.
+
+## WF-26 — Agenda de eventos (nuevo)
+
+**Estado: propuesto por arquitectura, pendiente de validación del equipo.** Wireframe en Salt (`WF-26-agenda-eventos.puml`), solo de estructura. Implementado en la iteración E, sesión B2 (DEC-246, DEC-247, DEC-249). CU «Consultar agenda de eventos» (RF25). Pantalla pública (`/agenda`), sin token, desde «Agenda de eventos» del pie.
+- **Tarjetas** en el orden del servidor (los vigentes según «hoy» en Bogotá, por fecha de inicio): bloque con el día y el mes de inicio, nombre, fechas, lugar y descripción con sus saltos de línea. Sin insignias de «Hoy» ni «En curso».
+- **Estados:** agenda vacía con «Explorar la oferta turística»; página fuera de rango, a la última; error con «Reintentar». Páginas de 10.
+- **Sin filtros** ni ficha propia de un evento: el CU los deja fuera de alcance.
 
 ## WF-06 para atractivos — Ficha pública de un atractivo (nuevo)
 

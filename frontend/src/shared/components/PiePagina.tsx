@@ -21,7 +21,11 @@ const COLUMNAS: { titulo: string; enlaces: EnlacePie[] }[] = [
       { texto: 'pie.alquilerEquipos', destino: '/explorar?categoria=AlquilerEquipo' },
     ],
   },
-  { titulo: 'pie.municipio', enlaces: [{ texto: 'pie.noticias' }] },
+  {
+    titulo: 'pie.municipio',
+    // RF25 (DEC-246): la agenda de eventos pública (WF-26); «Noticias» sigue pendiente.
+    enlaces: [{ texto: 'pie.noticias' }, { texto: 'pie.agendaEventos', destino: '/agenda' }],
+  },
   {
     titulo: 'pie.prestadores',
     // «Panel del gestor» lleva al panel «Atractivos» (WF-24, DEC-233); un rol que no es Gestor ve «Sin permiso».

@@ -42,7 +42,9 @@
     "historialReservas": "Booking history",
     "perfilComercial": "My business profile",
     "atractivos": "Attractions",
-    "registrarAtractivo": "Register attraction"
+    "registrarAtractivo": "Register attraction",
+    "eventos": "Events",
+    "registrarEvento": "Register event"
   },
   "login": {
     "titulo": "Sign in to Samaria360",
@@ -177,6 +179,7 @@
     "alquilerEquipos": "Equipment rental",
     "municipio": "Municipality",
     "noticias": "News",
+    "agendaEventos": "Events calendar",
     "prestadores": "Service providers",
     "registrarServicio": "Register a service",
     "panelGestor": "Manager dashboard",
@@ -1490,6 +1493,81 @@
       "cancelar": "Cancel",
       "enviando": "Saving…",
       "confirmar": "Change status"
+    },
+    "eventos": {
+      "campos": {
+        "nombre": "Event name",
+        "fechaInicio": "Start date",
+        "fechaFin": "End date",
+        "ubicacion": "Location",
+        "descripcion": "Description"
+      },
+      "panel": {
+        "titulo": "Events",
+        "registrar": "Register event",
+        "apoyo": "All registered events, including those that have ended, from newest to oldest.",
+        "contador_one": "{{count}} event",
+        "contador_other": "{{count}} events",
+        "vacio": "No events have been registered yet.",
+        "cargando": "Loading the events…",
+        "errores": {
+          "sinPermiso": "Your account cannot see the events.",
+          "noEncontrado": "The events were not found.",
+          "noDisponible": "The catalog is not responding right now.",
+          "red": "No connection. Check your network and try again.",
+          "otro": "The events could not be loaded."
+        },
+        "tabla": "Registered events",
+        "columnas": {
+          "nombre": "Name",
+          "fechas": "Dates",
+          "ubicacion": "Location",
+          "registrado": "Registered"
+        },
+        "anuncios": {
+          "registrado": "Event registered: it is now published in the calendar.",
+          "guardado": "Changes saved.",
+          "noEncontrado": "The event no longer exists."
+        }
+      },
+      "registro": {
+        "titulo": "Register event",
+        "apoyo": "Register a temporary event in the municipality. It is published in the events calendar right away.",
+        "datos": "Event details",
+        "fechasAyuda": "A one-day event has the same start and end date.",
+        "publicacion": "Once registered, the event is published in the calendar right away and cannot be edited or deleted.",
+        "enviar": "Register event",
+        "enviando": "Registering…",
+        "cancelar": "Cancel",
+        "errores": {
+          "DATOS_INVALIDOS": "Check the data: there are errors that do not belong to a field on this screen.",
+          "ACCESO_DENEGADO": "Your account cannot register events.",
+          "SERVICIO_NO_DISPONIBLE": "The catalog is not responding right now. Your data is still here: try again.",
+          "ERROR_RED": "No connection. Your data is still here: try again.",
+          "GENERICO": "The event could not be registered. Your data is still here: try again."
+        }
+      },
+      "errores": {
+        "finAntesDeInicio": "The end date cannot be earlier than the start date.",
+        "finPasado": "The end date has already passed (today in Santa Marta). An event that has ended would not appear in the calendar."
+      }
+    }
+  },
+  "agenda": {
+    "titulo": "Events calendar",
+    "apoyo": "Festivals, fairs and cultural activities in Santa Marta, from the earliest to the latest start.",
+    "contador_one": "{{count}} upcoming event",
+    "contador_other": "{{count}} upcoming events",
+    "cargando": "Loading the calendar…",
+    "vacia": "There are no upcoming events in the calendar.",
+    "explorar": "Explore tourism offers",
+    "lista": "Calendar events",
+    "fechas": "Dates",
+    "ubicacion": "Place",
+    "errores": {
+      "noDisponible": "The calendar is not responding right now.",
+      "red": "No connection. Check your network and try again.",
+      "otro": "The calendar could not be loaded."
     }
   }
 }
