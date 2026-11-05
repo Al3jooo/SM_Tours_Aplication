@@ -1,0 +1,70 @@
+# Actualizaciones de dependencias: un PR agrupado por ecosistema al mes, para no interrumpir las iteraciones.
+# ADR-010: la línea Spring Boot 3.5 (y su Spring Cloud 2025.0) se mantiene durante la Construcción, así que no se
+# proponen cambios de línea de Spring Boot, Spring Cloud ni de la versión mayor de Java o Node en las imágenes.
+version: 2
+
+updates:
+  - package-ecosystem: maven
+    directories:
+      - /ms-auth
+      - /ms-catalog
+      - /ms-booking
+      - /api-gateway
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+      include: scope
+    groups:
+      maven:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: org.springframework.boot:spring-boot-starter-parent
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: org.springframework.cloud:spring-cloud-dependencies
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+      include: scope
+    groups:
+      npm:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: docker
+    directories:
+      - /ms-auth
+      - /ms-catalog
+      - /ms-booking
+      - /api-gateway
+      - /frontend
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: build
+      include: scope
+    groups:
+      docker:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: eclipse-temurin
+        update-types: ["version-update:semver-major"]
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]

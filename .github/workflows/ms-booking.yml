@@ -1,0 +1,28 @@
+name: ms-booking
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ms-booking/**"
+      - ".github/workflows/ms-booking.yml"
+      - ".github/workflows/_java.yml"
+  pull_request:
+    paths:
+      - "ms-booking/**"
+      - ".github/workflows/ms-booking.yml"
+      - ".github/workflows/_java.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    uses: ./.github/workflows/_java.yml
+    with:
+      servicio: ms-booking

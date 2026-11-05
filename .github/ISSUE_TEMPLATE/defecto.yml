@@ -1,0 +1,46 @@
+name: Defecto
+description: Algo del prototipo no funciona como dice el caso de uso o el requisito.
+title: "[Defecto] "
+labels: ["defecto"]
+body:
+  - type: dropdown
+    id: componente
+    attributes:
+      label: Componente
+      options:
+        - frontend
+        - api-gateway
+        - ms-auth
+        - ms-catalog
+        - ms-booking
+        - infra (Docker Compose, bases de datos)
+        - documentación
+    validations:
+      required: true
+  - type: input
+    id: trazabilidad
+    attributes:
+      label: Caso de uso y requisitos
+      description: CU, RF o RNF y wireframe afectados.
+      placeholder: "CU Reservar servicio, RF11, WF-10"
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Pasos para reproducirlo
+      placeholder: |
+        1. Iniciar sesión como turista
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Resultado esperado y resultado obtenido
+      description: Incluir el `codigo` del ProblemDetail y el `X-Correlation-Id` si los hay. No pegar tokens ni contraseñas.
+    validations:
+      required: true
+  - type: textarea
+    id: entorno
+    attributes:
+      label: Entorno
+      description: Docker Compose o arranque local, navegador y sistema operativo.
