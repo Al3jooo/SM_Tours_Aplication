@@ -57,6 +57,15 @@
 /* Etiqueta, control y ayuda arriba: una ayuda más larga en un campo no estira el control de los otros. */
 .reserva__campos > .campo {
   align-content: start;
+  /* La pista 1fr no baja del ancho mínimo de su contenido: sin esto, un select con una opción larga
+     ensancha la página a 360 px (WF-23, O39, DEC-244). */
+  min-width: 0;
+}
+
+/* El select toma el ancho de su opción más larga; aquí se ajusta al campo. */
+.reserva__campos .campo__control select {
+  min-width: 0;
+  width: 100%;
 }
 
 .reserva__verificar {
