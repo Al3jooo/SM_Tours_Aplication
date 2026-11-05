@@ -37,7 +37,10 @@ describe('Pantallas de la plataforma (WF-04 a WF-10)', () => {
     ])
     expect(within(columna('Municipio')).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
       'Noticias (Próximamente)',
+      'Agenda de eventos',
     ])
+    // DEC-246: «Agenda de eventos» lleva a la agenda pública (WF-26).
+    expect(within(columna('Municipio')).getByRole('link', { name: 'Agenda de eventos' })).toHaveAttribute('href', '/agenda')
     expect(within(columna('Prestadores')).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
       'Registrar servicio (Próximamente)',
       'Panel del gestor',

@@ -104,6 +104,17 @@ const RegistrarAtractivoPage = lazy(() =>
 const EditarAtractivoPage = lazy(() =>
   import('../features/gestor/EditarAtractivoPage').then((m) => ({ default: m.EditarAtractivoPage })),
 )
+/**
+ * «Atractivos y agenda» (iteración E, B2; DEC-245): la agenda de eventos pública (WF-26) y, solo para el Gestor, su
+ * panel de eventos y el registro (WF-25); diferidas.
+ */
+const AgendaPage = lazy(() => import('../features/agenda/AgendaPage').then((m) => ({ default: m.AgendaPage })))
+const EventosGestorPage = lazy(() =>
+  import('../features/gestor/EventosGestorPage').then((m) => ({ default: m.EventosGestorPage })),
+)
+const RegistrarEventoPage = lazy(() =>
+  import('../features/gestor/RegistrarEventoPage').then((m) => ({ default: m.RegistrarEventoPage })),
+)
 
 /** Una página diferida: estado de carga mientras llega y aviso con «Reintentar» si la descarga falla. */
 function Diferida({ children }: { children: ReactNode }) {
@@ -123,7 +134,8 @@ function Diferida({ children }: { children: ReactNode }) {
  * para el Administrador; y «Mis servicios» (WF-18) y el registro de servicios (WF-08), privadas y solo para el
  * Prestador, como la edición del precio y de los datos comerciales (WF-20, WF-21), el perfil comercial (WF-22) y el
  * historial de reservas (WF-23); la ficha de un atractivo (WF-06 para atractivos) es pública, y el panel «Atractivos»
- * (WF-24), su registro y su edición (WF-09), privados y solo para el Gestor. El inicio de sesión (WF-01) y el registro (WF-02, WF-03) usan el diseño de acceso. Los
+ * (WF-24), su registro y su edición (WF-09), privados y solo para el Gestor, como su panel de eventos y el registro
+ * (WF-25); la agenda de eventos (WF-26) es pública. El inicio de sesión (WF-01) y el registro (WF-02, WF-03) usan el diseño de acceso. Los
  * favoritos del turista (DEC-93) se comparten entre pantallas, dentro de la sesión.
  */
 export function App() {
@@ -178,6 +190,14 @@ export function App() {
               element={
                 <Diferida>
                   <TerminosPage />
+                </Diferida>
+              }
+            />
+            <Route
+              path="/agenda"
+              element={
+                <Diferida>
+                  <AgendaPage />
                 </Diferida>
               }
             />
@@ -331,6 +351,22 @@ export function App() {
                 element={
                   <Diferida>
                     <EditarAtractivoPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/gestor/eventos"
+                element={
+                  <Diferida>
+                    <EventosGestorPage />
+                  </Diferida>
+                }
+              />
+              <Route
+                path="/gestor/eventos/nuevo"
+                element={
+                  <Diferida>
+                    <RegistrarEventoPage />
                   </Diferida>
                 }
               />

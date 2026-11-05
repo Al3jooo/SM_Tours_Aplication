@@ -23,4 +23,19 @@ describe('Pie de página', () => {
       ),
     ).toBeInTheDocument()
   })
+
+  it('«Municipio» lleva a la agenda de eventos (WF-26, DEC-246); «Noticias» sigue pendiente', async () => {
+    simularFetch({ 'GET /api/v1/catalogo/oferta': () => respuestaJson(200, paginaOferta([])) })
+    const { usuario } = renderApp('/')
+
+    const municipio = within(screen.getByRole('region', { name: 'Municipio' }))
+    expect(municipio.getByRole('link', { name: 'Agenda de eventos' })).toHaveAttribute('href', '/agenda')
+    expect(municipio.queryByRole('link', { name: /Noticias/ })).not.toBeInTheDocument()
+    expect(municipio.getByText('Noticias')).toHaveClass('enlace-deshabilitado')
+
+    await usuario.click(screen.getByRole('button', { name: 'Inglés' }))
+    expect(
+      within(screen.getByRole('region', { name: 'Municipality' })).getByRole('link', { name: 'Events calendar' }),
+    ).toHaveAttribute('href', '/agenda')
+  })
 })

@@ -1,0 +1,45 @@
+' WF-26 — Agenda de eventos (CU «Consultar agenda de eventos»; RF25; DEC-215, DEC-239, DEC-246, DEC-247, DEC-249).
+' Propuesto por arquitectura, pendiente de validación del equipo. Solo estructura: regiones, elementos y flujo.
+' Diagramas: (1) agenda con eventos; (2) agenda vacía. Pública, sin token; se llega desde «Agenda de eventos» de la
+' columna «Municipio» del pie. Lo implementa la iteración E, sesión B2.
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] | (avatar ▼ o «Inicio de sesión») }
+{ Banner de avisos (común, ver WF-14) }
+==
+<b>Agenda de eventos
+Festivales, ferias y actividades culturales de Santa Marta, del que empieza antes al que empieza después.
+Región de estado (aria-live): «n eventos próximos»
+--
+{+
+{ <b>20 | <b>Fiestas del Mar }
+{ NOV | Fechas: 20 a 22 de nov de 2026 · Lugar: Bahía de Santa Marta }
+{ . | Regatas y desfile náutico. (con sus saltos de línea) }
+}
+{+
+{ <b>1 | <b>Festival de Cine }
+{ DIC | Fechas: 1 de dic de 2026 · Lugar: Teatro Santa Marta }
+{ . | Proyecciones al aire libre. }
+}
+En el orden del servidor (vigentes según «hoy» en Bogotá); sin insignias de «Hoy» ni «En curso» (DEC-247)
+{ [<] Página 1 de 2 [>] }
+Error (503, red): «La agenda no responde en este momento.» [Reintentar]
+==
+{ Pie: Explorar | Municipio (Noticias · Agenda de eventos) | Prestadores | Legal y Soporte }
+}
+@endsalt
+
+@startsalt
+{+
+{ <b>Samaria360 | Búsqueda | Servicios | Asistente IA | [ES/EN] }
+==
+<b>Agenda de eventos
+Festivales, ferias y actividades culturales de Santa Marta, del que empieza antes al que empieza después.
+{+
+No hay eventos próximos en la agenda. | Explorar la oferta turística
+}
+==
+{ Pie: Explorar | Municipio (Noticias · Agenda de eventos) | Prestadores | Legal y Soporte }
+}
+@endsalt

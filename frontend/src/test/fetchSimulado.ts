@@ -779,3 +779,34 @@ export function atractivoPublico(cambios: Record<string, unknown> = {}) {
     atractivoGestion()
   return { ...ficha, ...cambios }
 }
+
+// ------------------------------------------------------------------ ms-catalog, agenda de eventos (iteración E, B2)
+
+export const ID_EVENTO = '6b3000000000000000000001'
+
+/** Un evento de la agenda pública (`RespuestaEvento`): fechas de día, sin el Gestor ni `fechaRegistro` (DEC-239). */
+export function eventoAgenda(cambios: Record<string, unknown> = {}) {
+  return {
+    id: ID_EVENTO,
+    nombre: 'Fiestas del Mar',
+    fechaInicio: '2026-11-20',
+    fechaFin: '2026-11-22',
+    ubicacion: 'Bahía de Santa Marta',
+    descripcion: 'Regatas y desfile náutico.\nEntrada libre.',
+    ...cambios,
+  }
+}
+
+/** Un evento del panel del Gestor (`RespuestaEventoGestion`, DEC-238). */
+export function eventoGestion(cambios: Record<string, unknown> = {}) {
+  return {
+    ...eventoAgenda(),
+    gestorId: '00000000-0000-4000-8000-000000000015',
+    fechaRegistro: '2026-11-05T15:00:00Z',
+    ...cambios,
+  }
+}
+
+export function paginaEventos(elementos: unknown[], pagina = 0, totalElementos = elementos.length) {
+  return { elementos, pagina, tamano: 10, totalElementos, totalPaginas: Math.ceil(totalElementos / 10) }
+}

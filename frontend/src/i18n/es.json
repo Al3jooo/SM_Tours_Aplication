@@ -42,7 +42,9 @@
     "historialReservas": "Historial de reservas",
     "perfilComercial": "Mi perfil comercial",
     "atractivos": "Atractivos",
-    "registrarAtractivo": "Registrar atractivo"
+    "registrarAtractivo": "Registrar atractivo",
+    "eventos": "Eventos",
+    "registrarEvento": "Registrar evento"
   },
   "login": {
     "titulo": "Iniciar sesión en Samaria360",
@@ -177,6 +179,7 @@
     "alquilerEquipos": "Alquiler de equipos",
     "municipio": "Municipio",
     "noticias": "Noticias",
+    "agendaEventos": "Agenda de eventos",
     "prestadores": "Prestadores",
     "registrarServicio": "Registrar servicio",
     "panelGestor": "Panel del gestor",
@@ -1490,6 +1493,81 @@
       "cancelar": "Cancelar",
       "enviando": "Guardando…",
       "confirmar": "Cambiar estado"
+    },
+    "eventos": {
+      "campos": {
+        "nombre": "Nombre del evento",
+        "fechaInicio": "Fecha de inicio",
+        "fechaFin": "Fecha de fin",
+        "ubicacion": "Ubicación",
+        "descripcion": "Descripción"
+      },
+      "panel": {
+        "titulo": "Eventos",
+        "registrar": "Registrar evento",
+        "apoyo": "Todos los eventos registrados, también los que ya terminaron, del más reciente al más antiguo.",
+        "contador_one": "{{count}} evento",
+        "contador_other": "{{count}} eventos",
+        "vacio": "Todavía no hay eventos registrados.",
+        "cargando": "Cargando los eventos…",
+        "errores": {
+          "sinPermiso": "Tu cuenta no puede ver los eventos.",
+          "noEncontrado": "No se encontraron los eventos.",
+          "noDisponible": "El catálogo no responde en este momento.",
+          "red": "No hay conexión. Revisa tu red e inténtalo de nuevo.",
+          "otro": "No se pudieron cargar los eventos."
+        },
+        "tabla": "Eventos registrados",
+        "columnas": {
+          "nombre": "Nombre",
+          "fechas": "Fechas",
+          "ubicacion": "Ubicación",
+          "registrado": "Registrado"
+        },
+        "anuncios": {
+          "registrado": "Evento registrado: ya está publicado en la agenda.",
+          "guardado": "Cambios guardados.",
+          "noEncontrado": "El evento ya no existe."
+        }
+      },
+      "registro": {
+        "titulo": "Registrar evento",
+        "apoyo": "Registra un evento temporal del municipio. Se publica de inmediato en la agenda de eventos.",
+        "datos": "Datos del evento",
+        "fechasAyuda": "Un evento de un día lleva la misma fecha de inicio y de fin.",
+        "publicacion": "Al registrarlo, el evento se publica de inmediato en la agenda y no se puede editar ni borrar.",
+        "enviar": "Registrar evento",
+        "enviando": "Registrando…",
+        "cancelar": "Cancelar",
+        "errores": {
+          "DATOS_INVALIDOS": "Revisa los datos: hay errores que no corresponden a un campo de esta pantalla.",
+          "ACCESO_DENEGADO": "Tu cuenta no puede registrar eventos.",
+          "SERVICIO_NO_DISPONIBLE": "El catálogo no responde en este momento. Tus datos siguen aquí: inténtalo de nuevo.",
+          "ERROR_RED": "No hay conexión. Tus datos siguen aquí: inténtalo de nuevo.",
+          "GENERICO": "No se pudo registrar el evento. Tus datos siguen aquí: inténtalo de nuevo."
+        }
+      },
+      "errores": {
+        "finAntesDeInicio": "La fecha de fin no puede ser anterior a la de inicio.",
+        "finPasado": "La fecha de fin ya pasó (hoy en Santa Marta). Un evento terminado no aparecería en la agenda."
+      }
+    }
+  },
+  "agenda": {
+    "titulo": "Agenda de eventos",
+    "apoyo": "Festivales, ferias y actividades culturales de Santa Marta, del que empieza antes al que empieza después.",
+    "contador_one": "{{count}} evento próximo",
+    "contador_other": "{{count}} eventos próximos",
+    "cargando": "Cargando la agenda…",
+    "vacia": "No hay eventos próximos en la agenda.",
+    "explorar": "Explorar la oferta turística",
+    "lista": "Eventos de la agenda",
+    "fechas": "Fechas",
+    "ubicacion": "Lugar",
+    "errores": {
+      "noDisponible": "La agenda no responde en este momento.",
+      "red": "No hay conexión. Revisa tu red e inténtalo de nuevo.",
+      "otro": "No se pudo cargar la agenda."
     }
   }
 }

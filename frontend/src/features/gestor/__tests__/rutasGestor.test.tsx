@@ -7,6 +7,7 @@ import {
   USUARIO_PRESTADOR,
   USUARIO_TURISTA,
   paginaAtractivos,
+  paginaEventos,
   paginaOferta,
   respuestaJson,
   simularFetch,
@@ -15,7 +16,14 @@ import { renderApp, ubicacionActual } from '../../../test/renderApp'
 
 /** C6 (DEC-220, DEC-233): solo el Gestor ve su sección del menú y abre sus rutas. */
 const ME = 'GET /api/v1/auth/me'
-const RUTAS = ['/gestor/atractivos', '/gestor/atractivos/nuevo', `/gestor/atractivos/${ID_ATRACTIVO}`]
+const RUTAS = [
+  '/gestor/atractivos',
+  '/gestor/atractivos/nuevo',
+  `/gestor/atractivos/${ID_ATRACTIVO}`,
+  // WF-25 (DEC-245, DEC-251).
+  '/gestor/eventos',
+  '/gestor/eventos/nuevo',
+]
 const LENTO = { timeout: 15_000 }
 
 function conSesion(usuario: object) {
@@ -24,6 +32,7 @@ function conSesion(usuario: object) {
     [ME]: () => respuestaJson(200, usuario),
     'GET /api/v1/catalogo/oferta': () => respuestaJson(200, paginaOferta([])),
     'GET /api/v1/catalogo/gestor/atractivos': () => respuestaJson(200, paginaAtractivos([])),
+    'GET /api/v1/catalogo/gestor/eventos': () => respuestaJson(200, paginaEventos([])),
   })
 }
 
@@ -48,10 +57,12 @@ describe('Rutas y menú del Gestor (C6)', () => {
       const menu = within(screen.getByRole('menu'))
       expect(menu.queryByRole('menuitem', { name: 'Atractivos' })).not.toBeInTheDocument()
       expect(menu.queryByRole('menuitem', { name: 'Registrar atractivo' })).not.toBeInTheDocument()
+      expect(menu.queryByRole('menuitem', { name: 'Eventos' })).not.toBeInTheDocument()
+      expect(menu.queryByRole('menuitem', { name: 'Registrar evento' })).not.toBeInTheDocument()
     })
   })
 
-  it('el menú del Gestor tiene exactamente «Atractivos», «Registrar atractivo» y «Cerrar sesión»', async () => {
+  it('el menú del Gestor tiene exactamente sus atractivos, sus eventos y «Cerrar sesión»', async () => {
     conSesion(USUARIO_GESTOR)
     const { usuario } = renderApp('/')
     await usuario.click(await screen.findByRole('button', { name: `Menú de usuario de ${USUARIO_GESTOR.nombreVisible}` }, LENTO))
@@ -60,16 +71,28 @@ describe('Rutas y menú del Gestor (C6)', () => {
     expect(menu.getAllByRole('menuitem').map((opcion) => opcion.textContent)).toEqual([
       'Atractivos',
       'Registrar atractivo',
+      'Eventos',
+      'Registrar evento',
       'Cerrar sesión',
     ])
     expect(menu.getByRole('menuitem', { name: 'Atractivos' })).toHaveAttribute('href', '/gestor/atractivos')
     expect(menu.getByRole('menuitem', { name: 'Registrar atractivo' })).toHaveAttribute('href', '/gestor/atractivos/nuevo')
+    expect(menu.getByRole('menuitem', { name: 'Eventos' })).toHaveAttribute('href', '/gestor/eventos')
+    expect(menu.getByRole('menuitem', { name: 'Registrar evento' })).toHaveAttribute('href', '/gestor/eventos/nuevo')
   })
 
   it('el Gestor abre su panel', async () => {
     conSesion(USUARIO_GESTOR)
     renderApp('/gestor/atractivos')
     expect(await screen.findByRole('heading', { level: 1, name: 'Atractivos' }, LENTO)).toBeInTheDocument()
+  })
+
+  it('el Gestor abre su panel de eventos y el registro (WF-25)', async () => {
+    conSesion(USUARIO_GESTOR)
+    const { usuario } = renderApp('/gestor/eventos')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Eventos' }, LENTO)).toBeInTheDocument()
+    await usuario.click(screen.getByRole('link', { name: 'Registrar evento' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Registrar evento' }, LENTO)).toBeInTheDocument()
   })
 
   it.each(RUTAS)('sin sesión, %s lleva al login', async (ruta) => {
