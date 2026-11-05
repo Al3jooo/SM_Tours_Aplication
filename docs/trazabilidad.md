@@ -1372,7 +1372,7 @@ Avance: sigue en **39 de 64**; RF25 lleva a 40 al cerrar B2.
 |---|---|---|
 | HC-E1 | RF25 sin CU | **Resuelto** (dos CU) |
 | HC-E2 | El esquema de `eventos` no se podía verificar contra el Entregable 2 | **Resuelto:** el esquema de M013 parte del §2.4 (DocumentoEntregable2.md, documento del Proyecto, fuera del repositorio); las diferencias están en el punto 13 de «Pendientes para el SAD» |
-| O36 | M012 y M013 están pendientes de aplicar en el volumen local: el último arranque fue anterior a la sesión A1 | Abierto: el próximo `docker compose up` aplica M012 y después M013. El recorrido visual de B2 requiere ese `up` |
+| O36 | M012 y M013 están pendientes de aplicar en el volumen local: el último arranque fue anterior a la sesión A1 | **Cerrado** el 2026-11-05: el `docker compose up -d --build` aplicó M012 y después M013. Evidencia en «Aplicación de O36 y corrección O38 y O39» |
 | O37 | Pruebas existentes modificadas:<br>- `MigracionesMongoTest`: la lista suma M013; «volver a aplicarlas» y «sin semilla» esperan M013; el validador de `eventos` se compara con `docs/`; casos nuevos de índices y del validador;<br>- `AccesoGestorApiIntegracionTest`: `endpoints()` suma `GET` y `POST /gestor/eventos`.<br>Conteo de ms-catalog: de 798 a 836 (`./mvnw clean test`, sin fallos) | Registrado |
 
 **Verificación de la sesión A2:** `./mvnw test` completo en ms-catalog con Docker activo. Sin `docker compose up` (solo el servicio `mongo`, para C1).
@@ -1380,6 +1380,47 @@ Avance: sigue en **39 de 64**; RF25 lleva a 40 al cerrar B2.
 **Recorrido visual:** no aplica en A2 (solo backend). El de B2 requiere el `docker compose up` que aplica M012 y M013 (O36).
 
 **Fuera de alcance de la sesión A2:** las pantallas de la agenda (B2); editar, borrar o despublicar eventos (DEC-215); vincular un evento a un atractivo (el §2.4 guarda la ubicación como texto); notificaciones de eventos (ms-notificaciones).
+
+## Aplicación de O36 y corrección O38 y O39 (iteración E; WF-09, WF-23)
+
+Sesión del 2026-11-05 sobre `main` en `7595bdc` (merge del PR #32): `docker compose up -d --build`, prueba de humo y recorrido visual de B1 y de la iteración D. El recorrido encontró dos defectos del frontend (O38 y O39), corregidos en la rama `fix/csp-blob-historial-360`.
+
+**Aplicación de O36 (`mongo-migraciones`):** de M001 a M011, «ya aplicada»; `aplicando: M012__atractivos-gestion` («validador v2 (atractivos); version en 7 y fechaRegistro en 7 atractivos») y después `aplicando: M013__eventos` («colección eventos creada con su validador»; «índices eventos_agenda y eventos_registro»). `postgres-bases` terminó con 0 («Bases de datos al día: auth_db y reservas_db»).
+
+**Verificación del volumen (solo lectura, `catalog_db`):**
+
+| Comprobación | Resultado |
+|---|---|
+| `migraciones` | `M011__servicios-version` (2026-10-30T20:28:07.103Z), `M012__atractivos-gestion` (2026-11-05T16:41:45.612Z), `M013__eventos` (2026-11-05T16:41:45.778Z) |
+| `atractivos` | 7 documentos tras el `up`, todos con `version: 0` y `fechaRegistro`; validador igual a `M012__atractivos.v2.schema.json` (comparación normalizada), `strict` y `error`. Tras el recorrido: 8 (el atractivo de prueba, abajo) |
+| `eventos` | Colección creada, 0 documentos; validador igual a `M013__eventos.v1.schema.json` (`$jsonSchema` y `$expr`), `strict`; índices `eventos_agenda` `{fechaInicio: 1, _id: 1, fechaFin: 1}` y `eventos_registro` `{fechaRegistro: -1, _id: -1}` |
+
+**Prueba de humo (gateway, sin token):** `GET /api/v1/catalogo/eventos` → 200 `{"elementos":[],"pagina":0,"tamano":10,"totalElementos":0,"totalPaginas":0}`; `GET /api/v1/catalogo/atractivos/6ad2be3e06a2d5c9d602cec9` → 200, sin `gestorId` ni `version`; `GET /api/v1/catalogo/gestor/atractivos` y `GET /api/v1/catalogo/gestor/eventos` → 401. El nginx del frontend sirve la SPA en `/gestor/atractivos` y `/atractivos/{id}` (200).
+
+**Recorrido visual:** Microsoft Edge visible manejado con Playwright desde fuera del repositorio; el usuario inició sesión en la ventana (O18). 1366 px y 360 px (emulación móvil por CDP: con la barra de desplazamiento clásica del escritorio, 360 px deja 345 de contenido y aparenta un desborde que un teléfono no tiene), en ES y EN. Gestor: WF-24, WF-09 (alta con una imagen, edición y diálogo de cambio de estado) y la ficha `/atractivos/:id`. Prestador: WF-18, WF-08 (RNT en solo lectura), WF-20 a WF-23. Sin claves de i18n sin traducir ni respuestas 4xx o 5xx de la API.
+
+**Hallazgos:**
+
+| # | Hallazgo | Estado |
+|---|---|---|
+| O38 | WF-09 (alta de atractivo), solo en el contenedor: la vista previa de la foto elegida no se ve (se muestra su texto alternativo). La CSP de `frontend/nginx/seguridad.conf` no permitía `blob:` en `img-src` y la vista previa usa `URL.createObjectURL`. Error de consola: «Loading the image 'blob:http://localhost:8000/…' violates the following Content Security Policy directive: "img-src 'self' data: https://tile.openstreetmap.org"». Vite no aplica esa CSP: no se ve en desarrollo ni en Vitest. El alta funcionaba igual | **Resuelto** (DEC-243) |
+| O39 | WF-23 «Historial de reservas» a 360 px: la página mide 460 px (ES) y 468 px (EN). La pista `1fr` de `.reserva__campos` (`minmax(auto, 1fr)`) no baja del ancho mínimo de su contenido, y el `select` de servicio toma el de su opción más larga («Bicicletas Centro Histórico · Alquiler de equipos») | **Resuelto** (DEC-244) |
+
+**Decisiones de la corrección (DEC-243 y DEC-244; aprobadas por el usuario el 2026-11-05):**
+
+| # | Tema | Decisión | Dónde |
+|---|---|---|---|
+| DEC-243 | Vista previa de las fotos (O38) | `blob:` en `img-src`, y en ninguna otra directiva: `default-src`, `script-src`, `connect-src` y `font-src` siguen en `'self'`. Una URL `blob:` solo la crea la propia página con un archivo que el usuario eligió | `frontend/nginx/seguridad.conf`; prueba `src/app/seguridadNginx.test.ts` (lee el archivo con `?raw`) |
+| DEC-244 | Campos de los filtros a 360 px (O39) | `min-width: 0` en `.reserva__campos > .campo`, y `min-width: 0; width: 100%` en `.reserva__campos .campo__control select` (solo en esa grilla; no toca `admin.css`). A 1366 px el `select` de WF-23 pasa a medir lo mismo que los campos de fecha. Afecta también a WF-10 y WF-11, que usan la misma grilla | `frontend/src/features/reservas/reservas.css`. Sin prueba automática: jsdom no calcula el diseño; lo cubre el recorrido |
+
+**Verificación de la corrección:**
+
+- `npm test`: de 761 pruebas en 74 archivos a 764 en 75, sin fallos. `npm run build` (`tsc -b` y `vite build`): sin errores.
+- `docker compose up -d --build frontend`; cabecera servida: `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`.
+- WF-09 alta (Gestor; foto elegida, formulario sin enviar): vista previa con `naturalWidth` 800 en ES y EN, a 1366 y 360 px; sin errores de CSP en la consola.
+- `scrollWidth` y `clientWidth` a 360 px, en ES y EN: WF-23 360 y 360; WF-11 360 y 360; WF-10 360 y 360 (Alojamiento `6ad2be3e06a2d5c9d602cebc` y Tour `6ad2be3e06a2d5c9d602cec5`, sin reservar). A 1366 px, 1366 y 1366 en todas.
+
+**Datos de prueba en el volumen local:** atractivo `6aecb3b0b4962254d113323d` («Prueba recorrido O36»), creado por el Gestor de la semilla en el recorrido con una imagen en GridFS (`6aecb3b0b4962254d113323e`); `limiteCapacidadCarga` de 50 a 60 (versión 1); estado de Abierto a Cerrado temporalmente (versión 2) y, en la verificación de la corrección, de vuelta a Abierto (versión 3). No hay borrado de atractivos (DEC-206): queda en el volumen.
 
 ## Buscar oferta turística — decisiones de búsqueda (RF16, RF23, RF33, RF38, RF50, RF61)
 
