@@ -83,6 +83,11 @@ En el despliegue con Docker Compose (`docker-compose.yml`), el navegador entra p
 desarrollo, así que el navegador trabaja con un solo origen. La decisión no cambia: nginx no enruta a los
 servicios ni valida el JWT, y el gateway sigue siendo el único punto de entrada a ellos.
 
-- En el host se publican solo el frontend (8000) y el gateway (8080).
+- En el host se publican solo el frontend (8000) y el gateway (8080). Desde el 2026-11-05 el gateway se publica solo
+  en 127.0.0.1, como las bases: el navegador entra por el frontend.
 - ms-auth y ms-catalog solo se alcanzan por la red interna de Docker.
 - PostgreSQL y MongoDB se publican solo en 127.0.0.1.
+- El cliente HTTP de las rutas guarda cada resolución DNS 10 s como máximo (`ResolucionNombresConfig`, 2026-11-05). El
+  DNS de Docker responde con TTL de 600 s y Reactor Netty lo respeta: sin ese tope, al recrear un servicio con otra IP
+  el gateway seguía enviando a la vieja (503 con el servicio sano) hasta 10 minutos. Es el mismo `valid=10s` del
+  resolvedor de nginx.

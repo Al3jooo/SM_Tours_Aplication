@@ -1,10 +1,52 @@
 # Samaria360
 
+[![ms-auth](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/ms-auth.yml/badge.svg)](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/ms-auth.yml)
+[![ms-catalog](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/ms-catalog.yml/badge.svg)](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/ms-catalog.yml)
+[![ms-booking](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/ms-booking.yml/badge.svg)](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/ms-booking.yml)
+[![api-gateway](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/api-gateway.yml/badge.svg)](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/api-gateway.yml)
+[![frontend](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/frontend.yml/badge.svg)](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/frontend.yml)
+[![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE)
+
 Plataforma de turismo de Santa Marta. Proyecto Capstone Design — Arquitectura de Software, Universidad del Magdalena.
 
-- **Metodología:** RUP. Fase actual: Construcción (prototipo arquitectónico ejecutable).
-- **Arquitectura:** microservicios con diseño hexagonal interno.
-- **Persistencia:** PostgreSQL (`auth_db`, `reservas_db`) y MongoDB (`catalog_db`, `analytics_db`).
+- **Metodología:** RUP. Fase actual: Construcción (prototipo arquitectónico ejecutable que valida la línea base de la
+  arquitectura; no es un producto completo).
+- **Arquitectura:** microservicios con diseño hexagonal interno, detrás de un API Gateway.
+- **Persistencia:** PostgreSQL (`auth_db`, `reservas_db`) y MongoDB (`catalog_db`).
+
+| Inicio (WF-04) | Exploración con mapa (WF-05) | Preguntas frecuentes (WF-13) |
+|---|---|---|
+| ![Pantalla de inicio con la búsqueda y las categorías](docs/recursos-graficos/capturas/inicio.webp) | ![Exploración con filtros, mapa y resultados](docs/recursos-graficos/capturas/explorar.webp) | ![Preguntas frecuentes con buscador](docs/recursos-graficos/capturas/preguntas-frecuentes.webp) |
+
+<sub>Capturas del prototipo con los datos de la semilla. Mapa: © OpenStreetMap contributors.</sub>
+
+## Tecnologías
+
+| Componente | Tecnología | Base de datos |
+|---|---|---|
+| `frontend` | React 19, Vite, TypeScript, i18next, Leaflet; servido por nginx | — |
+| `api-gateway` | Spring Cloud Gateway 4.3 (WebFlux), Resilience4j | — |
+| `ms-auth` | Java 17, Spring Boot 3.5, Spring Security (JWT RS256, BCrypt), Flyway | PostgreSQL 16 (`auth_db`) |
+| `ms-catalog` | Java 17, Spring Boot 3.5, Spring Data MongoDB, GridFS | MongoDB 7 (`catalog_db`) |
+| `ms-booking` | Java 17, Spring Boot 3.5, Spring Data JPA, Flyway, Resilience4j | PostgreSQL 16 (`reservas_db`) |
+
+Pruebas: JUnit 5, Testcontainers y ArchUnit en los servicios Java; Vitest y Testing Library en el frontend. La línea
+Spring Boot 3.5 se mantiene durante la Construcción ([ADR-010](docs/sad/adr/ADR-010-linea-spring-boot-3-5.md)).
+
+## Documentación
+
+| Documento | Contenido |
+|---|---|
+| [`docs/srs/`](docs/srs/) | Especificación de requisitos (fuente única de los RF y RNF) |
+| [`docs/sad/adr/`](docs/sad/adr/) | Decisiones de arquitectura (ADR-004 a ADR-010) |
+| [`docs/sad/api/`](docs/sad/api/) | Contratos de la API de ms-auth, ms-catalog y ms-booking |
+| [`docs/sad/diagramas/`](docs/sad/diagramas/) y [`docs/sad/modelo-nosql/`](docs/sad/modelo-nosql/) | Modelo lógico (DBML) y esquemas JSON de `catalog_db` |
+| [`docs/casos-de-uso/`](docs/casos-de-uso/) | Especificaciones textuales de los casos de uso |
+| [`docs/wireframes/`](docs/wireframes/README.md) | Wireframes de las pantallas |
+| [`docs/trazabilidad.md`](docs/trazabilidad.md) | Matriz wireframe ↔ caso de uso ↔ requisito ↔ endpoint ↔ componente, y decisiones (DEC) |
+| [`docs/demo/reservas/`](docs/demo/reservas/README.md) | Demostración del CU «Reservar servicio» con la prueba de concurrencia |
+| [`frontend/README.md`](frontend/README.md) | Frontend por pantalla y guía visual |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) y [`SECURITY.md`](SECURITY.md) | Flujo de trabajo (ramas, commits, pruebas) y reporte de vulnerabilidades |
 
 ## Estructura del monorepo
 
@@ -12,63 +54,45 @@ Cada carpeta raíz corresponde a un contenedor del diagrama de despliegue del SA
 
 ```
 samaria360/
-├── .github/workflows/            # un workflow por servicio, filtrado por paths:
-├── docs/                         # artefactos RUP versionados con el código
-│   ├── srs/
-│   ├── sad/
-│   │   ├── adr/                  # ADR-001-metodologia.md, ADR-002-bd.md, ADR-003-conectividad.md...
-│   │   └── diagramas/            # fuentes PlantUML (.puml)
-│   ├── casos-de-uso/             # especificaciones textuales
-│   └── iteraciones/              # planes y evaluaciones de iteración
+├── .github/workflows/            # CI: un workflow por servicio, filtrado por paths (_java.yml es el común)
+├── docs/                         # artefactos RUP versionados con el código (ver «Documentación»)
 ├── infra/
 │   ├── postgres/init/            # 01-crear-bases.sql (auth_db, reservas_db), solo con el volumen vacío
 │   ├── postgres/asegurar-bases.sql   # lo ejecuta postgres-bases en cada arranque (bases que falten)
-│   ├── mongo/init/               # línea base congelada (v1): 01-validadores.js, 02-indices.js, 03-semilla-catalogo.js
+│   ├── mongo/init/               # línea base congelada (v1): validadores, índices y semilla
 │   ├── mongo/migraciones/        # aplicar.js + esquema/ y semilla/ (M001, M002…), las aplica mongo-migraciones
 │   └── keys/                     # llaves RSA del JWT (no se versionan)
 ├── frontend/                     # React + Vite + TypeScript
+│   ├── nginx/                    # default.conf (SPA y proxy /api/) y seguridad.conf (CSP y encabezados)
 │   └── src/
-│       ├── app/                  # router, providers, rutas protegidas por rol
-│       ├── features/auth/        # LoginPage, useAuth, authApi.ts
-│       ├── features/catalogo/    # CatalogoPage, filtros, tarjetas, mapa (Leaflet)
-│       ├── shared/api/           # httpClient.ts (axios + interceptor JWT)
+│       ├── app/                  # router, diseños, rutas protegidas por rol y tokens visuales (estilos.css)
+│       ├── features/             # una carpeta por área: auth, catalogo, reservas, perfil, favoritos,
+│       │                         #   contenido, agenda, servicios, prestador, gestor, admin
+│       ├── shared/api/           # httpClient.ts (fetch + token de sesión + ProblemDetail)
 │       ├── shared/components/
 │       └── i18n/                 # es.json, en.json
-├── api-gateway/                  # Spring Cloud Gateway
-│   └── src/main/java/co/edu/unimagdalena/samaria360/gateway/config/
+├── api-gateway/                  # Spring Cloud Gateway (sin dominio: no aplica la estructura hexagonal)
 ├── ms-auth/                      # Spring Boot 3 + PostgreSQL (auth_db)
-│   ├── pom.xml
 │   └── src/
 │       ├── main/java/co/edu/unimagdalena/samaria360/auth/
-│       │   ├── domain/
-│       │   │   ├── model/        # Usuario, Rol, EstadoCuenta, TokenRecuperacion
-│       │   │   ├── service/      # PoliticaBloqueo (3 intentos → 15 min)
-│       │   │   └── exception/
-│       │   ├── application/
-│       │   │   ├── port/in/      # IniciarSesionUseCase, ConsultarUsuarioActualUseCase
-│       │   │   ├── port/out/     # UsuarioRepositoryPort, PasswordHasherPort, TokenProviderPort, RelojPort
-│       │   │   └── service/      # IniciarSesionService
+│       │   ├── domain/           # model/, service/ (p. ej. PoliticaBloqueo), exception/
+│       │   ├── application/      # port/in, port/out y service/ (casos de uso)
 │       │   └── infrastructure/
-│       │       ├── adapter/in/web/           # AuthController, dto/
-│       │       ├── adapter/out/persistence/  # entidades JPA, repositorios, mapper/
-│       │       ├── adapter/out/security/     # BCrypt, JWT, JWKS
-│       │       └── config/                   # SecurityConfig, BeanConfig
-│       ├── main/resources/db/migration/      # V1__esquema_auth.sql, V2__semilla.sql
-│       └── test/java/.../auth/               # domain/, application/, infrastructure/, architecture/
+│       │       ├── adapter/in/   # web/ (controladores y DTO), programador/ (relevo del outbox)
+│       │       ├── adapter/out/  # persistence/, security/ (BCrypt, JWT, JWKS), relevo/, reloj/, notificacion/
+│       │       └── config/       # SecurityConfig, BeanConfig
+│       ├── main/resources/db/migration/   # esquema y datos de referencia (Flyway)
+│       ├── main/resources/db/semilla/     # usuarios de prueba, solo perfiles dev y test
+│       └── test/java/.../auth/            # domain/, application/, infrastructure/, architecture/
 ├── ms-catalog/                   # Spring Boot 3 + MongoDB (catalog_db), misma estructura hexagonal
-├── ms-booking/                   # Spring Boot 3 + PostgreSQL (reservas_db): CU Reservar servicio, misma estructura
-├── ms-chatbot/                   # FastAPI
-│   ├── app/
-│   │   ├── domain/
-│   │   ├── application/ports/    # LlmPort, CatalogoPort, ItinerarioRepositoryPort
-│   │   ├── application/use_cases/
-│   │   └── infrastructure/{api,adapters}/
-│   └── tests/
+├── ms-booking/                   # Spring Boot 3 + PostgreSQL (reservas_db), misma estructura hexagonal
 ├── docker-compose.yml
 ├── .env.example
 ├── .editorconfig
-└── .gitignore
+└── LICENSE
 ```
+
+El asistente con IA (WF-07) está fuera del alcance del prototipo: no hay un microservicio para él.
 
 ## Reglas de dependencia (verificadas con ArchUnit)
 
@@ -86,8 +110,8 @@ Levanta todo el sistema (PostgreSQL, MongoDB, ms-auth, ms-catalog, ms-booking, a
 - OpenSSL, para generar las llaves del JWT. En Windows viene con Git Bash.
 - Unos **4 GB de memoria** en la máquina virtual de Docker (ver «Memoria», abajo). En Docker Desktop se revisa en
   *Settings → Resources*, o en `.wslconfig` con WSL 2.
-- Puertos libres en el host: **8000** (frontend) y **8080** (API Gateway), y además 5432 y 27017 (bases de datos,
-  solo en 127.0.0.1). Todos se pueden cambiar en `.env`, salvo el 8080.
+- Puertos libres en el host: **8000** (frontend) y, solo en 127.0.0.1, **8080** (API Gateway), 5432 y 27017 (bases
+  de datos). Todos se pueden cambiar en `.env`, salvo el 8080.
 
 **Pasos** (desde la raíz del repositorio, en Git Bash o en una terminal de Linux/macOS)
 
@@ -112,8 +136,9 @@ Para crear cuentas nuevas: **«Registrarse»** en la pantalla de inicio de sesi�
 **Cómo queda desplegado**
 - El navegador habla solo con el **frontend** (nginx). nginx sirve la SPA y pasa `/api/` al **api-gateway**, que es
   el único punto de entrada a los servicios ([ADR-005](docs/sad/adr/ADR-005-api-gateway.md)).
-- En el host se publican el 8000 (frontend) y el 8080 (gateway). ms-auth (8081), ms-catalog (8082) y ms-booking
-  (8083) solo se alcanzan dentro de la red de Docker. PostgreSQL y MongoDB se publican solo en `127.0.0.1`, para DBeaver o Compass.
+- En el host se publican el 8000 (frontend) y el 8080 (gateway, solo en `127.0.0.1`). ms-auth (8081), ms-catalog
+  (8082) y ms-booking (8083) solo se alcanzan dentro de la red de Docker. PostgreSQL y MongoDB se publican solo en
+  `127.0.0.1`, para DBeaver o Compass.
 - Las llaves del JWT se montan como *secrets* de solo lectura en `/run/secrets/` de ms-auth; nunca se copian a una
   imagen.
 - **Servicios de un solo uso**, que se ejecutan en cada `docker compose up`, terminan y no dejan nada corriendo:
@@ -141,8 +166,9 @@ La suma de los límites es de unos 3,6 GB, así que todo cabe, aunque justo. Sin
 memoria sobre **toda** la máquina virtual y MongoDB tomaría su caché de ella, y juntos podrían agotarla. Si Docker
 se queda sin memoria (contenedores reiniciados con código 137), se puede subir la de la máquina virtual con
 `memory=5GB` en `.wslconfig`.
-- Los servicios Java corren con el perfil `dev`: carga los usuarios de prueba y Swagger. Es una configuración de
-  demostración; un despliegue real debe quitarlo.
+- En Docker Compose los servicios Java corren con el perfil `dev` (`SPRING_PROFILES_ACTIVE` en
+  `docker-compose.yml`): carga los usuarios de prueba y Swagger. Es una configuración de demostración; un despliegue
+  real debe quitarlo. Fuera de Compose ningún servicio activa `dev` si no se le pide.
 - Las pruebas no corren dentro de las imágenes (usan Testcontainers). Se ejecutan fuera, con `./mvnw test` en cada
   servicio y `npm test` en `frontend/`. **Antes de correr las pruebas, detener el sistema** (`docker compose stop`):
   los contenedores de Testcontainers y el sistema completo juntos no caben en 4 GB.
@@ -171,17 +197,55 @@ docker compose down -v                     # detener todo y BORRAR los volúmene
 | ms-catalog no arranca y `mongo-migraciones` aparece como `Exited (1)` (o ms-auth y ms-booking, y `postgres-bases`) | Una migración falló; por ejemplo, M001 se detiene si un alojamiento no tiene `precioBase` | `docker compose logs mongo-migraciones` (o `postgres-bases`) muestra el motivo. Corregir el dato y volver a ejecutar `docker compose up -d`: las migraciones ya aplicadas no se repiten. |
 | Un servicio Java se reinicia solo, con código de salida 137 | Superó su límite de memoria (`OOMKilled`) | Confirmarlo con `docker inspect -f '{{.State.OOMKilled}}' samaria360-ms-auth` y subir `mem_limit` en `docker-compose.yml`. |
 | Justo después de `up -d`, el sitio muestra «servicio no disponible» durante unos 40 s | El gateway todavía está arrancando. El frontend ya lo espera (`service_healthy`), pero ms-auth y ms-catalog pueden seguir arrancando, y tras reiniciar Docker los contenedores vuelven sin respetar ese orden | Esperen a que `docker compose ps` marque todos los servicios como `healthy` y pulsen «Reintentar». |
+| Con `./mvnw spring-boot:run`, ms-auth no arranca: `Validate failed` y `Detected applied migration not resolved locally: 2.` (y 3, 6, 7, 14) | Se arrancó sin el perfil `dev` contra una base que ya tiene la semilla aplicada: sin ese perfil, Flyway no ve `db/semilla` | Arrancar con `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev` (sección «Arranque local»). |
 | Un servicio queda en `unhealthy` o se reinicia | Error al arrancar (credenciales, llaves, base no disponible) | `docker compose logs <servicio>`. |
 
 ## Arranque local (desarrollo)
 
 Para desarrollar con recarga en caliente: solo las bases en Docker y los servicios con `./mvnw` y Vite. Si el sistema
-completo está levantado, primero `docker compose stop ms-auth ms-catalog api-gateway frontend`: el gateway del
-contenedor ocupa el 8080, y así no quedan dos instancias de cada servicio.
+completo está levantado, primero `docker compose stop ms-auth ms-catalog ms-booking api-gateway frontend`: el
+gateway del contenedor ocupa el 8080, y así no quedan dos instancias de cada servicio.
 
 ```bash
 cp .env.example .env          # y cambiar las contraseñas
 docker compose up -d postgres-bases mongo-migraciones   # las bases, con sus bases y migraciones al día
-cd ms-auth && ./mvnw spring-boot:run          # :8081 (y lo mismo en ms-catalog :8082 y api-gateway :8080)
+cd ms-auth && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # :8081 (igual en ms-catalog :8082 y ms-booking :8083)
+cd api-gateway && ./mvnw spring-boot:run                              # :8080
 cd frontend && npm install && npm run dev     # http://localhost:5173 (proxy /api → 8080)
 ```
+
+El perfil `dev` no se activa solo: sin `-Dspring-boot.run.profiles=dev`, ms-auth arranca sin los usuarios de prueba y
+ningún servicio publica Swagger. Docker Compose lo activa con `SPRING_PROFILES_ACTIVE=dev`.
+
+## Pruebas
+
+Cada servicio Java se prueba con su propio wrapper (no hay `pom.xml` raíz), y el frontend con npm. Las pruebas de
+infraestructura usan Testcontainers: necesitan Docker en marcha y, en una máquina de 4 GB, el sistema detenido
+(`docker compose stop`).
+
+```bash
+cd ms-auth && ./mvnw test      # igual en ms-catalog, ms-booking y api-gateway
+cd ms-auth && ./mvnw verify    # pruebas + informe de cobertura en target/site/jacoco/index.html (JaCoCo)
+cd frontend && npm test        # y npm run build (tipos) y npm run lint (ESLint)
+```
+
+En GitHub Actions (`.github/workflows/`) corren las mismas pruebas en cada *push* a `main` y en cada PR, solo para los
+servicios cuyas carpetas cambiaron. El informe de cobertura de cada servicio Java queda como artefacto del workflow.
+
+## Equipo
+
+Proyecto Capstone Design de Arquitectura de Software, Universidad del Magdalena:
+
+- Alejandro Luis Hincapie Pulido
+- Bryan Andre Robles Mojica
+- Juan David Rivera Santana
+- Karyme Judith Sanchez Fernandez
+- Mateo Damian López Ospino
+
+## Licencia
+
+El código se distribuye bajo la [licencia MIT](LICENSE). **Excepción:** las fotografías de
+`frontend/public/imagenes/catalogo/`, `frontend/public/imagenes/ambiente/` y `frontend/public/imagenes/marca/` no
+tienen autor, fuente ni licencia verificados; se usan solo para la demostración académica del prototipo y la licencia
+MIT no las cubre. Tampoco cubre las capturas de `docs/recursos-graficos/capturas/`, que las muestran, ni las teselas
+del mapa (© OpenStreetMap contributors).

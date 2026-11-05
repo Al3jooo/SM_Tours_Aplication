@@ -138,3 +138,18 @@ No había fotos de reemplazo. Estas se publican a su tamaño real, recortadas a 
 
 Texto alternativo y dimensiones por imagen en `catalog_db` (cambio de `$jsonSchema`), cuando se implemente el registro
 de fotos del prestador. Está en `docs/trazabilidad.md`.
+
+## Capturas del README
+
+`capturas/` tiene las capturas de las páginas públicas que muestra el README de la raíz: inicio (`/`), exploración
+(`/explorar`) y preguntas frecuentes (`/preguntas-frecuentes`), con los datos de la semilla. Se tomaron con el sistema
+levantado en Docker Compose, con Microsoft Edge sin interfaz, a 1440 × 900:
+
+```bash
+msedge --headless=new --hide-scrollbars --window-size=1440,900 --virtual-time-budget=10000 \
+  --screenshot=inicio.png http://localhost:8000/
+```
+
+Después se convirtieron a WebP con calidad 82. Muestran las fotos del catálogo, que no tienen licencia verificada, y
+el mapa de OpenStreetMap, cuya atribución va en el pie de las capturas en el README. Las pantallas privadas no se
+capturan (requieren iniciar sesión).
