@@ -13,10 +13,11 @@ Validadores de `catalog_db` en su **última versión**. Parten de la transcripci
 | `avisos.schema.json` | `avisos` | `catalog_db` | ms-catalog |
 | `favoritos.schema.json` | `favoritos` | `catalog_db` | ms-catalog |
 | `historial_busqueda.schema.json` | `historial_busqueda` | `catalog_db` | ms-catalog |
+| `eventos.schema.json` | `eventos` | `catalog_db` | ms-catalog |
 
 Cada archivo contiene exactamente el objeto que va en `validator` de `db.createCollection` o de `collMod`. `servicios.schema.json` tiene dos claves, `$jsonSchema` y `$expr`: MongoDB exige las dos (un AND implícito).
 
-Las demás colecciones del Entregable 2 (`eventos`, `itinerarios_sugeridos`, `base_conocimiento_turistico`, `calificaciones`, `reportes`, `logs_auditoria`, `notificaciones`) se transcribirán aquí cuando un caso de uso del prototipo las necesite.
+Las demás colecciones del Entregable 2 (`itinerarios_sugeridos`, `base_conocimiento_turistico`, `calificaciones`, `reportes`, `logs_auditoria`, `notificaciones`) se transcribirán aquí cuando un caso de uso del prototipo las necesite.
 
 ## Notas para la implementación
 
@@ -65,3 +66,14 @@ Las demás colecciones del Entregable 2 (`eventos`, `itinerarios_sugeridos`, `ba
   - M012 **no normaliza datos**: un atractivo que no cumple el v2 la detiene con la lista de `_id`;
   - `imagenes[]` guarda rutas públicas: `/api/v1/catalogo/imagenes/{id}` (GridFS, bucket `imagenes`, [ADR-009](../adr/ADR-009-imagenes-gridfs.md)) o, en la semilla, `/imagenes/catalogo/*.webp`.
   - Falta llevarlo al Documento Entregable 2 (punto 12 de «Pendientes para el SAD (modelo NoSQL)» en `docs/trazabilidad.md`).
+  - **Desviación del Entregable 2 (DEC-240):** el §2.4 define `categoria` como texto libre; desde el v2 es un `enum`.
+- **Colección `eventos` (M013; iteración E, sesión A2; RF25; DEC-215, DEC-235 a DEC-242):** parte de DocumentoEntregable2.md, §2.4 (documento del Proyecto, fuera del repositorio). Diferencias con el §2.4:
+  - `ubicacion` y `descripcion` **obligatorias** (DEC-235: RF25 captura los cinco campos);
+  - **ampliación:** `fechaRegistro` (date) obligatoria, para el panel del Gestor (DEC-238);
+  - `additionalProperties: false` y `gestorId` con forma de UUID;
+  - `nombre` de 1 a 120, `ubicacion` de 1 a 200 y `descripcion` de 1 a 1000, con el `pattern` de texto sin espacios en los extremos (DEC-236);
+  - `$expr`: `fechaInicio <= fechaFin` (DEC-237). «No anterior a hoy» (DEC-242) es solo del dominio: el validador no depende de la fecha actual;
+  - `fechaInicio` y `fechaFin` son días a las 00:00 de America/Bogota (DEC-215): la convención la garantiza el dominio, no el validador;
+  - sin `version`: los eventos no se editan (DEC-241);
+  - índices `eventos_agenda` (`{fechaInicio: 1, _id: 1, fechaFin: 1}`) y `eventos_registro` (`{fechaRegistro: -1, _id: -1}`).
+  - Falta llevarlo al Documento Entregable 2 (punto 13 de «Pendientes para el SAD (modelo NoSQL)» en `docs/trazabilidad.md`).

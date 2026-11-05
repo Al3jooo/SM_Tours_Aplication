@@ -1261,7 +1261,7 @@ Avance: sigue en **33 de 64** (meta 39, DEC-54). La iteración E suma 7 al cerra
 | # | Hallazgo | Estado |
 |---|---|---|
 | HC-E1 | **Hallazgo Crítico.** RF sin CU: RF06, RF07, RF24, RF33 y RF25, y la parte de atractivos de RF27 y RF58. «Gestionar atractivos» solo aparecía en la fila del pie de esta matriz | **Resuelto para RF06, RF07, RF24, RF27, RF33 y RF58** (cuatro CU). Abierto para RF25 hasta la sesión A2. HC1 sigue abierto para RF01, RF02, RF15, RF55, RF16, RF23, RF38 y RF52 |
-| HC-E2 | **Hallazgo Crítico.** La colección `eventos` del Entregable 2 no se puede verificar: el documento no está en el repositorio. Un esquema sin esa fuente sería una decisión sin justificación técnica | Abierto: la sesión A2 propone el esquema desde RF25 y el equipo lo confirma contra el Entregable 2 (punto 13 de «Pendientes para el SAD») |
+| HC-E2 | **Hallazgo Crítico.** La colección `eventos` del Entregable 2 no se puede verificar: el documento no está en el repositorio. Un esquema sin esa fuente sería una decisión sin justificación técnica | Abierto: la sesión A2 propone el esquema desde RF25 y el equipo lo confirma contra el Entregable 2 (punto 13 de «Pendientes para el SAD»). **Resuelto en la sesión A2** (DEC-240) |
 | HC4 | RF58 en atractivos sin campo de horario | **Resuelto en el backend** (DEC-208) |
 | O28 | DEC-31, N1 y M5 no tienen texto en el repositorio, y el Entregable 2 tampoco está en él | Registrado en DEC-218: «pendiente de texto» |
 | N4 | El Gestor no tenía pantallas | **Backend listo** (DEC-220). Las pantallas son de la sesión B1 |
@@ -1335,6 +1335,52 @@ Avance: de **33 a 39 de 64**: se alcanza la meta del 60 % (DEC-54). RF25 lleva a
 
 **Fuera de alcance de la sesión B1:** RF25 (sesiones A2 y B2); agregar o quitar fotos de un atractivo registrado (G1); filtros del panel (G2); la afluencia y los destinos alternativos (RF39, RF08); «Registrar servicio» del pie.
 
+## Atractivos y agenda — decisiones (iteración E, sesión A2; RF25)
+
+Backend y documentos de la agenda de eventos (DEC-213). CU nuevos: [Registrar evento en agenda](casos-de-uso/CU-registrar-evento-agenda.md) (nombre de la figura 5 del Entregable 2, con el flujo «Consultar eventos registrados») y [Consultar agenda de eventos](casos-de-uso/CU-consultar-agenda-eventos.md). Contrato en [`sad/api/ms-catalog.md`](sad/api/ms-catalog.md), secciones «Agenda de eventos». Esquema: [`modelo-nosql/eventos.schema.json`](sad/modelo-nosql/eventos.schema.json) (M013).
+
+**Fuente del esquema:** DocumentoEntregable2.md, §2.4 (documento del Proyecto, fuera del repositorio), colección `eventos`: `required` `gestorId`, `nombre`, `fechaInicio` y `fechaFin`; `ubicacion` y `descripcion` como texto opcional. También del Entregable 2: §1.2, figura 5 (CU «Registrar evento en agenda» del Gestor) y §2.1 (clase `EventoTuristico`; el Gestor registra, el Turista visualiza).
+
+**Decisiones tomadas antes de la sesión (no se reabren):** DEC-214 (categorías de atractivo; sin migración nueva, la semilla ya cumple el `enum` desde M012) y DEC-215 (reglas de la agenda). Del pedido de la sesión: las fechas son de día, guardadas como `date` a las 00:00 de America/Bogota, y `ubicacion` va de 1 a 200.
+
+**Decisiones de la sesión A2 (DEC-235 a DEC-242; propuestas por arquitectura y aprobadas por el usuario el 2026-11-05; DEC-242 separada de DEC-237 a pedido del usuario al cerrar la sesión, C6):**
+
+| # | Tema | Decisión | Dónde |
+|---|---|---|---|
+| DEC-235 | Campos obligatorios | `nombre`, `fechaInicio`, `fechaFin`, `ubicacion` y `descripcion` son obligatorios. **Justificación:** RF25 dice «capturando nombre, fecha de inicio, fecha de fin, ubicación y descripción», sin marcar ninguno como opcional; el §2.4 deja `ubicacion` y `descripcion` opcionales, pero el SRS es la fuente única de requisitos | `EventoTuristico`, M013 |
+| DEC-236 | Límites y formato | `nombre` de 1 a 120 y `descripcion` de 1 a 1000, como en atractivos (DEC-207); `ubicacion` de 1 a 200; recortados con `strip()` y contados en puntos de código. Fechas como texto `yyyy-MM-dd` (año de cuatro cifras): otra forma o un día que no existe (`2026-02-30`) es `FORMATO` | `EventoTuristico`, `SolicitudEvento`, M013 |
+| DEC-237 | Orden de las fechas | `fechaFin` igual o posterior a `fechaInicio`: si es anterior, `campos.fechaFin = NO_PERMITIDO`, y el `$expr` del validador lo exige también en la base. Un evento de un día (`fechaInicio = fechaFin`) es válido | `EventoTuristico.registrar`, M013 |
+| DEC-238 | Panel del Gestor | **Ampliación** del §2.4: `fechaRegistro` (instante de `RelojPort`, obligatoria). El panel lista **todos** los eventos (también los vencidos), del más reciente al más antiguo (`fechaRegistro`, desempate por id), de 10 en 10; índice `eventos_registro` | `GestionarEventosService`, `EventoMongoAdapter`, M013 |
+| DEC-239 | Agenda pública | `GET /api/v1/catalogo/eventos` sin token, como las preguntas frecuentes y los avisos (un Bearer que llegue se valida, como en todo endpoint público). RF25 dice «visible para el Turista»; DEC-215 la llama agenda pública y el catálogo no exige sesión. No expone `gestorId` ni `fechaRegistro` (como DEC-217). Índice `eventos_agenda` `{fechaInicio, _id, fechaFin}`: orden sin ordenar en memoria y el rango de `fechaFin` sobre el índice | `AgendaController`, `SecurityConfig`, M013 |
+| DEC-240 | Desviación del Entregable 2 (categoría de atractivo) | El §2.4 define `atractivos.categoria` como texto libre; desde M012 es un `enum` (`Naturaleza`, `Cultura`; DEC-214, **decisión del equipo, no del SRS**). Se registra como desviación del Entregable 2; no hace falta migración nueva (M014): la semilla ya cumple el `enum` desde M012. Cierra **HC-E2** junto con el esquema de `eventos` | M012, punto 12 de «Pendientes para el SAD» |
+| DEC-242 | Eventos ya terminados (P5) | `fechaFin` anterior a hoy en America/Bogota (`RelojPort`) → `campos.fechaFin = NO_PERMITIDO`. **Decisión del equipo, no del SRS:** RF25 no lo dice, pero un evento ya terminado nunca aparecería en la agenda (DEC-215). Solo en el dominio: el validador no puede depender de la fecha actual | `EventoTuristico.registrar` |
+| DEC-241 | Sin `version` | Los eventos no llevan `version`: sin edición ni borrado (DEC-215) no hay escrituras concurrentes que controlar. Si un RF futuro pide editar, se agrega con una migración nueva (como M011) | M013 |
+
+**Orden de aplicación en el volumen local (C1, O36):** la colección `migraciones` del volumen `sm_tours_aplication_mongo-data` llega a M011 (consulta del 2026-11-05, levantando solo `mongo` y deteniéndolo después): **M012 y M013 están pendientes de aplicar**. El próximo `docker compose up` aplica, con `mongo-migraciones`, **M012 y después M013**, en orden de número (`aplicar.js`). **El recorrido visual de la sesión B2 requiere ese `up`:** sin él no existe la colección `eventos` y la agenda no tiene datos.
+
+**Estado de los RF de la sesión:**
+
+| RF | Estado | Pruebas / pendiente |
+|---|---|---|
+| RF25 (agenda de eventos) | **Parcial (backend; sin recorrido visual)** | `EventoTuristicoTest`, `GestionarEventosServiceTest`, `ConsultarAgendaServiceTest`, `RegistrarEventoApiIntegracionTest`, `AgendaApiIntegracionTest`, `AccesoGestorApiIntegracionTest`, `MigracionesMongoTest`. Faltan las pantallas (B2) |
+
+Avance: sigue en **39 de 64**; RF25 lleva a 40 al cerrar B2.
+
+**Hallazgos y observaciones de la sesión A2:**
+
+| # | Hallazgo | Estado |
+|---|---|---|
+| HC-E1 | RF25 sin CU | **Resuelto** (dos CU) |
+| HC-E2 | El esquema de `eventos` no se podía verificar contra el Entregable 2 | **Resuelto:** el esquema de M013 parte del §2.4 (DocumentoEntregable2.md, documento del Proyecto, fuera del repositorio); las diferencias están en el punto 13 de «Pendientes para el SAD» |
+| O36 | M012 y M013 están pendientes de aplicar en el volumen local: el último arranque fue anterior a la sesión A1 | Abierto: el próximo `docker compose up` aplica M012 y después M013. El recorrido visual de B2 requiere ese `up` |
+| O37 | Pruebas existentes modificadas:<br>- `MigracionesMongoTest`: la lista suma M013; «volver a aplicarlas» y «sin semilla» esperan M013; el validador de `eventos` se compara con `docs/`; casos nuevos de índices y del validador;<br>- `AccesoGestorApiIntegracionTest`: `endpoints()` suma `GET` y `POST /gestor/eventos`.<br>Conteo de ms-catalog: de 798 a 836 (`./mvnw clean test`, sin fallos) | Registrado |
+
+**Verificación de la sesión A2:** `./mvnw test` completo en ms-catalog con Docker activo. Sin `docker compose up` (solo el servicio `mongo`, para C1).
+
+**Recorrido visual:** no aplica en A2 (solo backend). El de B2 requiere el `docker compose up` que aplica M012 y M013 (O36).
+
+**Fuera de alcance de la sesión A2:** las pantallas de la agenda (B2); editar, borrar o despublicar eventos (DEC-215); vincular un evento a un atractivo (el §2.4 guarda la ubicación como texto); notificaciones de eventos (ms-notificaciones).
+
 ## Buscar oferta turística — decisiones de búsqueda (RF16, RF23, RF33, RF38, RF50, RF61)
 
 Decididas por el equipo; se aplican en el caso de uso de ms-catalog (`domain/service/PoliticaBusqueda` y el adaptador MongoDB; arquitectura en [`ADR-004`](sad/adr/ADR-004-busqueda-combinada.md)).
@@ -1394,7 +1440,7 @@ Observaciones sobre `docs/sad/modelo-nosql/`. Los cambios al esquema son el `enu
 | 10 | **Esquema v3 de `servicios` y `cuentas` v2 (M008; DEC-126 a DEC-136, DEC-148).** `servicios`: `fechaRegistro` obligatoria (rellenada desde el `_id`); `precioBase` obligatorio en todas las categorías; `oferta` `{diasOperacion, salidas}` obligatoria en Tour y Alojamiento y prohibida en las demás (rellenada con la oferta de D5); **ampliaciones** `direccion`, `rnt`, `motivoRechazo`, `revisadoPor` y `fechaRevision`, opcionales en el validador y obligatorias en el dominio para los registros nuevos (**justificación:** la semilla de `init/` existe aunque `MONGO_SEMILLA=false`, y exigir lo que no se puede derivar rompería el `updateMulti` de RF22); `$expr`: `motivoRechazo` si y solo si `Rechazado`; mínimos ≥ 1 en aforos y unidades; índices `admin_estado_fecha` y `prestador_fecha`. `cuentas`: `rnt` opcional (solo Prestador). `docs/sad/modelo-nosql/` describe la versión v3 y M008 lleva su propia copia. Falta llevarlo al Documento Entregable 2 | RF09, RF10, RF21, RF37 |
 | 11 | **Esquema v4 de `servicios` (M011; DEC-186; N20).** `version` obligatoria (entero ≥ 0): el control de concurrencia de la edición del Prestador (RF32, RF43) y de la decisión del Administrador (RF21). M011 la rellena en 0 antes de instalar el validador. **Ampliación propia** (no está en el Entregable 2). `docs/sad/modelo-nosql/servicios.schema.json` describe la v4 y M011 lleva su propia copia. Falta llevarlo al Documento Entregable 2 | RF32, RF43, RF21 |
 | 12 | **Esquema v2 de `atractivos` (M012; iteración E, A1; DEC-207, DEC-208, DEC-214; Entregable 2, §2.4).** `version` (entero ≥ 0) y `fechaRegistro` obligatorias, rellenadas por M012 (0 y la fecha del `_id`); **ampliaciones** `horarioAtencion` (1 a 500, RF58; cierra HC4) y `fechaActualizacion`; más estricto que el v1: `gestorId` con forma de UUID, `nombre` de 1 a 120, `descripcion` y `normasAmbientales` de 1 a 1000, `categoria` como `enum` (`Naturaleza`, `Cultura`: **decisión del equipo, no del SRS**), `limiteCapacidadCarga` de 1 a 100 000, `imagenes` hasta 5 (rutas públicas de GridFS, ADR-009) y el `enum` de accesibilidad de RF27. `descripcion`, `categoria`, `estadoOperativo` e `imagenes` siguen opcionales en el validador (obligatorios en el dominio para los registros nuevos, como DEC-148). `docs/sad/modelo-nosql/atractivos.schema.json` describe la v2 y M012 lleva su propia copia. Falta llevarlo al Documento Entregable 2 | RF06, RF07, RF24, RF27, RF33, RF58 |
-| 13 | **Colección `eventos` (RF25; iteración E, sesión A2, M013).** El Entregable 2 (§2.4) la nombra, pero el documento no está en el repositorio (HC-E2): el esquema se propondrá a partir de RF25 y el equipo debe confirmarlo contra el Entregable 2. Se completa en la sesión A2 | RF25 |
+| 13 | **Colección `eventos` (RF25; iteración E, sesión A2, M013; DEC-235 a DEC-242).** Parte de DocumentoEntregable2.md, §2.4 (documento del Proyecto, fuera del repositorio). **Diferencias con el §2.4:** `ubicacion` y `descripcion` obligatorias (DEC-235); **ampliación** `fechaRegistro` obligatoria (DEC-238); `additionalProperties: false`; `gestorId` con forma de UUID; `nombre` de 1 a 120, `ubicacion` de 1 a 200 y `descripcion` de 1 a 1000, sin espacios en los extremos (DEC-236); `$expr` con `fechaInicio <= fechaFin` (DEC-237; la regla de «no anterior a hoy», DEC-242, es solo del dominio); fechas de día a las 00:00 de America/Bogota (convención que garantiza el dominio, no el validador). Índices `eventos_agenda` y `eventos_registro`. Sin `version` (DEC-241). `docs/sad/modelo-nosql/eventos.schema.json` describe la v1 y M013 lleva su propia copia. **Desviación también registrada:** `atractivos.categoria` es un `enum` desde M012, no texto libre como en el §2.4 (DEC-240). Falta llevarlo al Documento Entregable 2 | RF25 |
 
 ## Discrepancias
 

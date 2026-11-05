@@ -4,15 +4,20 @@ import co.edu.unimagdalena.samaria360.catalog.application.port.in.ActualizarAtra
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ActualizarCuentaUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarAtractivoUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarAtractivosGestorUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarAgendaUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ConsultarImagenUseCase;
+import co.edu.unimagdalena.samaria360.catalog.application.port.in.GestionarEventosUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.RegistrarAtractivoUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.AlmacenImagenesPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.AtractivoRepositoryPort;
+import co.edu.unimagdalena.samaria360.catalog.application.port.out.EventoRepositoryPort;
 import co.edu.unimagdalena.samaria360.catalog.application.port.out.GestionAtractivosPort;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ActualizarAtractivoService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarAgendaService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarAtractivoService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarAtractivosGestorService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.ConsultarImagenService;
+import co.edu.unimagdalena.samaria360.catalog.application.service.GestionarEventosService;
 import co.edu.unimagdalena.samaria360.catalog.application.service.RegistrarAtractivoService;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.ActualizarServicioUseCase;
 import co.edu.unimagdalena.samaria360.catalog.application.port.in.AdministrarServiciosUseCase;
@@ -153,6 +158,16 @@ public class BeanConfig {
     @Bean
     public ConsultarImagenUseCase consultarImagenUseCase(AlmacenImagenesPort imagenes) {
         return new ConsultarImagenService(imagenes);
+    }
+
+    @Bean
+    public GestionarEventosUseCase gestionarEventosUseCase(EventoRepositoryPort eventos, RelojPort reloj) {
+        return new GestionarEventosService(eventos, reloj);
+    }
+
+    @Bean
+    public ConsultarAgendaUseCase consultarAgendaUseCase(EventoRepositoryPort eventos, RelojPort reloj) {
+        return new ConsultarAgendaService(eventos, reloj);
     }
 
     @Bean

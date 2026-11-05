@@ -32,15 +32,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 /**
- * C5: {@code /api/v1/catalogo/gestor/**} es solo del Gestor (DEC-220). Otro rol recibe 403 ACCESO_DENEGADO, en cada
- * endpoint; un Gestor sin fila en la proyección {@code cuentas} recibe 401 SESION_INVALIDADA (DEC-110), y un Gestor con
- * fila pero con un token anterior a su versión, también.
+ * C5: {@code /api/v1/catalogo/gestor/**} (atractivos y, desde la sesión A2, eventos) es solo del Gestor (DEC-220).
+ * Otro rol recibe 403 ACCESO_DENEGADO, en cada endpoint; un Gestor sin fila en la proyección {@code cuentas} recibe 401
+ * SESION_INVALIDADA (DEC-110), y un Gestor con fila pero con un token anterior a su versión, también.
  */
 @PruebaIntegracion
 class AccesoGestorApiIntegracionTest {
 
     private static final String RUTA = SolicitudesAtractivo.RUTA;
     private static final String ID = "0000000000000000000000aa";
+    private static final String EVENTOS = "/api/v1/catalogo/gestor/eventos";
 
     @Autowired
     private MockMvc mvc;
@@ -68,6 +69,8 @@ class AccesoGestorApiIntegracionTest {
             assertThat(codigo(resultado)).isEqualTo("ACCESO_DENEGADO");
         }
         assertThat(mongo.getCollection("atractivos").countDocuments(
+                Filters.eq("gestorId", usuario.toString()))).isZero();
+        assertThat(mongo.getCollection("eventos").countDocuments(
                 Filters.eq("gestorId", usuario.toString()))).isZero();
     }
 
@@ -123,7 +126,10 @@ class AccesoGestorApiIntegracionTest {
                 () -> multipart(RUTA).file(SolicitudesAtractivo.parteDatos(datos("Sin acceso")))
                         .file(parteImagen("a.jpg", imagen(FIRMA_JPEG, 10))),
                 () -> put(RUTA + "/" + ID).contentType(MediaType.APPLICATION_JSON).content("{}"),
-                () -> post(RUTA + "/" + ID + "/estado").contentType(MediaType.APPLICATION_JSON).content("{}"));
+                () -> post(RUTA + "/" + ID + "/estado").contentType(MediaType.APPLICATION_JSON).content("{}"),
+                // Agenda de eventos (RF25): la misma regla de /gestor/** (DEC-220).
+                () -> get(EVENTOS),
+                () -> post(EVENTOS).contentType(MediaType.APPLICATION_JSON).content("{}"));
     }
 
     private static String codigo(MvcResult resultado) throws Exception {
