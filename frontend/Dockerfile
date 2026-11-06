@@ -14,7 +14,7 @@ RUN npm run build
 # ---------- Ejecución ----------
 # nginx sin root: la variante oficial unprivileged corre como el usuario nginx (UID 101) y escucha en 8080, porque un
 # usuario sin privilegios no puede abrir puertos por debajo de 1024. Compose publica FRONTEND_PORT → 8080.
-FROM nginxinc/nginx-unprivileged:1.30.5-alpine
+FROM nginxinc/nginx-unprivileged:1.31.7-alpine
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY nginx/seguridad.conf /etc/nginx/samaria360/seguridad.conf
 COPY --from=compilacion /fuente/dist /usr/share/nginx/html
