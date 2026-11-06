@@ -1509,6 +1509,14 @@ Estado de RF58: **Implementado** (C1 a C5; iteración E, B1).
 | HC2 | WF-06 pide RNT y dirección. El RNT vive en `auth_db.prestador`, sin endpoint público ni réplica en `catalog_db`; `servicios` solo guarda coordenadas. Mostrarlos requiere una composición entre servicios que el SAD no define (falta un ADR: réplica como `prestadorActivo` o composición de API). **Resuelto en el backend (iteración C, A1):** réplica del RNT por el evento `CuentaActualizada` (enmienda de ADR-008; DEC-126, DEC-146, DEC-147) y `direccion` en `servicios` (M008, M009); el detalle público los entrega (DEC-150). La pantalla los muestra en B1 | Hallazgo Crítico (resuelto en el backend) |
 | HC4 | RF58 incluye atractivos, pero `atractivos` no tenía campo de horario | **Resuelto** (iteración E): `horarioAtencion` en el esquema v2 (M012, DEC-208) y en WF-09 y la ficha (B1) |
 
+## API Gateway: caché DNS — decisión (DEC-260)
+
+Defecto encontrado durante la revisión del repositorio (2026-11-05), en un PR propio (`fix/gateway-cache-dns`).
+
+| # | Tema | Decisión | Dónde |
+|---|---|---|---|
+| DEC-260 | Caché DNS de las rutas | El cliente HTTP de las rutas (Reactor Netty) guarda cada resolución **10 s como máximo**. **Causa:** el DNS interno de Docker responde con TTL de 600 s y Reactor Netty lo respeta; al recrear un servicio (`docker compose up -d --build --no-deps ms-catalog`) con otra IP, el gateway seguía enviando a la vieja (503 `SERVICIO_NO_DISPONIBLE` con el servicio sano) hasta 10 minutos y solo se arreglaba reiniciando el gateway. **Verificación:** con la IP vieja ocupada por otro contenedor, antes seguía en 503 después de más de 4 minutos; con el cambio se recupera en 8 s. Es el mismo `valid=10s` del resolvedor de nginx (`frontend/nginx/default.conf`); resolver cada 10 s en la red de Docker no tiene costo apreciable | `api-gateway/…/config/ResolucionNombresConfig.java`, `ResolucionNombresTest`, ADR-005 (nota de despliegue) |
+
 ## Pendientes para el SAD (modelo NoSQL)
 
 Observaciones sobre `docs/sad/modelo-nosql/`. Los cambios al esquema son el `enum` de `serviciosIncluidos` (punto 6), las unidades de alojamiento (punto 7), los esquemas v3 y v4 de `servicios` (puntos 10 y 11), el v2 de `atractivos` (punto 12) y, en la sesión A2, `eventos` (punto 13).
