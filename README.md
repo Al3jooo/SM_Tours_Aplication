@@ -5,7 +5,6 @@
 [![ms-booking](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/ms-booking.yml/badge.svg)](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/ms-booking.yml)
 [![api-gateway](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/api-gateway.yml/badge.svg)](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/api-gateway.yml)
 [![frontend](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/frontend.yml/badge.svg)](https://github.com/Al3jooo/SM_Tours_Aplication/actions/workflows/frontend.yml)
-[![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE)
 
 Plataforma de turismo de Santa Marta. Proyecto Capstone Design — Arquitectura de Software, Universidad del Magdalena.
 
@@ -88,8 +87,7 @@ samaria360/
 ├── ms-booking/                   # Spring Boot 3 + PostgreSQL (reservas_db), misma estructura hexagonal
 ├── docker-compose.yml
 ├── .env.example
-├── .editorconfig
-└── LICENSE
+└── .editorconfig
 ```
 
 El asistente con IA (WF-07) está fuera del alcance del prototipo: no hay un microservicio para él.
@@ -188,7 +186,7 @@ docker compose down -v                     # detener todo y BORRAR los volúmene
 
 | Síntoma | Causa | Solución |
 |---|---|---|
-| `Bind for 0.0.0.0:8000 failed: port is already allocated` (o 8080, 5432, 27017) | Otro programa usa el puerto | Cambiar `FRONTEND_PORT`, `POSTGRES_PORT` o `MONGO_PORT` en `.env`, o cerrar el programa. Para encontrarlo: `netstat -ano \| findstr :8000` en Windows o `lsof -i :8000` en Linux/macOS. El 8080 es fijo: hay que liberarlo. |
+| `Bind for 0.0.0.0:8000 failed: port is already allocated` (o `Bind for 127.0.0.1:8080`, `:5432` o `:27017`) | Otro programa usa el puerto | Cambiar `FRONTEND_PORT`, `POSTGRES_PORT` o `MONGO_PORT` en `.env`, o cerrar el programa. Para encontrarlo: `netstat -ano \| findstr :8000` en Windows o `lsof -i :8000` en Linux/macOS. El 8080 es fijo: hay que liberarlo. |
 | PostgreSQL no arranca en 5432, o ms-auth se conecta a otra base | En Windows, el servicio de PostgreSQL instalado localmente (`postgresql-x64-*`) ya ocupa el 5432 | Poner `POSTGRES_PORT=5433` en `.env`, o detener ese servicio en `services.msc`. Dentro de Docker no cambia nada: ms-auth usa `postgres:5432` por la red interna. |
 | `docker compose up` falla con un error que menciona `infra/keys/jwt-privada.pem` (o la pública) | Faltan las llaves del JWT | Generarlas en `infra/keys/` (paso 2) y volver a ejecutar `docker compose up -d`. |
 | `required variable POSTGRES_PASSWORD is missing a value: Falta POSTGRES_PASSWORD en .env` | Falta el `.env` o una variable | `cp .env.example .env` y completar los valores. |
@@ -244,8 +242,7 @@ Proyecto Capstone Design de Arquitectura de Software, Universidad del Magdalena:
 
 ## Licencia
 
-El código se distribuye bajo la [licencia MIT](LICENSE). **Excepción:** las fotografías de
-`frontend/public/imagenes/catalogo/`, `frontend/public/imagenes/ambiente/` y `frontend/public/imagenes/marca/` no
-tienen autor, fuente ni licencia verificados; se usan solo para la demostración académica del prototipo y la licencia
-MIT no las cubre. Tampoco cubre las capturas de `docs/recursos-graficos/capturas/`, que las muestran, ni las teselas
-del mapa (© OpenStreetMap contributors).
+Por ahora el repositorio **no tiene licencia** (DEC-254): todos los derechos quedan reservados a sus autores hasta que
+el docente apruebe una, por la propiedad intelectual del capstone y su relación con la Alcaldía. Las fotografías de
+`frontend/public/imagenes/` y las capturas de `docs/recursos-graficos/capturas/` no tienen autor, fuente ni licencia
+verificados y se usan solo para la demostración académica; las teselas del mapa son © OpenStreetMap contributors.
