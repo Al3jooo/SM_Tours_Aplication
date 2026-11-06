@@ -75,7 +75,7 @@
                      ./mvnw verify; ./mvnw test no lo genera. -->
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.13</version>
+                <version>0.8.16</version>
                 <executions>
                     <execution>
                         <id>preparar-agente</id>

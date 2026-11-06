@@ -21,8 +21,8 @@
     <properties>
         <java.version>17</java.version>
         <!-- No gestionadas por el BOM de Spring Boot: versión explícita -->
-        <springdoc.version>2.8.16</springdoc.version>
-        <archunit.version>1.4.2</archunit.version>
+        <springdoc.version>3.2.0</springdoc.version>
+        <archunit.version>1.5.1</archunit.version>
     </properties>
 
     <dependencies>
@@ -116,7 +116,7 @@
                      ./mvnw verify; ./mvnw test no lo genera. -->
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.13</version>
+                <version>0.8.16</version>
                 <executions>
                     <execution>
                         <id>preparar-agente</id>
