@@ -1,0 +1,4 @@
+# Une las identidades de cada autor en git log, git shortlog y git blame (formato: nombre y correo canónicos, después
+# los que se reemplazan). No cambia el historial.
+Bryan Robles <229833554+Bryan-Robles@users.noreply.github.com> <branromo08@gmail.com>
+Juan Rivera <riverajuandy04@gmail.com> JuanRivera <riverajuandy04@gmail.com>

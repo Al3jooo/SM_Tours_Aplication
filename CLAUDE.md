@@ -25,7 +25,7 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
   - **«Atractivos y agenda» (iteración E, DEC-54, DEC-213):** RF06, RF07, RF24, RF27 y RF58 (parte del Gestor), RF33 y RF25, en `ms-catalog`. Cuatro PR: **A1** (backend de atractivos, imágenes en GridFS, [ADR-009](docs/sad/adr/ADR-009-imagenes-gridfs.md) y cuatro CU: **hecho**, DEC-206 a DEC-221), **A2** (backend de la agenda de eventos y dos CU: **hecho**, DEC-235 a DEC-242; M013), **B1** (pantallas del Gestor y ficha del atractivo: **hecho**, DEC-222 a DEC-234; wireframes WF-09 ampliado, WF-24 y WF-06 para atractivos, propuestos por arquitectura y pendientes de validación; rutas privadas, solo para el Gestor: `/gestor/atractivos` (WF-24), `/gestor/atractivos/nuevo` y `/gestor/atractivos/:id` (WF-09); ruta pública `/atractivos/:id`; registro multipart con `httpClient` `formulario`, DEC-230; en la edición las fotos van en solo lectura y los filtros del panel, deshabilitados: no hay contrato, DEC-222, DEC-226; el 404 de la ficha es `ATRACTIVO_NO_ENCONTRADO`, enmienda de DEC-217) y **B2** (pantallas de la agenda: **hecho**, DEC-245 a DEC-251; wireframes WF-25 y WF-26, propuestos por arquitectura y pendientes de validación; rutas privadas, solo para el Gestor: `/gestor/eventos` (panel, sin acciones) y `/gestor/eventos/nuevo` (WF-25); ruta pública `/agenda` (WF-26), sin token, desde «Agenda de eventos» de la columna «Municipio» del pie; el cliente **no calcula «hoy»**: «no anterior a hoy» lo decide el servidor y la agenda muestra lo que devuelve; las fechas de día se formatean con `formatearFecha` (UTC), nunca con `formatearDia`). Con B1, RF06, RF07, RF24, RF27, RF33 y RF58 quedan implementados (39 de 64); con B2, RF25 (40 de 64). La iteración E está cerrada. El Gestor registra, edita y cambia el estado de **cualquier** atractivo (DEC-206); sin borrado; el Administrador no gestiona atractivos. Categorías `Naturaleza` y `Cultura` y las reglas de la agenda (DEC-214, DEC-215) son **decisiones del equipo, no del SRS**. DEC-31, N1 y M5 del pedido no tienen texto en el repositorio: «pendiente de texto» (DEC-218). CU: [Registrar atractivo](docs/casos-de-uso/CU-registrar-atractivo.md), [Actualizar atractivo](docs/casos-de-uso/CU-actualizar-atractivo.md) (con el panel «Atractivos»), [Cambiar estado operativo](docs/casos-de-uso/CU-cambiar-estado-atractivo.md), [Consultar detalle de atractivo](docs/casos-de-uso/CU-consultar-detalle-atractivo.md), [Registrar evento en agenda](docs/casos-de-uso/CU-registrar-evento-agenda.md) (nombre de la figura 5 del Entregable 2) y [Consultar agenda de eventos](docs/casos-de-uso/CU-consultar-agenda-eventos.md). El esquema de `eventos` parte de DocumentoEntregable2.md, §2.4 (documento del Proyecto, fuera del repositorio).
 - **Fuera de alcance:** chatbot real, notificaciones (el aviso por correo del registro llega con RF34; RF13, RF30 y RF63, con ms-notificaciones), analítica, en reservas RF19 (modificar la oferta y los cupos, DEC-34, DEC-183), «Editar y reenviar» un servicio rechazado (DEC-193), y en contenido público «Noticias» del pie, la vigencia automática de los avisos y el contenido en varios idiomas (DEC-58, DEC-69). No implementarlos aunque parezcan fáciles.
 - Si una regla de negocio no está definida en el SRS (`docs/srs/`), **preguntar**; no inventarla.
-- Fuente única de requisitos: `docs/srs/especificacion de requisitos.pdf`. Modelo de datos: `docs/sad/diagramas/modelo-logico.dbml`. Ignorar las carpetas `Documentos extras/`, `DocumentosEntregable1/` y `Diagramas de casos de uso/`, que contienen versiones anteriores.
+- Fuente única de requisitos: `docs/srs/especificacion de requisitos.pdf`. Modelo de datos: `docs/sad/diagramas/modelo-logico.dbml`. Las versiones anteriores (`Documentos extras/`, `DocumentosEntregable1/`, `Diagramas de casos de uso/`) y las evidencias de las entrevistas se retiraron del repositorio; no se vuelven a agregar.
 - Las pantallas del frontend y los datos que exponen los endpoints deben corresponder a los wireframes de `docs/wireframes/`. Si un elemento del wireframe queda fuera del alcance del prototipo, se muestra deshabilitado y se lista como pendiente.
 - Wireframes: `docs/wireframes/` (leer primero su README.md). Las pantallas del frontend y los datos que exponen los endpoints deben corresponder a ellos; lo que quede fuera del alcance se muestra deshabilitado y se lista como pendiente.
 
@@ -171,8 +171,8 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 
 | Componente | Puerto | Nota |
 |---|---|---|
-| frontend (nginx, Docker Compose) | `FRONTEND_PORT` (8000) | Sirve la SPA y pasa `/api/` a api-gateway (un solo origen) |
-| api-gateway | 8080 | Único punto de entrada a los servicios; publicado en el host |
+| frontend (nginx, Docker Compose) | `FRONTEND_PORT` (8000) | Sirve la SPA y pasa `/api/` a api-gateway (un solo origen); nginx sin root (`nginx-unprivileged`), 8080 dentro del contenedor |
+| api-gateway | 8080 | Único punto de entrada a los servicios; publicado en el host solo en 127.0.0.1 |
 | ms-auth | 8081 | En Compose no se publica: solo red interna (`http://ms-auth:8081`) |
 | ms-catalog | 8082 | En Compose no se publica: solo red interna (`http://ms-catalog:8082`) |
 | ms-booking | 8083 | En Compose no se publica: solo red interna (`http://ms-booking:8083`) |
@@ -186,6 +186,8 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 - `infrastructure`: Testcontainers contra PostgreSQL/MongoDB reales.
 - `architecture`: reglas ArchUnit de capas.
 - Antes de dar algo por terminado: `./mvnw test` debe pasar.
+- CI en GitHub Actions (`.github/workflows/`): un workflow por servicio, filtrado por `paths`, que llama a `_java.yml` (`./mvnw verify`, con la cobertura de JaCoCo), y `frontend.yml` (`npm run lint`, `npm run build` y `npm test`; ESLint sin errores, los avisos no bloquean). Un servicio nuevo agrega su workflow.
+- Spring Boot se mantiene en la línea 3.5 durante la Construcción ([ADR-010](docs/sad/adr/ADR-010-linea-spring-boot-3-5.md)); no cambiar de línea dentro de una iteración.
 
 ## Comandos
 
@@ -193,9 +195,9 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 docker compose up -d --build    # sistema completo → http://localhost:8000 (ver README, «Arranque en un comando»)
 docker compose up -d postgres-bases mongo-migraciones   # solo las bases (y sus migraciones), para desarrollar con ./mvnw y Vite
 cd ms-auth && ./mvnw test       # pruebas
-cd ms-auth && ./mvnw spring-boot:run
-cd ms-catalog && ./mvnw spring-boot:run
-cd ms-booking && ./mvnw spring-boot:run
+cd ms-auth && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev      # dev: semilla y Swagger; no hay perfil por defecto
+cd ms-catalog && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+cd ms-booking && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 cd api-gateway && ./mvnw spring-boot:run   # http://localhost:8080
 cd frontend && npm run dev                 # http://localhost:5173
 ```

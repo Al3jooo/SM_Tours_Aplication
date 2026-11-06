@@ -1,6 +1,6 @@
 # Samaria360 — Frontend
 
-React + Vite + TypeScript. Prototipo arquitectónico de la fase de Elaboración (RUP): caso de uso **Iniciar sesión** (RF15, RF03, RF55, RNF08). Las pantallas siguen la estructura de los wireframes de `docs/wireframes/`; la trazabilidad está en `docs/trazabilidad.md`.
+React + Vite + TypeScript. Prototipo arquitectónico ejecutable de la fase de Construcción (RUP); el alcance de la iteración está en el [README de la raíz](../README.md) y cada pantalla tiene su sección más abajo. Las pantallas siguen la estructura de los wireframes de `docs/wireframes/`; la trazabilidad está en `docs/trazabilidad.md`.
 
 ## Comandos
 
@@ -9,9 +9,10 @@ npm install
 npm run dev      # http://localhost:5173 — /api se redirige al API Gateway (http://localhost:8080)
 npm test         # Vitest + Testing Library (incluye la guardia de contraste)
 npm run build    # tsc -b + build de producción en dist/
+npm run lint     # ESLint (eslint.config.js)
 ```
 
-Para usar la app de punta a punta: `docker compose up -d` en la raíz y `./mvnw spring-boot:run` en `ms-auth/`.
+Para usar la app de punta a punta: `docker compose up -d` en la raíz y `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev` en `ms-auth/`.
 
 ## Estructura
 
@@ -40,6 +41,7 @@ Versiones instaladas (`package-lock.json`) y licencias leídas de `node_modules`
 | `vitest`, `jsdom` | 5.0.3, 30.1.2 | MIT | Pruebas |
 | `@testing-library/react`, `/dom`, `/jest-dom`, `/user-event` | 16.3.3, 10.4.2, 7.0.1, 14.6.7 | MIT | Pruebas por roles y nombres accesibles |
 | `@types/react`, `@types/react-dom`, `@types/node`, `@types/leaflet` | 19.3.0, 19.3.0, 24.19.2, 1.9.22 | MIT | Tipos |
+| `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-react-hooks`, `globals` | 10.14.0, 10.0.1, 8.72.1, 7.1.1, 17.14.0 | MIT | Análisis estático (`npm run lint`, `eslint.config.js`): errores comunes y reglas de los hooks; corre en el CI |
 
 **Excluida: `react-leaflet`.** Su licencia es Hippocratic-2.1, que restringe usos por criterios éticos y no es una licencia de código abierto aprobada por la OSI; se descartó para no condicionar el uso del software de la Alcaldía. El mapa usa Leaflet directamente: se crea en un `useEffect`, se actualiza por capas (`layerGroup`) y la limpieza llama a `map.remove()`.
 

@@ -7,8 +7,9 @@ spring:
   config:
     # .env de la raíz del monorepo (ms-auth se ejecuta desde su propia carpeta)
     import: optional:file:../.env[.properties]
-  profiles:
-    default: dev
+  # Sin perfil por defecto: el perfil dev (usuarios de prueba y Swagger) se activa solo de forma explícita,
+  # con SPRING_PROFILES_ACTIVE=dev (Docker Compose) o -Dspring-boot.run.profiles=dev (./mvnw). Así un despliegue
+  # que no lo pida no carga la semilla.
   datasource:
     # POSTGRES_HOST: localhost con ./mvnw; "postgres" dentro de Docker Compose.
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/auth_db
@@ -42,6 +43,13 @@ samaria360:
     destinos:
       ms-catalog: ${CATALOG_INTERNO_URI:http://localhost:8082}
       ms-booking: ${BOOKING_INTERNO_URI:http://localhost:8083}
+
+# Solo /actuator/health (healthcheck de Docker Compose), igual que ms-booking y api-gateway.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
 
 # Swagger solo en dev (ver documento de perfil dev más abajo)
 springdoc:

@@ -1,0 +1,52 @@
+# Workflow reutilizable: compila y prueba un servicio Java con su propio ./mvnw (no hay pom.xml raíz).
+# Lo llaman ms-auth.yml, ms-catalog.yml, ms-booking.yml y api-gateway.yml.
+# Las pruebas de infraestructura usan Testcontainers: el runner ubuntu-latest trae Docker.
+name: _java
+
+on:
+  workflow_call:
+    inputs:
+      servicio:
+        description: Carpeta del servicio (ms-auth, ms-catalog, ms-booking o api-gateway)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    name: ./mvnw verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: ${{ inputs.servicio }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+          cache-dependency-path: ${{ inputs.servicio }}/pom.xml
+
+      - name: Compilar, probar y medir la cobertura (JaCoCo)
+        run: ./mvnw -B -ntp verify
+
+      - name: Publicar el informe de cobertura
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-${{ inputs.servicio }}
+          path: ${{ inputs.servicio }}/target/site/jacoco/
+          retention-days: 14
+
+      - name: Publicar reportes de pruebas
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-${{ inputs.servicio }}
+          path: ${{ inputs.servicio }}/target/surefire-reports/
+          retention-days: 7

@@ -11,8 +11,9 @@ spring:
   config:
     # .env de la raíz del monorepo (ms-catalog se ejecuta desde su propia carpeta)
     import: optional:file:../.env[.properties]
-  profiles:
-    default: dev
+  # Sin perfil por defecto: el perfil dev (Swagger) se activa solo de forma explícita,
+  # con SPRING_PROFILES_ACTIVE=dev (Docker Compose) o -Dspring-boot.run.profiles=dev (./mvnw). Mismo criterio que ms-auth,
+  # donde dev además carga la semilla.
   servlet:
     multipart:
       # Registro de atractivos (RF06, DEC-209, ADR-009): de 1 a 5 imágenes de 5 MB más los datos. El tope por parte
@@ -36,6 +37,13 @@ samaria360:
     emisor: samaria360-auth
     # aud de los tokens de servicio que ms-auth usa en /internal/** (ADR-008)
     audiencia: ms-catalog
+
+# Solo /actuator/health (healthcheck de Docker Compose), igual que ms-booking y api-gateway.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
 
 # Swagger solo en dev (ver documento de perfil dev más abajo)
 springdoc:

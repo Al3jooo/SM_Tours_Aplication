@@ -1,0 +1,35 @@
+name: Solicitud de cambio
+description: Proponer una funcionalidad, una mejora o un cambio de requisito para una iteración.
+title: "[Cambio] "
+labels: ["solicitud de cambio"]
+body:
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripción del cambio
+      description: Qué se quiere cambiar y por qué.
+    validations:
+      required: true
+  - type: input
+    id: requisitos
+    attributes:
+      label: Requisitos relacionados
+      description: RF o RNF del SRS (docs/srs/). Si no hay un requisito que lo respalde, indicarlo.
+      placeholder: "RF25, RNF02"
+  - type: dropdown
+    id: alcance
+    attributes:
+      label: Alcance del prototipo
+      description: Según CLAUDE.md, «Alcance de esta iteración» y «Fuera de alcance».
+      options:
+        - Dentro del alcance de la iteración actual
+        - Para una iteración futura
+        - Fuera del alcance del prototipo
+        - No lo sé
+    validations:
+      required: true
+  - type: textarea
+    id: impacto
+    attributes:
+      label: Impacto esperado
+      description: Servicios, pantallas (WF), migraciones y documentos que cambiarían.

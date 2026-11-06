@@ -7,8 +7,9 @@ spring:
   config:
     # .env de la raíz del monorepo (ms-booking se ejecuta desde su propia carpeta)
     import: optional:file:../.env[.properties]
-  profiles:
-    default: dev
+  # Sin perfil por defecto: el perfil dev (Swagger) se activa solo de forma explícita,
+  # con SPRING_PROFILES_ACTIVE=dev (Docker Compose) o -Dspring-boot.run.profiles=dev (./mvnw). Mismo criterio que ms-auth,
+  # donde dev además carga la semilla.
   datasource:
     # POSTGRES_HOST: localhost con ./mvnw; "postgres" dentro de Docker Compose.
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/reservas_db
