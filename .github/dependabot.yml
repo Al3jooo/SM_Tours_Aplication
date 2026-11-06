@@ -1,6 +1,8 @@
 # Actualizaciones de dependencias: un PR agrupado por ecosistema al mes, para no interrumpir las iteraciones.
 # ADR-010: la línea Spring Boot 3.5 (y su Spring Cloud 2025.0) se mantiene durante la Construcción, así que no se
 # proponen cambios de línea de Spring Boot, Spring Cloud ni de la versión mayor de Java o Node en las imágenes.
+# Con el mismo criterio tampoco se proponen versiones mayores de npm ni de springdoc (la 3.x es para Boot 4), y nginx se
+# queda en su línea estable (1.30.x; las menores impares son mainline). Un cambio de versión mayor se decide aparte.
 version: 2
 
 updates:
@@ -24,6 +26,9 @@ updates:
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: org.springframework.cloud:spring-cloud-dependencies
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # springdoc 3.x trae módulos de Spring Boot 4: ms-auth, ms-catalog y ms-booking no arrancan (PR #39).
+      - dependency-name: "org.springdoc:*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /frontend
@@ -37,6 +42,11 @@ updates:
       npm:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+    ignore:
+      # Sin versiones mayores durante la Construcción. P. ej., TypeScript 7 no lo admite typescript-eslint (PR #41) y
+      # @types/node debe seguir la versión de Node del Dockerfile y del CI (24; PR #42).
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker
     directories:
@@ -58,6 +68,9 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: node
         update-types: ["version-update:semver-major"]
+      # Solo parches de la línea estable de nginx (1.30.x); 1.31 es mainline (PR #38).
+      - dependency-name: nginxinc/nginx-unprivileged
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   - package-ecosystem: github-actions
     directory: /
