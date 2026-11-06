@@ -161,6 +161,7 @@ Plataforma de turismo de Santa Marta. Proyecto Capstone Design (Arquitectura de 
 - **No valida el JWT**: reenvía `Authorization` sin cambios y cada servicio lo valida con el JWKS de ms-auth (ADR-005). No agregar Spring Security al gateway.
 - **No enruta `/internal/**`** (los endpoints internos de ms-catalog y ms-booking solo los alcanza el relevo de ms-auth, ADR-008): no agregar una ruta que los exponga. Lo prueba `EnrutamientoTest`.
 - `RutaSeguraWebFilter` rechaza rutas no normalizadas (`.`, `..`, `%2e`, `%2f`, `%5c`, `\`) con 400 `RUTA_INVALIDA` antes de enrutar.
+- Caché DNS del cliente de las rutas de 10 s como máximo (`ResolucionNombresConfig`, un `HttpClientCustomizer`; DEC-260): el DNS de Docker responde con TTL de 600 s y, sin ese tope, al recrear un servicio con otra IP el gateway seguía usando la vieja (503) hasta 10 minutos. Lo prueba `ResolucionNombresTest`.
 - Resiliencia: 2 s de conexión, 5 s de respuesta, circuit breaker por ruta (Resilience4j, solo 502/503/504 lo abren; en reservas, solo 502/504, para que el 503 propio de ms-booking con `servicio: ms-catalog` llegue tal cual) con fallback ProblemDetail 503 `codigo: SERVICIO_NO_DISPONIBLE` y `servicio`.
 - Transversal: CORS global (`CORS_ORIGENES`) y `X-Correlation-Id` (se genera si falta o no es válido, se reenvía y se devuelve).
 - **No tiene dominio: no aplica la estructura hexagonal ni ArchUnit.** Paquete `co.edu.unimagdalena.samaria360.gateway` con `config/`.

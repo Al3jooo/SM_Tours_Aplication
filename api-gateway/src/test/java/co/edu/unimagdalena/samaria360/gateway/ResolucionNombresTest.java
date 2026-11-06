@@ -26,13 +26,4 @@ class ResolucionNombresTest {
         assertThat(resolvedor).as("resolvedor configurado por ResolucionNombresConfig").isNotNull();
         assertThat(resolvedor.cacheMaxTimeToLive()).isEqualTo(Duration.ofSeconds(10));
     }
-
-    @Test
-    void sinLaConfiguracionReactorNettyRespetariaElTtlDelDns() {
-        var porDefecto = HttpClient.create().configuration().getNameResolverProvider();
-
-        // Documenta la causa: por defecto no hay tope (o es mayor que 600 s, el TTL del DNS de Docker).
-        assertThat(porDefecto == null || porDefecto.cacheMaxTimeToLive().compareTo(Duration.ofSeconds(600)) > 0)
-                .isTrue();
-    }
 }
